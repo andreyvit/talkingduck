@@ -12,7 +12,7 @@ The first experiment inventories local specs, Git work, and Codex/Claude/Grok se
 go run ./cmd/talkingduck
 ```
 
-See [inventory usage and limits](cmd/talkingduck/README.md), including JSON output,
+See [inventory usage and limits](cmd/talkingduck/README.md), including compact `-ai` output,
 and [agent collection research](docs/agent-collection-research.md).
 The repository also contains Zoo skills, project guidance, and a review scout.
 

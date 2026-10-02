@@ -8,7 +8,7 @@ another agent or model from the collector. This file is not an installed skill.
 From TalkingDuck:
 
 ```sh
-go run ./cmd/talkingduck -json
+go run ./cmd/talkingduck -ai
 ```
 
 Default scope: Prairie `backend`, `back2` through `back10`. Supply explicit
@@ -19,19 +19,24 @@ Use `-no-agents` for Git/spec-only output. Standalone session collection:
 go run ./cmd/talkingduck -agents-only /absolute/checkout/path
 ```
 
-Read `agent_sources`, their warnings, and `agent_error` before interpreting missing
-sessions. Each spec has `sessions`; each repository also has `unassigned_sessions`. Each session has `activity`, `question`,
-`permission`, `process`, `spec_association`, timestamps, evidence, and
-`unknown_fields`. Unknown is not idle, no, or an empty answer. Native formats can
-change; return unknown rather than repairing the user's app data.
+Read task rows and the final symbol key. `spec=` identifies the task file;
+`session=` is the latest primary session ID for follow-up. Unknown is not idle,
+no, or an empty answer. Source warnings go to stderr; use `-agents-only` for
+session identities and provider coverage when an agent is missing.
 
-JSON output contains private titles, questions, and bounded message excerpts.
-Keep saved observations in `.tasks/` or another local ignored destination.
-Do not upload or commit them. Inspect only session files needed for the request.
+The full hierarchy, pending question text, source paths/times, inference evidence,
+and unassigned sessions remain available through `inventory.Build` for callers
+that need deeper inspection. They are not dumped into the compact AI listing.
+Native formats can change; return unknown rather than repairing app data.
+
+Output contains private titles and session IDs. Keep observations in `.tasks/`
+or another local ignored destination. Do not upload or commit them. Inspect only
+session files needed for the request.
 
 ## Enrich cheaply first
 
-1. Report explicit current questions first. Quote `pending_questions[].prompts`,
+1. Report explicit current questions first. Read pending prompts from the shared
+   inventory snapshot or the identified session,
    preserving session, engine, full folder, and source time.
 2. Read the latest assistant text when question state is unknown because of prose.
    Decide whether it actually asks for an answer or merely mentions a question.
@@ -72,17 +77,8 @@ Opening a chat may change its read state; restore the prior view when practical.
 
 Keep enrichments separate from the baseline. An enrichment record should contain:
 
-```json
-{
-  "engine": "claude",
-  "session_id": "session-id-from-baseline",
-  "field": "question",
-  "value": "yes",
-  "source": "Claude Desktop question dialog",
-  "observed_at": "2026-10-02T12:00:00Z",
-  "confidence": "observed",
-  "evidence": "Exact visible question text"
-}
+```text
+claude session=SESSION-ID question=yes source="Claude Desktop question dialog" observed=2026-10-02T12:00:00Z confidence=observed evidence="Exact visible question text"
 ```
 
 This is a caller-side reporting convention, not an input format consumed by the

@@ -10,8 +10,9 @@ type tableReport struct {
 	AgentError   string         `json:"agent_error"`
 }
 type sourceView struct {
-	Engine string `json:"engine"`
-	Status string `json:"status"`
+	Engine   string   `json:"engine"`
+	Status   string   `json:"status"`
+	Warnings []string `json:"warnings"`
 }
 type worktreeView struct {
 	Path     string     `json:"path"`
@@ -30,10 +31,12 @@ type gitView struct {
 	Warnings      []string `json:"warnings"`
 }
 type taskView struct {
+	Path           string   `json:"path"`
 	Tickets        []string `json:"tickets"`
 	DisplayTitle   string   `json:"display_title"`
 	PrimarySession struct {
 		Engine string `json:"engine"`
+		ID     string `json:"id"`
 	} `json:"primary_session"`
 	PrimaryConflict bool         `json:"primary_conflict"`
 	Workflow        workflowView `json:"workflow"`

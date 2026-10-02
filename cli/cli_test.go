@@ -2,7 +2,6 @@ package cli
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"flag"
 	"io"
@@ -18,7 +17,7 @@ func TestSharedFlagsAndExitCodes(t *testing.T) {
 	opts := RegisterFlags(fs)
 	gui := fs.Bool("gui", false, "GUI")
 	missing := filepath.Join(t.TempDir(), "missing")
-	if err := fs.Parse([]string{"--gui", "-no-agents", "-json", missing}); err != nil {
+	if err := fs.Parse([]string{"--gui", "-no-agents", "-ai", "-color", "always", missing}); err != nil {
 		t.Fatal(err)
 	}
 	if !*gui {
@@ -28,21 +27,13 @@ func TestSharedFlagsAndExitCodes(t *testing.T) {
 	if code := RunTo(opts, fs.Args(), &out, &stderr); code != 1 {
 		t.Fatal(code)
 	}
-	var data map[string]any
-	if err := json.Unmarshal(out.Bytes(), &data); err != nil {
-		t.Fatal(err)
-	}
-	if data["schema_version"] != float64(2) || strings.Contains(out.String(), "\x1b[") {
+	if !strings.Contains(out.String(), "ERROR") || strings.Contains(out.String(), "\x1b[") || !strings.HasSuffix(strings.TrimSpace(out.String()), aiKey) {
 		t.Fatal(out.String())
 	}
 	opts.Details = true
 	out.Reset()
-	if code := RunTo(opts, fs.Args(), &out, &stderr); code != 1 {
-		t.Fatal(code)
-	}
-	data = nil
-	if err := json.Unmarshal(out.Bytes(), &data); err != nil || data["schema_version"] != nil {
-		t.Fatal(data, err)
+	if code := RunTo(opts, fs.Args(), &out, &stderr); code != 1 || !strings.HasSuffix(strings.TrimSpace(out.String()), aiKey) {
+		t.Fatal(code, out.String())
 	}
 	opts.Color = "invalid"
 	out.Reset()
@@ -79,8 +70,8 @@ func TestRunSuccessAndOutputErrors(t *testing.T) {
 	if !strings.Contains(out.String(), "CLEAN") || strings.Contains(out.String(), "\x1b[") {
 		t.Fatal(out.String())
 	}
-	for _, mode := range []string{"table", "json", "details"} {
-		opts.JSON = mode == "json"
+	for _, mode := range []string{"table", "ai", "details"} {
+		opts.AI = mode == "ai"
 		opts.Details = mode == "details"
 		stderr.Reset()
 		if code := RunTo(opts, []string{root}, brokenWriter{}, &stderr); code != 1 || !strings.Contains(stderr.String(), "output unavailable") {

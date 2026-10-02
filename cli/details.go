@@ -75,7 +75,7 @@ func renderDetails(out io.Writer, report inventory.Report) {
 				inferred = inferred || (e.Inferred && e.Kind != "tickets inferred from filename and request")
 			}
 			if inferred {
-				fmt.Fprintln(out, "    includes inferred file/ticket associations; see -json for evidence")
+				fmt.Fprintln(out, "    includes inferred file/ticket associations; see inventory.Build for full evidence")
 			}
 		}
 		if len(r.UnassignedCommits) > 0 {

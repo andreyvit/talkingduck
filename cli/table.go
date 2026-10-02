@@ -61,7 +61,7 @@ func tableCell(s string, column int) string {
 
 func numeric(v any) string { return fmt.Sprintf("%2s", display(v)) }
 
-func render(report tableReport, size int, colors bool) string {
+func tableRows(report tableReport) [][]string {
 	rows := [][]string{}
 	for _, repo := range report.Repositories {
 		name := filepath.Base(repo.Path)
@@ -99,6 +99,11 @@ func render(report tableReport, size int, colors bool) string {
 			rows = append(rows, []string{name, agent, ticket, numeric(w.Round), w.Stage, numeric(w.SubtasksDone) + "/" + numeric(w.SubtasksTotal), w.Progress, w.Interaction, numeric(w.Questions) + "/" + numeric(w.Suggestions), tracked, untracked, info, behind, ahead, s.DisplayTitle})
 		}
 	}
+	return rows
+}
+
+func render(report tableReport, size int, colors bool) string {
+	rows := tableRows(report)
 	widths := []int{6, 6, 8, 2, 4, 5, 1, 1, 5, 3, 3, 3, 3, 3}
 	for _, row := range rows {
 		for i, value := range row[:len(widths)] {

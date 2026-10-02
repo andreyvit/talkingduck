@@ -30,7 +30,7 @@ status: implemented prototype; correlation and workflow states are heuristic
   `cmd/talkingduck` is a thin entry point; root-level `cli` owns flags/output,
   and `inventory.Build` returns correlated snapshots without printing or exiting.
   Desktop callers can reuse either package; no GUI dependency enters the CLI.
-- Default: compact table. `-json`: hierarchy and evidence. `-details`: legacy
+- Default: compact table. `-ai`: unaligned plain text with session IDs. `-details`: legacy
   verbose report. `-no-agents`: Git/spec data with unknown session fields.
 - This spec is the behavior contract. Supporting evidence lives in
   [research](../docs/agent-collection-research.md); caller instructions live in
@@ -63,7 +63,7 @@ status: implemented prototype; correlation and workflow states are heuristic
   lines, and Also include lines. Preserve multiple IDs and background mentions
   separately. Issue-like identifiers can include non-Linear references.
 - Use the spec H1 when present; otherwise show its filename slug without date and
-  leading numeric ticket prefix. Preserve the original title/path in JSON.
+  leading numeric ticket prefix. Preserve the original title/path in the inventory snapshot.
 
 ### Ordering
 
@@ -86,7 +86,7 @@ status: implemented prototype; correlation and workflow states are heuristic
   Validate process identity; distinguish event time from fork replay time.
 - Scan all discovered top-level candidates by default, including archived app
   metadata. `-agent-limit N` deliberately reduces coverage; registered live
-  Claude/Grok sessions survive that limit. Raw agent-only JSON is available through `-agents-only`; `-home` overrides its
+  Claude/Grok sessions survive that limit. Plain-text agent-only listing is available through `-agents-only`; `-home` overrides its
   data-discovery home directory.
 
 ### Primary versus secondary
@@ -113,7 +113,7 @@ status: implemented prototype; correlation and workflow states are heuristic
 - Multiple remaining matches are ambiguous. No match is unknown. Never assign
   the only task in a folder merely because it is the only task.
 - Association reads transcript head and tail for large files, with a warning.
-  JSON keeps unassigned sessions at worktree level; table rows remain task-based.
+  The inventory snapshot keeps unassigned sessions at worktree level; table rows remain task-based.
 
 ## 4. Workflow and attention
 
@@ -145,7 +145,7 @@ status: implemented prototype; correlation and workflow states are heuristic
 - Starting a revision clears `squashed_this_round`. A squash in round 1 cannot
   produce SQ in round 2; that round needs its own completed squash.
 - Preserve matched revision entries, latest logged action, and inference confidence
-  in JSON. Missing or loosely worded log history can undercount revisions.
+  in the inventory snapshot. Missing or loosely worded log history can undercount revisions.
 - Future Zoo frontmatter may publish round, stage, operation context, and squash
   round explicitly. This collector does not modify source specs or require it.
 
@@ -215,14 +215,17 @@ status: implemented prototype; correlation and workflow states are heuristic
 - Multiple tickets occupy separate physical lines in one cell. Other cells are
   top aligned. Long titles may also increase row height.
 - Color terminal output automatically; keep pipes plain. `-color always|never`
-  overrides detection; auto honors `NO_COLOR` and `TERM=dumb`. JSON stays plain.
+  overrides detection; auto honors `NO_COLOR` and `TERM=dumb`. AI output stays plain.
   Zero counts and unknowns are gray; agents, stages, and nonzero counter columns
   have distinct colors. Attention is yellow, conflicts/errors red, titles white.
   Apply ANSI escapes after layout so colors cannot change alignment or wrapping.
 
-### JSON and diagnostics
+### Agent output and diagnostics
 
-- Schema version 2: `repositories[].specs[].sessions`, `primary_session`,
+- `-ai` uses full worktree paths, comma-separated tickets, no padding/color/wrap,
+  and `spec=`/primary `session=` references. It overrides width/color/details.
+  Empty status cells use `-`; finish with one line explaining columns and symbols.
+- No CLI JSON mode. The inventory API retains schema version 2: `repositories[].specs[].sessions`, `primary_session`,
   `primary_conflict`, `workflow`, and worktree `git` observations.
 - Preserve raw Git/spec evidence, unassigned files/commits/sessions, session
   findings, source timestamps, inference reasons, and collection warnings.

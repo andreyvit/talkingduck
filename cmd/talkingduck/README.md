@@ -5,8 +5,8 @@ No Python runtime or service.
 
 ```sh
 go run ./cmd/talkingduck
-# Structured data, including paths, timestamps, commits, and association evidence:
-go run ./cmd/talkingduck -json
+# Token-efficient plain text for agents, including primary session IDs:
+go run ./cmd/talkingduck -ai
 # Override the default ~/Developer/prairie parent:
 go run ./cmd/talkingduck -root /path/to/checkouts
 # Or supply any checkout paths explicitly:
@@ -21,6 +21,18 @@ Does not fetch, write Git state, run agents, install hooks, or contact tickets.
 A failed checkout appears in the report; other checkouts continue. Exit status is
 nonzero if any checkout fails. Each Git command has a 30-second timeout.
 
+## AI output
+
+`-ai` prints the table values without alignment, colors, or wrapping, even with
+`-color always`. Each row uses the full worktree path; multiple tickets share a
+comma-separated cell. Task rows include `spec=path` and the latest primary
+`session=ID` when known. Empty progress/input cells become `-`. The final line
+explains columns, symbols, and stage codes. `-ai` takes precedence over `-details`.
+
+`-json` was removed. Full structured evidence remains available through
+`inventory.Build`; the CLI does not serialize it. `-agents-only` lists raw session
+identities, activity/question states, source times, and coverage warnings in text.
+
 ## Compact task table
 
 The default is a headerless table, one row per worktree/task. Columns are:
@@ -28,7 +40,7 @@ worktree, latest primary agent, tickets, revision round, stage, subtasks, progre
 question/suggestion counts, local Git counters, upstream counts, title.
 The `±`, `?`, `ℹ︎`, `⇣`, and `⇡` counters each have their own aligned column.
 Every number reserves at least two digits, including rounds and paired counts.
-Colors are automatic in terminals; pipes and JSON stay plain. Use `-color always`
+Colors are automatic in terminals; pipes and AI output stay plain. Use `-color always`
 or `-color never` to override; auto honors `NO_COLOR` and `TERM=dumb`.
 Zeros/unknowns are gray. Codex is cyan, Claude orange, Grok purple; stages have
 distinct colors. Nonzero tracked/untracked/info/behind/ahead counts are
@@ -93,13 +105,13 @@ below them. Multiple indirect matches stay unassigned; multiple directly changed
 specs can share a commit. Dirty files use spec paths or files in associated commits.
 There is no “only spec in the folder, therefore owner” shortcut.
 
-Unresolved multi-spec commit matches are `commit_association_issues` in JSON:
+Unresolved multi-spec commit matches are `commit_association_issues` in the inventory snapshot:
 commit hash and subject, the matching rule, candidate specs, and overlapping paths.
 They do not emit hash-only stderr warnings. Operational failures still do.
 Shared tickets or directories alone cannot distinguish an umbrella plan from an
 implementation phase; later work without an updated phase spec stays unassigned.
 
-Path and ticket associations are inferences, exposed in JSON. A referenced path
+Path and ticket associations are inferences, exposed through `inventory.Build`. A referenced path
 can be background material, so these links are useful hints, not ownership proof.
 A spec that has no local changes and no matching explicit commit reference will
 not be discovered from unpushed code paths alone. Unassigned work remains visible.
@@ -131,14 +143,14 @@ activity uses committer time. These are approximations, not a claim about the la
 human interaction. Copying files or restoring a stash can change mtime. Auxiliary
 changes do not affect ordering. The seven-day rule is an initial heuristic.
 
-The JSON report includes observation time and HEAD. A changing HEAD or Git status
+The inventory snapshot includes observation time and HEAD. A changing HEAD or Git status
 during scanning produces a warning. This is not an atomic snapshot: edits that
 leave the same porcelain status can still happen mid-scan.
 
 ## Agent sessions
 
 Agent collection runs by default. `-agent-limit N` chooses recent sessions per
-provider/folder (default 0 = all), plus registered live Claude/Grok sessions. JSON has
+provider/folder (default 0 = all), plus registered live Claude/Grok sessions. The inventory snapshot has
 per-task `sessions`, worktree `unassigned_sessions`, top-level `agent_sources`, and source warnings. A failed
 agent helper sets `agent_error` while preserving the Git inventory. An unavailable
 provider does not hide the others. Git errors still produce a nonzero exit;

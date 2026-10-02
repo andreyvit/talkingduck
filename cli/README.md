@@ -17,7 +17,9 @@ belongs to the caller's `flag.FlagSet`, so repeated invocations do not register
 new global flags. Options and snapshots are per invocation.
 
 Exit codes: 0 success, 1 collection/output failure (partial checkout data is still
-printed), 2 invalid options. JSON retains its schema and bypasses styling.
+printed), 2 invalid options. `-ai` prints compact unaligned text with primary session IDs and a final symbol
+key, regardless of width/color settings. It takes precedence over `-details`.
+There is no `-json` flag; structured snapshots remain in the inventory API.
 `cmd/talkingduck/main.go` is the cgo-free entry point. The parallel desktop
 prototype can dispatch to the same CLI when GUI mode is not requested.
 
