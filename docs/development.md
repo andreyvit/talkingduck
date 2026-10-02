@@ -4,8 +4,9 @@
 
 The inventory CLI and macOS menu bar app share one root Go module.
 The desktop prototype has a local app build, but no release/notarization process.
-The GUI window displays live inventory through the CLI's shared table rows.
-The menu bar image still uses mock data.
+The GUI window and menu bar share cached inventory. The app refreshes folders
+sequentially, publishes each result, then waits one minute before the next pass.
+The window uses the CLI's shared table rows.
 
 - `.agents/skills/`: Zoo 3.2, `terse`, `linus`, and the local `commit` skill.
 - `.codex/agents/`, `.claude/agents/`: installed Zoo roles.

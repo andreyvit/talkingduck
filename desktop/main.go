@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"embed"
 	"flag"
 	"image/color"
@@ -12,23 +13,17 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 	"talkingduck/cli"
+	"talkingduck/inventory"
 	"talkingduck/menubarimage"
 )
 
 //go:embed frontend/*
 var frontend embed.FS
-
-var sample = []menubarimage.Cell{
-	{Number: 1, Stage: "L", State: "attention"}, {Number: 2, Stage: "H", State: "attention"},
-	{Number: 3, Stage: "-", State: "idle"}, {Number: 4, Stage: "F", State: "attention"},
-	{Number: 5, Stage: "F", State: "attention"}, {Number: 6, Stage: "R", State: "attention"},
-	{Number: 7, Stage: "F", State: "unknown"}, {Number: 8, Stage: "L", State: "attention"},
-	{Number: 9, Stage: "H", State: "unknown"}, {Number: 10, Stage: "H", State: "attention"},
-}
 
 func icon(cells []menubarimage.Cell, mode menubarimage.Mode) ([]byte, error) {
 	im := menubarimage.Render(cells, color.NRGBA{A: 255}, mode)
@@ -44,7 +39,7 @@ func icon(cells []menubarimage.Cell, mode menubarimage.Mode) ([]byte, error) {
 func main() {
 	log.SetFlags(0)
 	opts := cli.RegisterFlags(flag.CommandLine)
-	gui := flag.Bool("gui", os.Getenv("TALKINGDUCK_GUI") == "1", "show the mock menu bar app")
+	gui := flag.Bool("gui", os.Getenv("TALKINGDUCK_GUI") == "1", "show the menu bar app")
 	flag.Parse()
 	if !*gui {
 		os.Exit(cli.Run(opts, flag.Args()))
@@ -62,8 +57,14 @@ func run(opts *cli.Options) error {
 	if err != nil {
 		return err
 	}
+	cache, err := inventory.New(opts.Inventory)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	app := application.New(application.Options{
-		Name: "TalkingDuck", Description: "Mock checkout status experiment",
+		Name: "TalkingDuck", Description: "Checkout inventory", OnShutdown: cancel,
 		Mac:    application.MacOptions{ActivationPolicy: application.ActivationPolicyAccessory},
 		Assets: application.AssetOptions{Handler: application.AssetFileServerFS(assets)},
 	})
@@ -71,9 +72,10 @@ func run(opts *cli.Options) error {
 		Title: "TalkingDuck — Inventory", Width: 1280, Height: 720, URL: "/", Hidden: true,
 	})
 	window.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) { e.Cancel(); window.Hide() })
-	view := &inventoryView{app: app, options: opts.Inventory}
+	view := &inventoryView{cache: cache, requests: make(chan struct{}), emit: func(state inventoryState) { app.Event.Emit("inventory:snapshot", state) }}
+	cells := inventoryCells(cache.Snapshot())
 	tray := app.SystemTray.New()
-	data, err := icon(sample, menubarimage.Standard)
+	data, err := icon(cells, menubarimage.Standard)
 	if err != nil {
 		return err
 	}
@@ -93,12 +95,14 @@ func run(opts *cli.Options) error {
 	tray.OnRightClick(func() {})
 
 	var mu sync.Mutex
-	cells := append([]menubarimage.Cell(nil), sample...)
 	compact := false
 	var compactItem *application.MenuItem
-	update := func(action string) {
+	update := func(action string, snapshot *inventory.Snapshot) {
 		mu.Lock()
 		defer mu.Unlock()
+		if snapshot != nil {
+			cells = inventoryCells(snapshot)
+		}
 		if action == "compact" {
 			compact = !compact
 		}
@@ -121,10 +125,11 @@ func run(opts *cli.Options) error {
 		}
 		log.Printf("tray: image=%dx%d points; item=%d points", bounds.Dx(), bounds.Dy(), bounds.Dx()+padding)
 	}
+	view.updateTray = func(snapshot *inventory.Snapshot) { update("", snapshot) }
 	menu := app.Menu.New()
 	menu.Add("TalkingDuck").SetEnabled(false)
 	menu.Add("Open overview").OnClick(func(*application.Context) { window.Show(); window.Focus() })
-	compactItem = menu.AddCheckbox("Compact menu bar", false).OnClick(func(*application.Context) { update("compact") })
+	compactItem = menu.AddCheckbox("Compact menu bar", false).OnClick(func(*application.Context) { update("compact", nil) })
 	menu.Add("Refresh inventory").OnClick(func(*application.Context) { view.refresh() })
 	menu.AddSeparator()
 	menu.Add("Quit TalkingDuck").OnClick(func(*application.Context) { app.Quit() })
@@ -135,8 +140,8 @@ func run(opts *cli.Options) error {
 		if err := installTrayMenu(tray); err != nil {
 			log.Printf("tray menu setup failed: %v", err)
 		}
-		update("")
-		view.refresh()
+		update("", nil)
+		go view.run(ctx, time.Minute)
 	})
 	return app.Run()
 }

@@ -30,7 +30,7 @@ function color(value,column){
 Events.On('inventory:snapshot',event=>{
  const data=event.data,rows=data.rows||[];
  document.querySelector('#refresh').disabled=data.loading;
- document.querySelector('#status').textContent=data.loading?(data.updatedAt?'Refreshing… · showing previous scan':'Loading inventory…'):(data.updatedAt?`Updated ${new Date(data.updatedAt).toLocaleTimeString()} · ${rows.length} rows`:'Inventory unavailable');
+ document.querySelector('#status').textContent=data.loading?`Refreshing ${data.refreshingPath||'inventory'}… · cached rows remain visible`:(data.updatedAt?`Pass finished ${new Date(data.updatedAt).toLocaleTimeString()} · ${rows.length} rows`:'Inventory unavailable');
  document.querySelector('#error').textContent=data.error||'';
  document.querySelector('#warnings').textContent=(data.warnings||[]).join('\n');
  document.querySelector('#empty').hidden=rows.length>0;

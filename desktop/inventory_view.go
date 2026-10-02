@@ -3,64 +3,115 @@
 package main
 
 import (
+	"context"
 	"log"
+	"path/filepath"
 	"sync"
 	"time"
 
-	"github.com/wailsapp/wails/v3/pkg/application"
 	"talkingduck/cli"
 	"talkingduck/inventory"
 )
 
 type inventoryState struct {
 	cli.TableView
-	Loading   bool   `json:"loading"`
-	Error     string `json:"error"`
-	UpdatedAt string `json:"updatedAt"`
+	Loading        bool   `json:"loading"`
+	Error          string `json:"error"`
+	UpdatedAt      string `json:"updatedAt"`
+	RefreshingPath string `json:"refreshingPath"`
+}
+
+type inventoryCache interface {
+	Paths() []string
+	Update(string) error
+	Snapshot() *inventory.Snapshot
 }
 
 type inventoryView struct {
-	mu      sync.Mutex
-	app     *application.App
-	options inventory.Options
-	state   inventoryState
+	mu         sync.Mutex
+	cache      inventoryCache
+	state      inventoryState
+	requests   chan struct{}
+	emit       func(inventoryState)
+	updateTray func(*inventory.Snapshot)
 }
 
 func (v *inventoryView) publish() {
 	v.mu.Lock()
 	state := v.state
 	v.mu.Unlock()
-	v.app.Event.Emit("inventory:snapshot", state)
+	v.emit(state)
 }
 
-// Refresh coalesces concurrent requests and never blocks the window event loop.
+// Manual refresh wakes a sleeping scheduler; requests during a pass coalesce.
 func (v *inventoryView) refresh() {
-	v.mu.Lock()
-	if v.state.Loading {
-		v.mu.Unlock()
-		return
+	select {
+	case v.requests <- struct{}{}:
+	default:
 	}
-	v.state.Loading = true
-	v.state.Error = ""
+}
+
+func (v *inventoryView) render(path string, complete bool) {
+	snapshot := v.cache.Snapshot()
+	table, err := cli.BuildTable(snapshot.Overview)
+	for _, repo := range snapshot.Details.Repositories {
+		if repo.Cache != nil && repo.Cache.Error != "" {
+			table.Warnings = append(table.Warnings, filepath.Base(repo.Path)+": refresh failed: "+repo.Cache.Error)
+		}
+	}
+	v.mu.Lock()
+	v.state.Loading = !complete
+	v.state.RefreshingPath = filepath.Base(path)
+	if path == "" {
+		v.state.RefreshingPath = ""
+	}
+	if err != nil {
+		v.state.Error = err.Error()
+	} else {
+		v.state.Error = ""
+		v.state.TableView = table
+	}
+	if complete {
+		v.state.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
+	}
 	v.mu.Unlock()
 	v.publish()
-	go func() {
-		snapshot, err := inventory.Build(v.options)
-		var table cli.TableView
-		if err == nil {
-			table, err = cli.BuildTable(snapshot.Overview)
+	if v.updateTray != nil {
+		v.updateTray(snapshot)
+	}
+}
+
+// One sequential pass, then a full interval of rest. Cancellation stops before
+// the next folder; the collector bounds its current scan but cannot cancel it.
+func (v *inventoryView) run(ctx context.Context, interval time.Duration) {
+	for {
+		for _, path := range v.cache.Paths() {
+			if ctx.Err() != nil {
+				return
+			}
+			v.render(path, false)
+			if err := v.cache.Update(path); err != nil {
+				log.Printf("inventory: %s: %v", path, err)
+			}
+			if ctx.Err() != nil {
+				return
+			}
+			v.render(path, false)
+			log.Printf("inventory: refreshed %s", filepath.Base(path))
 		}
-		v.mu.Lock()
-		v.state.Loading = false
-		if err != nil {
-			v.state.Error = err.Error()
-			log.Printf("inventory refresh failed: %v", err)
-		} else {
-			v.state.TableView = table
-			v.state.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
-			log.Printf("inventory: %d table rows", len(table.Rows))
+		if ctx.Err() != nil {
+			return
 		}
-		v.mu.Unlock()
-		v.publish()
-	}()
+		v.render("", true)
+		log.Printf("inventory: pass complete; next pass in %s", interval)
+		timer := time.NewTimer(interval)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return
+		case <-v.requests:
+			timer.Stop()
+		case <-timer.C:
+		}
+	}
 }

@@ -53,8 +53,8 @@ static double tdWidenTray(void *handle, double width, double height, double padd
     item.button.image = image;
     item.button.imageScaling = NSImageScaleNone;
     item.button.imagePosition = NSImageOnly;
-    item.button.toolTip = @"TalkingDuck — mock checkout status. Click for overview; right-click for menu.";
-    [item.button setAccessibilityLabel:@"TalkingDuck mock checkout status"];
+    item.button.toolTip = @"TalkingDuck — checkout status. Click for overview; right-click for menu.";
+    [item.button setAccessibilityLabel:@"TalkingDuck checkout status"];
     item.length = width + padding; // Preserve the chosen layout’s horizontal breathing room.
     [image release];
     actual = item.button.image.size.width;
