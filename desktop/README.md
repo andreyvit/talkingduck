@@ -45,6 +45,8 @@ call has its own timeouts and cannot be cancelled midway.
 - Compact: 99 x 21-point image, 4x6 font, 105-point tray width.
 - Switch layouts live with the native menu checkbox.
   The selection lasts for this run; preferences are not saved yet.
+- Click a spec title to preview its file in Marked. Titles underline on hover;
+  non-task rows stay plain text. Missing files or app launch errors appear in the window.
 - Closing the window hides it.
 - The inventory window displays the same 15 cells and row ordering as the CLI,
   including multiline tickets and partial errors. Monospace text, whitespace,

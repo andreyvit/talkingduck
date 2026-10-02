@@ -7,6 +7,7 @@
 header{display:flex;align-items:center;gap:16px;padding:16px 20px}h1{font-size:17px;margin:0}#status{font-size:12px;color:var(--muted);flex:1}
 button{font:inherit;font-size:12px;padding:6px 11px;border:1px solid #8884;border-radius:6px;cursor:pointer;background:light-dark(#fff,#303238);color:inherit}button:disabled{opacity:.45;cursor:default}
 main{overflow:auto;padding:0 12px 12px}table{border-collapse:collapse;width:100%;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}th{font:10px -apple-system,BlinkMacSystemFont,sans-serif;text-align:left;color:var(--muted);padding:5px 7px 9px;font-weight:500}td{white-space:pre;vertical-align:top;padding:5px 7px;border:0}tbody tr:nth-child(even){background:var(--stripe)}tbody tr:hover{background:var(--hover)}td:last-child{white-space:pre-wrap;overflow-wrap:anywhere;min-width:200px;width:100%}td:nth-child(1){font-weight:550}td:nth-child(3){color:light-dark(#526681,#b8c7dc)}
+a.spec-title{color:inherit;text-decoration:none}a.spec-title:hover{text-decoration:underline}a.spec-title:focus-visible{outline:1px solid var(--muted);outline-offset:3px}
 .dim{color:var(--muted)}.cyan{color:light-dark(#087b99,#62cce9)}.orange{color:light-dark(#a64f25,#f4a172)}.purple{color:light-dark(#8052a6,#ba96df)}.green{color:light-dark(#44783c,#9cce85)}.yellow{color:light-dark(#927014,#e5c66b)}.blue{color:light-dark(#3979b3,#77b8ec)}.red{color:light-dark(#bc4141,#f18181)}
 #empty{padding:45px 20px;color:var(--muted);font-size:13px}#warnings{white-space:pre-wrap;font-size:12px;color:light-dark(#956024,#d3b07c);margin:12px 20px}#error{color:light-dark(#b13b3b,#f18a8a);font-size:12px;margin:12px 20px}
 </style>
@@ -35,10 +36,11 @@ Events.On('inventory:snapshot',event=>{
  document.querySelector('#warnings').textContent=(data.warnings||[]).join('\n');
  document.querySelector('#empty').hidden=rows.length>0;
  document.querySelector('#empty').textContent=data.loading?'Collecting worktrees and agent sessions…':data.error?'Refresh failed. Try again.':'No worktrees to display.';
- document.querySelector('#rows').replaceChildren(...rows.map(row=>{
-  const tr=document.createElement('tr');row.forEach((value,column)=>{const td=document.createElement('td');td.textContent=value;td.className=color(value,column);tr.append(td)});return tr;
+ document.querySelector('#rows').replaceChildren(...rows.map((row,index)=>{
+  const tr=document.createElement('tr');row.forEach((value,column)=>{const td=document.createElement('td');if(column===14&&data.specPaths?.[index]){const link=document.createElement('a');link.className='spec-title';link.href='#';link.textContent=value;link.title='Preview in Marked';link.onclick=event=>{event.preventDefault();Events.Emit('inventory:open-spec',data.specPaths[index])};td.append(link)}else{td.textContent=value}td.className=color(value,column);tr.append(td)});return tr;
  }));
 });
+Events.On('inventory:open-error',e=>document.querySelector('#error').textContent=e.data);
 Events.On('mock:error',e=>document.querySelector('#error').textContent=e.data);
 document.querySelector('#refresh').onclick=()=>Events.Emit('inventory:refresh');
 Events.Emit('inventory:ready');
