@@ -1,4 +1,4 @@
-package main
+package inventory
 
 import (
 	"encoding/json"
@@ -218,33 +218,6 @@ func TestGitCountsAndNoStashRead(t *testing.T) {
 	b, _ := os.ReadFile(log)
 	if g["cleanliness"] != "CLEAN" || number(g["tracked"]) != 0 || strings.Contains(string(b), "stash") || strings.Count(string(b), "\n") != 1 {
 		t.Fatal(g, string(b))
-	}
-}
-func TestMultilineTableAndUnicode(t *testing.T) {
-	s := taskFixture()
-	s["tickets"], s["display_title"], s["primary_session"], s["primary_conflict"] = []string{"DEV-1234", "DEV-5678"}, "example", nil, false
-	s["workflow"] = Object{"stage": "HL", "round": 1, "subtasks_done": 0, "subtasks_total": 0, "progress": "?", "interaction": "?", "questions": nil, "suggestions": 0}
-	g := Object{"tracked": 0, "untracked": 0, "informational": 1, "ahead": 0, "behind": 0, "cleanliness": "CLEAN"}
-	r := Object{"repositories": []Object{{"path": "/back1", "git": g, "specs": []Object{s}}, {"path": "/back2", "git": g, "specs": []Object{}}}}
-	lines := strings.Split(render(r, 120, false), "\n")
-	colored := render(r, 120, true)
-	if rx(`\x1b\[[0-9;]*m`).ReplaceAllString(colored, "") != render(r, 120, false) {
-		t.Fatal("colors changed spacing or wrapping")
-	}
-	if strings.TrimSpace(lines[1]) != "DEV-5678" || !strings.Contains(lines[2], "CLEAN") {
-		t.Fatal(lines)
-	}
-	for _, l := range lines {
-		if cellWidth(l) > 120 {
-			t.Fatal(l)
-		}
-	}
-	if cellWidth("ℹ︎界e\u0301") != 4 {
-		t.Fatal("unicode width")
-	}
-	t.Setenv("COLUMNS", "150")
-	if tableWidth(0) != 150 || tableWidth(90) != 90 {
-		t.Fatal("width selection")
 	}
 }
 func TestMalformedEvidenceIsSkipped(t *testing.T) {

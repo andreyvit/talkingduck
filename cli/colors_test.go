@@ -1,6 +1,7 @@
-package main
+package cli
 
 import (
+	"io"
 	"strings"
 	"testing"
 )
@@ -35,12 +36,12 @@ func TestCounterColors(t *testing.T) {
 
 func TestColorOverrides(t *testing.T) {
 	t.Setenv("NO_COLOR", "1")
-	if useColor("auto") || useColor("never") || !useColor("always") {
+	if useColor("auto", io.Discard) || useColor("never", io.Discard) || !useColor("always", io.Discard) {
 		t.Fatal("NO_COLOR or override ignored")
 	}
 	t.Setenv("NO_COLOR", "")
 	t.Setenv("TERM", "dumb")
-	if useColor("auto") {
+	if useColor("auto", io.Discard) {
 		t.Fatal("dumb terminal colored")
 	}
 }

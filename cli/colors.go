@@ -1,7 +1,8 @@
-package main
+package cli
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -10,14 +11,15 @@ import (
 
 const gray = 242
 
-func useColor(mode string) bool {
+func useColor(mode string, out io.Writer) bool {
 	switch mode {
 	case "always":
 		return true
 	case "never":
 		return false
 	default:
-		return os.Getenv("NO_COLOR") == "" && os.Getenv("TERM") != "dumb" && term.IsTerminal(int(os.Stdout.Fd()))
+		f, ok := out.(*os.File)
+		return ok && os.Getenv("NO_COLOR") == "" && os.Getenv("TERM") != "dumb" && term.IsTerminal(int(f.Fd()))
 	}
 }
 

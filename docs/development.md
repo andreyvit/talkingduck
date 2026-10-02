@@ -11,7 +11,9 @@ Do not report app tests as passing.
 - `.claude/skills`: symlink to shared skills.
 - `.zoo/`: project workflow configuration.
 - `docs/`: durable AI and developer context.
-- `cmd/talkingduck/`: read-only Git/spec/session collector; Go reads agent files and SQLite with the cgo-free modernc driver.
+- `cmd/talkingduck/`: thin cgo-free CLI entry point.
+- `cli/`: reusable flag registration, terminal output, and exit codes.
+- `inventory/`: read-only Git/spec/session builder and correlation; modernc SQLite without cgo.
 - `cmd/scout/`: small standard-library Go review script; no module needed.
 - `.spec/YYYYMMDD-taskslug.md`: tracked task specs.
 - `.proposals/YYYYMMDD-title.md`: tracked proposals; archive in `.proposals/archived/`.
@@ -57,7 +59,7 @@ For inventory changes, follow [its collection rules](../cmd/talkingduck/README.m
 and run:
 
 ```sh
-CGO_ENABLED=0 go test ./cmd/talkingduck
-go vet ./cmd/talkingduck
+CGO_ENABLED=0 go test ./inventory ./cli ./cmd/talkingduck
+go vet ./inventory ./cli ./cmd/talkingduck
 CGO_ENABLED=0 go build -o /tmp/talkingduck ./cmd/talkingduck
 ```

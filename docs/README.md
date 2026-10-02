@@ -6,6 +6,8 @@ Start here; read only what the task needs.
 - [development.md](development.md): repository layout, work conventions, validation.
 - [Inventory behavior spec](../.spec/20261002-worktree-task-inventory.md): worktree/task/session hierarchy, compact table, stages, correlation, and limits.
 - [Local work inventory](../cmd/talkingduck/README.md): one-shot Git/spec collector, ordering, and limits.
+- [Shared inventory builder](../inventory/README.md): collection API and snapshots for CLI/desktop callers.
+- [Shared CLI](../cli/README.md): flags, output, and entry-point integration.
 - [Agent collection research](agent-collection-research.md): local schemas, live checks, monitor comparisons, optional hooks.
 - [Agent inventory instructions](agent-inventory-instructions.md): collect once, then enrich unknowns with app tools or UI.
 - [Scout design](../cmd/scout/DESIGN.md): review-tool behavior and extension rules.

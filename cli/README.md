@@ -1,0 +1,24 @@
+# Shared CLI
+
+`cli` owns flags, output modes, terminal width/colors, diagnostics, and exit codes.
+It calls `inventory.Build`; it never exits the process or initializes a GUI.
+
+```go
+opts := cli.RegisterFlags(flag.CommandLine)
+// A desktop entry point can register --gui here, then parse once.
+flag.Parse()
+code := cli.Run(opts, flag.Args())
+// The entry point decides when to os.Exit(code).
+```
+
+`RunTo(opts, paths, stdout, stderr)` supports captured output and tests. Automatic
+colors inspect the supplied output file; buffers/pipes stay plain. CLI parsing
+belongs to the caller's `flag.FlagSet`, so repeated invocations do not register
+new global flags. Options and snapshots are per invocation.
+
+Exit codes: 0 success, 1 collection/output failure (partial checkout data is still
+printed), 2 invalid options. JSON retains its schema and bypasses styling.
+`cmd/talkingduck/main.go` is the cgo-free entry point. The parallel desktop
+prototype can dispatch to the same CLI when GUI mode is not requested.
+
+See [command usage](../cmd/talkingduck/README.md) for all flags and output meanings.

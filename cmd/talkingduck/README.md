@@ -172,8 +172,8 @@ pushed history, missing remote refs, ambiguous ownership, dirty code matching a
 pushed spec, rename/deletion, sorting, ticket parsing, and checkout failures.
 
 ```sh
-CGO_ENABLED=0 go test ./cmd/talkingduck
-go vet ./cmd/talkingduck
+CGO_ENABLED=0 go test ./inventory ./cli ./cmd/talkingduck
+go vet ./inventory ./cli ./cmd/talkingduck
 CGO_ENABLED=0 go build -o /tmp/talkingduck ./cmd/talkingduck
 git diff --check
 ```

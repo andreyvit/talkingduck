@@ -27,6 +27,9 @@ status: implemented prototype; correlation and workflow states are heuristic
 - Entry point: `go run ./cmd/talkingduck`. Collection, correlation, and rendering
   run in Go, using modernc SQLite without cgo. Source runs require Git and Go;
   built binaries require Git. No Python runtime.
+  `cmd/talkingduck` is a thin entry point; root-level `cli` owns flags/output,
+  and `inventory.Build` returns correlated snapshots without printing or exiting.
+  Desktop callers can reuse either package; no GUI dependency enters the CLI.
 - Default: compact table. `-json`: hierarchy and evidence. `-details`: legacy
   verbose report. `-no-agents`: Git/spec data with unknown session fields.
 - This spec is the behavior contract. Supporting evidence lives in
