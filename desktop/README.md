@@ -22,7 +22,8 @@ The bundle's `LSEnvironment` sets `TALKINGDUCK_GUI=1`; direct execution requires
 data; it does not invoke the inventory yet. `--gui=false` overrides the bundle
 environment when needed.
 
-- Left-click the tray image: open the mock overview.
+- Left-click the tray image: hide the overview if visible and focused; otherwise
+  show and focus it.
 - Right-click: native Wails menu with open, toggle styles, refresh, and quit.
   An explicit `OnRightClick` handler calls `OpenMenu`, bypassing Wails' automatic
   pre-click attachment after a report that it opened only on alternate clicks.

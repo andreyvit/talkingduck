@@ -75,7 +75,16 @@ func run() error {
 		return err
 	}
 	tray.SetTemplateIcon(data)
-	tray.OnClick(func() { log.Print("tray: open overview"); window.Show(); window.Focus() })
+	tray.OnClick(func() {
+		if window.IsVisible() && window.IsFocused() {
+			log.Print("tray: hide overview")
+			window.Hide()
+			return
+		}
+		log.Print("tray: show and focus overview")
+		window.Show()
+		window.Focus()
+	})
 	// Bypass Wails' pre-click menu attachment. Programmatic OpenMenu tracks the
 	// menu explicitly and clears the temporary attachment after dismissal.
 	tray.OnRightClick(func() { log.Print("tray: right-click open menu"); tray.OpenMenu() })
