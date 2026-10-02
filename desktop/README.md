@@ -1,8 +1,9 @@
-# Mock menu bar app
+# Menu bar app and inventory window
 
-macOS-only Wails v3.0.0-beta.27 experiment. Uses mock checkout states, the shared
-`menubarimage` renderer, a native tray menu, and an embedded HTML overview. No
-inventory scans, frontend dependencies, Node, generated bindings, or external web server.
+macOS-only Wails v3.0.0-beta.27 prototype. The main window uses live
+`inventory.Build` data and the CLI's shared `BuildTable` rows. The menu bar still
+uses mock checkout states and the shared `menubarimage` renderer. No frontend
+dependencies, Node, generated bindings, or external web server.
 
 From the repository root:
 
@@ -18,9 +19,10 @@ macOS 13+, packages the app, and signs it ad hoc for local use. It does not
 notarize, install, or register autostart. Generated output stays under `.tasks/`.
 The bundle's `LSEnvironment` sets `TALKINGDUCK_GUI=1`; direct execution requires
 `--gui`. Without GUI mode the desktop executable calls the shared `cli.Run`, just like
-`cmd/talkingduck`. The standalone CLI remains cgo-free. GUI mode uses only mock
-data; it does not invoke the inventory yet. `--gui=false` overrides the bundle
-environment when needed.
+`cmd/talkingduck`. The standalone CLI remains cgo-free. The GUI scans on startup and on Refresh,
+honoring collection flags and checkout paths. Scans run off the UI thread; overlapping refresh requests are coalesced.
+Previous rows remain visible during refresh and after a fatal refresh error.
+`--gui=false` overrides the bundle environment when needed.
 
 - Left-click the tray image: hide the overview if visible and focused; otherwise
   show and focus it.
@@ -31,10 +33,14 @@ environment when needed.
   confirmation on the affected desktop.
 - Standard (default): 123 x 23-point image, 5x7 font, 131-point tray width.
 - Compact: 99 x 21-point image, 4x6 font, 105-point tray width.
-- Switch layouts live with the window button or the native menu checkbox.
+- Switch layouts live with the native menu checkbox.
   The selection lasts for this run; preferences are not saved yet.
-- The window's style button switches to synthetic idle/running/attention/unknown
-  states, exercising native image replacement. Closing the window hides it.
+- Closing the window hides it.
+- The inventory window displays the same 15 cells and row ordering as the CLI,
+  including multiline tickets and partial errors. Monospace text, whitespace,
+  and subtle alternating task-row backgrounds separate columns; no gridlines.
+  The window contains only the table, status/warnings, and Refresh. Appearance
+  controls stay in the tray menu; debug style/image actions are removed.
 - The initial mock uses the first listed task per folder from the supplied sample.
   Completed-stage marks and explicit questions produce attention. Unknown activity
   remains unknown. This is not a settled folder-state selection rule.
@@ -68,7 +74,7 @@ this dependency.
 ## Validation
 
 ```sh
-CGO_ENABLED=0 go test ./menubarimage
+CGO_ENABLED=0 go test ./menubarimage ./cli
 CGO_ENABLED=0 go vet ./cmd/scratch-imagegen ./menubarimage
 CGO_ENABLED=0 go build -o .tasks/desktop/talkingduck-cli ./cmd/talkingduck
 CGO_ENABLED=1 go vet ./desktop

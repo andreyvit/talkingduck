@@ -2,31 +2,44 @@
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TalkingDuck</title>
 <style>
-:root{color-scheme:light dark;font-family:-apple-system,BlinkMacSystemFont,sans-serif}body{margin:28px;background:light-dark(#f5f5f7,#202126);color:light-dark(#202126,#eee)}h1{font-size:24px;margin-bottom:6px}p{color:light-dark(#666,#aaa);font-size:13px;line-height:1.5}.preview{background:#e9ecf2;border-radius:12px;padding:20px;margin:20px 0;display:flex;align-items:center;gap:24px}.preview img{width:198px;height:42px;image-rendering:pixelated}.preview span{color:#555;font-size:12px}table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;color:light-dark(#777,#aaa);font-size:11px;text-transform:uppercase;letter-spacing:.06em}td,th{padding:6px 8px;border-bottom:1px solid #8883}td:nth-child(2){font-family:monospace}.state{font-size:12px}.attention{font-weight:650}button{font:inherit;padding:8px 14px;border:1px solid #8886;border-radius:7px;cursor:pointer;background:light-dark(white,#34363c);color:inherit}footer{display:flex;gap:12px;align-items:center;margin-top:20px}#error{color:#d66}
+:root{color-scheme:light dark;font-family:-apple-system,BlinkMacSystemFont,sans-serif;--bg:light-dark(#fafafa,#202126);--fg:light-dark(#292a30,#e7e8ec);--muted:light-dark(#737780,#979da8);--stripe:light-dark(#00000005,#ffffff05)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg)}
+header{display:flex;align-items:center;gap:16px;padding:16px 20px}h1{font-size:17px;margin:0}#status{font-size:12px;color:var(--muted);flex:1}
+button{font:inherit;font-size:12px;padding:6px 11px;border:1px solid #8884;border-radius:6px;cursor:pointer;background:light-dark(#fff,#303238);color:inherit}button:disabled{opacity:.45;cursor:default}
+main{overflow:auto;padding:0 12px 12px}table{border-collapse:collapse;width:100%;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}th{font:10px -apple-system,BlinkMacSystemFont,sans-serif;text-align:left;color:var(--muted);padding:5px 7px 9px;font-weight:500}td{white-space:pre;vertical-align:top;padding:5px 7px;border:0}tbody tr:nth-child(even){background:var(--stripe)}td:last-child{white-space:pre-wrap;overflow-wrap:anywhere;min-width:200px;width:100%}td:nth-child(1){font-weight:550}td:nth-child(3){color:light-dark(#526681,#b8c7dc)}
+.dim{color:var(--muted)}.cyan{color:light-dark(#087b99,#62cce9)}.orange{color:light-dark(#a64f25,#f4a172)}.purple{color:light-dark(#8052a6,#ba96df)}.green{color:light-dark(#44783c,#9cce85)}.yellow{color:light-dark(#927014,#e5c66b)}.blue{color:light-dark(#3979b3,#77b8ec)}.red{color:light-dark(#bc4141,#f18181)}
+#empty{padding:45px 20px;color:var(--muted);font-size:13px}#warnings{white-space:pre-wrap;font-size:12px;color:light-dark(#956024,#d3b07c);margin:12px 20px}#error{color:light-dark(#b13b3b,#f18a8a);font-size:12px;margin:12px 20px}
 </style>
-<h1>TalkingDuck</h1><p>Mock checkout overview · no repositories are being scanned.</p>
-<div class="preview"><img id="preview" alt="Two rows of checkout status"><span>Menu bar preview<br>Enlarged 2×</span></div>
-<table><thead><tr><th>Checkout</th><th>Stage</th><th>Activity</th></tr></thead><tbody id="rows"></tbody></table>
-<footer><button id="compact">Use compact layout</button><button id="toggle">Toggle style sample</button><span id="mode">Sample inventory</span></footer><p id="error"></p>
+<header><h1>TalkingDuck</h1><span id="status" role="status">Loading inventory…</span><button id="refresh">Refresh</button></header>
+<main><table aria-label="Work inventory"><thead><tr id="headers"></tr></thead><tbody id="rows"></tbody></table><div id="empty">Collecting worktrees and agent sessions…</div></main>
+<div id="error" role="alert"></div><div id="warnings"></div>
+
 <script type="module">
 import {Events} from '/wails/runtime.js';
-const names={'-':'Clean',d:'Dirty',H:'High-level planning',L:'Low-level planning',F:'Final review',R:'Rebase'};
-Events.On('mock:snapshot',event=>{
- const data=event.data;
- document.querySelector('#error').textContent='';
- document.querySelector('#compact').textContent=data.compact?'Use standard layout':'Use compact layout';
- document.querySelector('#preview').src=data.image;
- document.querySelector('#preview').style.width=`${data.width*2}px`;
- document.querySelector('#preview').style.height=`${data.height*2}px`;
- document.querySelector('#mode').textContent=data.styles?'Synthetic style sample':'Sample inventory';
- document.querySelector('#rows').replaceChildren(...data.cells.map(c=>{
-  const tr=document.createElement('tr');
-  for(const text of [c.number===1?'backend':`back${c.number}`,`${c.stage} — ${names[c.stage]||c.stage}`,c.state]){const td=document.createElement('td');td.textContent=text;tr.append(td)}
-  tr.lastChild.className='state '+c.state;return tr;
+const headers=['Folder','Agent','Ticket','Rev','Stage','Tasks','Run','Ask','Q / S','Edit','New','Info','↓','↑','Title'];
+for(const label of headers){const th=document.createElement('th');th.textContent=label;document.querySelector('#headers').append(th)}
+function color(value,column){
+ const text=value.trim();
+ if(!text||text==='?'||text==='--')return 'dim';
+ if(column===1)return {Codex:'cyan',Claude:'orange',Grok:'purple'}[text.replace(/!$/,'')]||'dim';
+ if(column===4)return {HL:'blue',LL:'purple',EX:'cyan',FIN:'green',SQ:'purple',PUSH:'yellow',REBA:'orange'}[text]||'dim';
+ if(column===6||column===7)return {'▶':'cyan','✓':'green','!':'yellow'}[text]||'dim';
+ if(column>=9&&column<=13){if(['0','?'].includes(text.replace(/^[±?ℹ︎⇣⇡]+/u,'').trim()))return 'dim';return ['yellow','green','blue','red','cyan'][column-9]}
+ return '';
+}
+Events.On('inventory:snapshot',event=>{
+ const data=event.data,rows=data.rows||[];
+ document.querySelector('#refresh').disabled=data.loading;
+ document.querySelector('#status').textContent=data.loading?(data.updatedAt?'Refreshing… · showing previous scan':'Loading inventory…'):(data.updatedAt?`Updated ${new Date(data.updatedAt).toLocaleTimeString()} · ${rows.length} rows`:'Inventory unavailable');
+ document.querySelector('#error').textContent=data.error||'';
+ document.querySelector('#warnings').textContent=(data.warnings||[]).join('\n');
+ document.querySelector('#empty').hidden=rows.length>0;
+ document.querySelector('#empty').textContent=data.loading?'Collecting worktrees and agent sessions…':data.error?'Refresh failed. Try again.':'No worktrees to display.';
+ document.querySelector('#rows').replaceChildren(...rows.map(row=>{
+  const tr=document.createElement('tr');row.forEach((value,column)=>{const td=document.createElement('td');td.textContent=value;td.className=color(value,column);tr.append(td)});return tr;
  }));
 });
 Events.On('mock:error',e=>document.querySelector('#error').textContent=e.data);
-document.querySelector('#compact').onclick=()=>Events.Emit('mock:compact');
-document.querySelector('#toggle').onclick=()=>Events.Emit('mock:toggle');
-Events.Emit('mock:ready');
+document.querySelector('#refresh').onclick=()=>Events.Emit('inventory:refresh');
+Events.Emit('inventory:ready');
 </script></html>

@@ -2,9 +2,10 @@
 
 ## Current state and layout
 
-The inventory CLI and a mock macOS menu bar app share one root Go module.
+The inventory CLI and macOS menu bar app share one root Go module.
 The desktop prototype has a local app build, but no release/notarization process.
-GUI mode displays mock data; it is not connected to live collection yet.
+The GUI window displays live inventory through the CLI's shared table rows.
+The menu bar image still uses mock data.
 
 - `.agents/skills/`: Zoo 3.2, `terse`, `linus`, and the local `commit` skill.
 - `.codex/agents/`, `.claude/agents/`: installed Zoo roles.

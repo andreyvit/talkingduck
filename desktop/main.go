@@ -5,7 +5,6 @@ package main
 import (
 	"bytes"
 	"embed"
-	"encoding/base64"
 	"flag"
 	"image/color"
 	"image/png"
@@ -50,12 +49,15 @@ func main() {
 	if !*gui {
 		os.Exit(cli.Run(opts, flag.Args()))
 	}
-	if err := run(); err != nil {
+	if len(flag.Args()) > 0 {
+		opts.Inventory.Paths = flag.Args()
+	}
+	if err := run(opts); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run() error {
+func run(opts *cli.Options) error {
 	assets, err := fs.Sub(frontend, "frontend")
 	if err != nil {
 		return err
@@ -66,9 +68,10 @@ func run() error {
 		Assets: application.AssetOptions{Handler: application.AssetFileServerFS(assets)},
 	})
 	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title: "TalkingDuck — Mock overview", Width: 660, Height: 620, URL: "/", Hidden: true,
+		Title: "TalkingDuck — Inventory", Width: 1280, Height: 720, URL: "/", Hidden: true,
 	})
 	window.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) { e.Cancel(); window.Hide() })
+	view := &inventoryView{app: app, options: opts.Inventory}
 	tray := app.SystemTray.New()
 	data, err := icon(sample, menubarimage.Standard)
 	if err != nil {
@@ -91,22 +94,11 @@ func run() error {
 
 	var mu sync.Mutex
 	cells := append([]menubarimage.Cell(nil), sample...)
-	styles := false
 	compact := false
 	var compactItem *application.MenuItem
 	update := func(action string) {
 		mu.Lock()
 		defer mu.Unlock()
-		if action == "styles" {
-			styles = !styles
-			cells = append([]menubarimage.Cell(nil), sample...)
-			if styles {
-				states := []string{"idle", "running", "attention", "unknown"}
-				for i := range cells {
-					cells[i].State = states[i%len(states)]
-				}
-			}
-		}
 		if action == "compact" {
 			compact = !compact
 		}
@@ -127,21 +119,18 @@ func run() error {
 			app.Event.Emit("mock:error", err.Error())
 			return
 		}
-		log.Printf("tray: image=%dx%d points; item=%d points; style-sample=%t", bounds.Dx(), bounds.Dy(), bounds.Dx()+padding, styles)
-		app.Event.Emit("mock:snapshot", map[string]any{"compact": compact, "width": bounds.Dx(), "height": bounds.Dy(), "cells": cells, "styles": styles, "image": "data:image/png;base64," + base64.StdEncoding.EncodeToString(data)})
+		log.Printf("tray: image=%dx%d points; item=%d points", bounds.Dx(), bounds.Dy(), bounds.Dx()+padding)
 	}
 	menu := app.Menu.New()
-	menu.Add("TalkingDuck — mock data").SetEnabled(false)
+	menu.Add("TalkingDuck").SetEnabled(false)
 	menu.Add("Open overview").OnClick(func(*application.Context) { window.Show(); window.Focus() })
 	compactItem = menu.AddCheckbox("Compact menu bar", false).OnClick(func(*application.Context) { update("compact") })
-	menu.Add("Toggle style sample").OnClick(func(*application.Context) { update("styles") })
-	menu.Add("Refresh mock image").OnClick(func(*application.Context) { update("") })
+	menu.Add("Refresh inventory").OnClick(func(*application.Context) { view.refresh() })
 	menu.AddSeparator()
 	menu.Add("Quit TalkingDuck").OnClick(func(*application.Context) { app.Quit() })
 	tray.SetMenu(menu)
-	app.Event.On("mock:ready", func(*application.CustomEvent) { update("") })
-	app.Event.On("mock:compact", func(*application.CustomEvent) { update("compact") })
-	app.Event.On("mock:toggle", func(*application.CustomEvent) { update("styles") })
-	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) { update("") })
+	app.Event.On("inventory:ready", func(*application.CustomEvent) { view.publish() })
+	app.Event.On("inventory:refresh", func(*application.CustomEvent) { view.refresh() })
+	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) { update(""); view.refresh() })
 	return app.Run()
 }
