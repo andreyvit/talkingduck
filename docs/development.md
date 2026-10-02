@@ -2,14 +2,18 @@
 
 ## Current state and layout
 
-No product implementation, Go module, Xcode project, application build, browser
-harness, or release process exists yet. Do not report app tests as passing.
+The first product experiment is a one-shot Git/spec inventory. No Go module,
+Xcode project, application build, browser harness, or release process exists yet.
+Do not report app tests as passing.
 
 - `.agents/skills/`: Zoo 3.2, `terse`, `linus`, and the local `commit` skill.
 - `.codex/agents/`, `.claude/agents/`: installed Zoo roles.
 - `.claude/skills`: symlink to shared skills.
 - `.zoo/`: project workflow configuration.
 - `docs/`: durable AI and developer context.
+- `scripts/inventory/`: read-only Git/spec/session collector; Go embeds Python
+  standard-library helpers for SQLite/agent files and task correlation/rendering.
+  Requires `python3`.
 - `scripts/scout/`: small standard-library Go review script; no module needed.
 - `.spec/YYYYMMDD-taskslug.md`: tracked task specs.
 - `.proposals/YYYYMMDD-title.md`: tracked proposals; archive in `.proposals/archived/`.
@@ -50,3 +54,12 @@ commands here when the implementation provides them.
 The scout prints questions for a reviewer; it does not verify the product or
 run agents. See [its design](../scripts/scout/DESIGN.md). While editing the scout,
 follow [its instructions](../scripts/scout/AGENTS.md).
+
+For inventory changes, follow [its collection rules](../scripts/inventory/README.md)
+and run:
+
+```sh
+go test scripts/inventory/inventory.go scripts/inventory/inventory_test.go
+go vet scripts/inventory/inventory.go
+python3 -m unittest discover -s scripts/inventory -p '*_test.py'
+```

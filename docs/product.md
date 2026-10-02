@@ -3,9 +3,10 @@
 TalkingDuck should answer: **What needs my attention next, where is that work,
 and which agent is handling it?**
 
-The destination is Mac and iPhone apps for managing agent work, with Zoo as the
-main workflow. Initial agents: Codex, Claude, and Grok. Build slowly in useful
-stages; daily use should guide what comes next.
+The product shape is open: a Mac view, an assistant-invoked collector, or later
+Mac/iPhone apps. Initial agents: Codex, Claude, and Grok. Zoo specs provide an
+initial source of work state. Build useful experiments directly; daily use should
+guide what comes next.
 
 ## Problem
 
@@ -62,13 +63,17 @@ ambiguous, and stale observations honestly, with their source and update time.
 
 ## Incremental approach
 
-Start with Go, likely a small script that collects and reports information.
-Its scope, sources, and output have not been decided. Over time, the repository
-will likely become Swift, rewriting early pieces as useful. Keep the scout small
-and nimble too. Use each result to learn before building more UI or automation.
+Start with the [Go inventory script](../scripts/inventory/README.md): scan Prairie
+`backend` through `back10`, collect specs from unpushed, dirty, and untracked work,
+and report tickets, stages, ordering, and evidence. Pushed history is outside this
+first view. Support other paths explicitly. Local sessions now nest under their inferred Zoo specs. The compact table shows
+revision round, stage, subtask counts, attention, and Git counters; secondary reviews cannot choose
+the displayed primary agent. Unknowns remain explicit. See the
+[behavior spec](../.spec/20261002-worktree-task-inventory.md). Durable history and stronger live integrations come later. Keep the scout small too. Learn from these results before choosing a UI,
+automation, storage, or whether to move to Swift.
 
-Open decisions: first collector scope; agent integration mechanisms; explicit Zoo
-status publishing; ticket priority sources; storage; Mac-to-iPhone transport;
+Open decisions: better activity ordering and associations; agent integration
+mechanisms; explicit Zoo status publishing; ticket priority sources; storage; Mac-to-iPhone transport;
 notifications; and whether to reuse an existing monitor. This initialization
 does not select a framework, service, database, or external monitor.
 

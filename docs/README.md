@@ -4,6 +4,10 @@ Start here; read only what the task needs.
 
 - [product.md](product.md): purpose, user needs, boundaries, open decisions.
 - [development.md](development.md): repository layout, work conventions, validation.
+- [Inventory behavior spec](../.spec/20261002-worktree-task-inventory.md): worktree/task/session hierarchy, compact table, stages, correlation, and limits.
+- [Local work inventory](../scripts/inventory/README.md): one-shot Git/spec collector, ordering, and limits.
+- [Agent collection research](agent-collection-research.md): local schemas, live checks, monitor comparisons, optional hooks.
+- [Agent inventory instructions](agent-inventory-instructions.md): collect once, then enrich unknowns with app tools or UI.
 - [Scout design](../scripts/scout/DESIGN.md): review-tool behavior and extension rules.
 
 Keep durable project knowledge here. Link new topic docs from this index.

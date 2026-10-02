@@ -2,12 +2,19 @@
 
 See what needs your attention across agent work folders, tickets, and Zoo stages.
 
-The goal is Mac and iPhone apps for managing Codex, Claude, and Grok work. Start
-small, use each stage, and let that experience guide the next one. Start with Go;
-the repository will likely move toward Swift over time.
+Start with a Go collector for Codex, Claude, and Grok work folders. The final shape
+is open: an assistant tool, a Mac view, or later Mac/iPhone apps. Use each stage to
+guide the next one.
 
-This repository currently contains Zoo skills, project guidance, and a review
-scout. Product code has not started.
+The first experiment inventories local specs, Git work, and Codex/Claude/Grok sessions:
+
+```sh
+go run scripts/inventory/inventory.go
+```
+
+See [inventory usage and limits](scripts/inventory/README.md), including JSON output,
+and [agent collection research](docs/agent-collection-research.md).
+The repository also contains Zoo skills, project guidance, and a review scout.
 
 - [Product vision](docs/product.md)
 - [AI documentation](docs/README.md)
