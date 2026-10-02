@@ -24,6 +24,10 @@ environment when needed.
 
 - Left-click the tray image: open the mock overview.
 - Right-click: native Wails menu with open, toggle styles, refresh, and quit.
+  An explicit `OnRightClick` handler calls `OpenMenu`, bypassing Wails' automatic
+  pre-click attachment after a report that it opened only on alternate clicks.
+  The suspected cause is attachment timing; repeated manual clicks still need
+  confirmation on the affected desktop.
 - Standard (default): 123 x 23-point image, 5x7 font, 131-point tray width.
 - Compact: 99 x 21-point image, 4x6 font, 105-point tray width.
 - Switch layouts live with the window button or the native menu checkbox.
