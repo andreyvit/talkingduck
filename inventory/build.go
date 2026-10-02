@@ -29,7 +29,7 @@ type Snapshot struct {
 // Failed reports checkout failures. Their errors remain in the partial snapshot.
 func (s *Snapshot) Failed() bool {
 	for _, repo := range s.Details.Repositories {
-		if repo.Error != "" {
+		if repo.Error != "" || (repo.Cache != nil && repo.Cache.Error != "") {
 			return true
 		}
 	}
@@ -41,31 +41,13 @@ func (s *Snapshot) Failed() bool {
 // remain in the snapshot so other worktrees are still visible. Reads are bounded
 // by per-command/database timeouts; GUI callers should run Build off their UI thread.
 func Build(opts Options) (*Snapshot, error) {
-	if opts.AgentLimit < 0 {
-		return nil, fmt.Errorf("agent limit must be nonnegative")
-	}
-	paths := append([]string(nil), opts.Paths...)
-	if len(paths) == 0 {
-		root := opts.Root
-		if root == "" {
-			home, err := os.UserHomeDir()
-			if err != nil {
-				return nil, err
-			}
-			root = filepath.Join(home, "Developer", "prairie")
-		}
-		paths = append(paths, filepath.Join(root, "backend"))
-		for i := 2; i <= 10; i++ {
-			paths = append(paths, filepath.Join(root, fmt.Sprintf("back%d", i)))
-		}
+	paths, err := worktreePaths(opts)
+	if err != nil {
+		return nil, err
 	}
 	report := Report{ObservedAt: time.Now().UTC(), Boundary: "Unpushed = HEAD commits absent from local remote-tracking refs. No fetch; remote knowledge may be stale. Agent states include uncertainty; see JSON evidence.", Repositories: []Repo{}}
 	for _, p := range paths {
-		absolute, err := filepath.Abs(p)
-		if err != nil {
-			return nil, err
-		}
-		report.Repositories = append(report.Repositories, scan(absolute, report.ObservedAt))
+		report.Repositories = append(report.Repositories, scan(p, report.ObservedAt))
 	}
 	if !opts.NoAgents {
 		roots := []string{}
@@ -112,4 +94,33 @@ func CollectSessions(home string, paths []string, limit int) (Object, error) {
 		}
 	}
 	return collectAgentData(home, paths, limit, float64(time.Now().UnixNano())/1e9, probeProcess), nil
+}
+
+func worktreePaths(opts Options) ([]string, error) {
+	if opts.AgentLimit < 0 {
+		return nil, fmt.Errorf("agent limit must be nonnegative")
+	}
+	paths := append([]string(nil), opts.Paths...)
+	if len(paths) == 0 {
+		root := opts.Root
+		if root == "" {
+			home, err := os.UserHomeDir()
+			if err != nil {
+				return nil, err
+			}
+			root = filepath.Join(home, "Developer", "prairie")
+		}
+		paths = append(paths, filepath.Join(root, "backend"))
+		for i := 2; i <= 10; i++ {
+			paths = append(paths, filepath.Join(root, fmt.Sprintf("back%d", i)))
+		}
+	}
+	for i, p := range paths {
+		absolute, err := filepath.Abs(p)
+		if err != nil {
+			return nil, err
+		}
+		paths[i] = absolute
+	}
+	return unique(paths), nil
 }

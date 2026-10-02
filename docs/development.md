@@ -15,7 +15,7 @@ GUI mode displays mock data; it is not connected to live collection yet.
 - `cli/`: reusable flag registration, terminal output, and exit codes.
 - `desktop/`: Wails app, native tray-width shim, embedded overview, and local build script; see [desktop instructions](../desktop/README.md).
 - `menubarimage/`: shared standard/compact pixel renderer used by the app and scratch command.
-- `inventory/`: read-only Git/spec/session builder and correlation; modernc SQLite without cgo.
+- `inventory/`: read-only builder, correlation, and in-memory per-worktree cache; modernc SQLite without cgo.
 - `cmd/scout/`: small standard-library Go review script; no module needed.
 - `.spec/YYYYMMDD-taskslug.md`: tracked task specs.
 - `.proposals/YYYYMMDD-title.md`: tracked proposals; archive in `.proposals/archived/`.
@@ -64,5 +64,7 @@ and run:
 ```sh
 CGO_ENABLED=0 go test ./inventory ./cli ./cmd/talkingduck
 go vet ./inventory ./cli ./cmd/talkingduck
+# For cache/concurrency changes:
+go test -race ./inventory
 CGO_ENABLED=0 go build -o /tmp/talkingduck ./cmd/talkingduck
 ```

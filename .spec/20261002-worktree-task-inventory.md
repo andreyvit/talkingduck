@@ -16,7 +16,8 @@ status: implemented prototype; correlation and workflow states are heuristic
 
 ### Operating model
 
-- Run once, sequentially, without hooks, network calls, model calls, or UI automation.
+- CLI runs once, sequentially. Reusable inventory supports cached per-worktree
+  refresh; neither mode uses hooks, network/model calls, or UI automation.
 - Default to Prairie `backend`, then `back2`–`back10`. Accept arbitrary paths and
   a replacement parent directory; names are defaults, not permanent identities.
 - Read local Git and agent data. Never fetch, alter app state, send prompts, or
@@ -219,6 +220,24 @@ status: implemented prototype; correlation and workflow states are heuristic
   Zero counts and unknowns are gray; agents, stages, and nonzero counter columns
   have distinct colors. Attention is yellow, conflicts/errors red, titles white.
   Apply ANSI escapes after layout so colors cannot change alignment or wrapping.
+
+### Cached inventory
+
+- `inventory.New(options)` creates pending entries without scanning. `Paths()`
+  returns normalized, deduplicated worktrees in configured order.
+- `Update(path)` scans one configured worktree and its scoped sessions. Shared
+  provider indexes may still be read; no other worktree is rescanned or cleared.
+- `Snapshot()` returns detached cached data without collection or waiting for a
+  refresh. In-memory copying scales with data size. No caller mutation leaks back.
+- Track each row's pending/updating/ready/error state, successful observation time,
+  latest attempt/completion times, and refresh error. Initially unknown, never clean.
+- Publish each refresh atomically. Failures retain last successful data and its
+  timestamp, expose the error, and fail `Snapshot.Failed()`. Source warnings remain
+  nonfatal. Top-level observation time is the newest row, not all rows' freshness.
+- Same-worktree refreshes serialize; other worktrees can refresh independently.
+  Cached running/attention states must be interpreted using per-row timestamps.
+- GUI/MCP callers own scheduling and stale-age policy. No timer, disk persistence,
+  singleton, or GUI/MCP wiring is added. CLI retains one-shot `Build` behavior.
 
 ### Agent output and diagnostics
 

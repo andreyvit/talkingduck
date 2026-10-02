@@ -86,6 +86,7 @@ type Spec struct {
 	commitOrder      int
 }
 type Repo struct {
+	Cache                   *RefreshState            `json:"cache,omitempty"`
 	CommitAssociationIssues []CommitAssociationIssue `json:"commit_association_issues"`
 	Agents                  []json.RawMessage        `json:"agents"`
 	LocalChanges            []Change                 `json:"local_changes"`
