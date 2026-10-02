@@ -26,7 +26,8 @@ nonzero if any checkout fails. Each Git command has a 30-second timeout.
 The default is a headerless table, one row per worktree/task. Columns are:
 worktree, latest primary agent, tickets, revision round, stage, subtasks, progress, interaction,
 question/suggestion counts, local Git counters, upstream counts, title.
-The `±`, `?`, and `ℹ︎` counters each have their own aligned column.
+The `±`, `?`, `ℹ︎`, `⇣`, and `⇡` counters each have their own aligned column.
+Every number reserves at least two digits, including rounds and paired counts.
 Tickets use separate lines; remaining cells are top aligned. The title wraps into
 remaining width. Use `-width 150` to choose a width; `-details` keeps the old report.
 
