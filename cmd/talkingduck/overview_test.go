@@ -151,6 +151,35 @@ func TestNoAssociationFromToolOutputOrInstructions(t *testing.T) {
 		t.Fatal("suffix matched as spec")
 	}
 }
+
+func TestUserTicketAssociationFallback(t *testing.T) {
+	for _, tc := range []struct {
+		name, role, text, otherTicket, want string
+	}{
+		{"request", "user", "<user_query>Implement DEV-1234 using Zoo.</user_query>", "DEV-9999", "matched"},
+		{"shared ticket", "user", "Implement DEV-1234", "DEV-1234", "ambiguous"},
+		{"multiple tasks", "user", "Implement DEV-1234 and DEV-9999", "DEV-9999", "ambiguous"},
+		{"assistant only", "assistant", "Related to DEV-1234", "DEV-9999", "unknown"},
+		{"injected context", "user", "<rules>DEV-1234</rules>", "DEV-9999", "unknown"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			s, other := taskFixture(), taskFixture()
+			other["path"], other["tickets"] = ".spec/other.md", []string{tc.otherTicket}
+			a := overviewSession()
+			a["title"] = "Generated title without ticket"
+			a["transcript_path"] = conversationFixture(t, tc.role, tc.text)
+			got := associate(a, []Object{s, other})
+			evidence := obj(a["spec_association"])
+			if tc.want == "matched" {
+				if got != s["path"] || evidence["kind"] != "unique ticket in user message" || !reflect.DeepEqual(evidence["tickets"], []string{"DEV-1234"}) {
+					t.Fatal(a)
+				}
+			} else if got != "" || evidence["value"] != tc.want {
+				t.Fatal(a)
+			}
+		})
+	}
+}
 func TestLatestPrimaryAndConflict(t *testing.T) {
 	s := taskFixture()
 	old, newer, review := overviewSession(), overviewSession(), overviewSession()

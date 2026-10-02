@@ -105,6 +105,8 @@ status: implemented prototype; correlation and workflow states are heuristic
   output and known injected context. References are evidence, not proven ownership.
 - If several specs are referenced, a unique task ticket in the session title can
   corroborate one. Without spec references, a unique title-ticket match is fallback.
+  If neither matches, use tickets in user messages; shared tickets or references
+  to several tasks remain ambiguous. Assistant-only ticket mentions do not count.
 - Multiple remaining matches are ambiguous. No match is unknown. Never assign
   the only task in a folder merely because it is the only task.
 - Association reads transcript head and tail for large files, with a warning.

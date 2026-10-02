@@ -238,6 +238,27 @@ func associate(session Object, specs []Object) string {
 			hits = map[string]Object{path: ev}
 		}
 	}
+	// A generated title may omit the ticket, and planning may never name the spec.
+	// Use user requests only, after stronger evidence; keep shared tickets ambiguous.
+	if len(hits) == 0 {
+		for _, row := range rows {
+			if row.role != "user" {
+				continue
+			}
+			ids := tickets(row.text)
+			for _, s := range specs {
+				matched := []string{}
+				for _, id := range array(s["tickets"]) {
+					if contains(ids, str(id)) {
+						matched = append(matched, str(id))
+					}
+				}
+				if len(matched) > 0 {
+					hits[str(s["path"])] = Object{"kind": "unique ticket in user message", "at": row.at, "speaker": "user", "tickets": matched}
+				}
+			}
+		}
+	}
 	if len(hits) == 1 {
 		for path, evidence := range hits {
 			evidence["value"], evidence["confidence"], evidence["source"] = path, "inferred", first(session["transcript_path"], session["source"])
@@ -257,9 +278,9 @@ func associate(session Object, specs []Object) string {
 		candidates = append(candidates, p)
 	}
 	sort.Strings(candidates)
-	value, why := "unknown", "No explicit spec or unique title ticket match"
+	value, why := "unknown", "No explicit spec or unique title/user-message ticket match"
 	if len(hits) > 0 {
-		value, why = "ambiguous", "Multiple spec references"
+		value, why = "ambiguous", "Multiple specs match session references or tickets"
 	}
 	session["spec_association"] = Object{"value": value, "candidates": candidates, "reason": why}
 	return ""

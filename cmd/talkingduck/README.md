@@ -44,6 +44,9 @@ Sessions nest under specs. Persisted Grok review-only headless sessions are
 secondary; primary selection uses the latest associated primary's timestamp.
 An agent name ending in `!` signals multiple apparently active primaries. Unknown
 matches remain unassigned, never attached by folder or spec recency alone.
+When spec references and title tickets do not match, a unique ticket match from
+user messages can associate the session. Shared tickets remain ambiguous;
+tool output, injected context, and assistant-only ticket mentions do not count.
 
 See the [single behavior spec](../../.spec/20261002-worktree-task-inventory.md)
 for selection, status rules, evidence limits, and the complete output contract.
