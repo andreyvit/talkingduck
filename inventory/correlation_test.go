@@ -185,6 +185,7 @@ func TestLatestPrimaryAndConflict(t *testing.T) {
 	old, newer, review := overviewSession(), overviewSession(), overviewSession()
 	old["id"], old["updated_at"], old["activity"] = "one", iso(testNow), Object{"value": "running"}
 	newer["id"], newer["engine"], newer["updated_at"], newer["activity"] = "two", "claude", iso(testNow+86400), Object{"value": "running"}
+	newer["client"], newer["app_session_id"] = "desktop", "local_example"
 	review["id"], review["client"], review["updated_at"] = "review", "headless", iso(testNow+86400*2)
 	path := conversationFixture(t, "user", "Review "+str(s["path"])+". Findings only; do not modify files.")
 	for _, a := range []Object{old, newer, review} {
@@ -193,7 +194,7 @@ func TestLatestPrimaryAndConflict(t *testing.T) {
 	root := repo(t)
 	r := Object{"repositories": []Object{{"path": root, "specs": []Object{s}, "agents": []Object{old, newer, review}}}}
 	enrich(r)
-	if !reflect.DeepEqual(s["primary_session"], Object{"engine": "claude", "id": "two"}) || !truth(s["primary_conflict"]) || len(array(s["sessions"])) != 3 {
+	if !reflect.DeepEqual(s["primary_session"], Object{"engine": "claude", "id": "two", "client": "desktop", "app_session_id": "local_example"}) || !truth(s["primary_conflict"]) || len(array(s["sessions"])) != 3 {
 		t.Fatal(s)
 	}
 }

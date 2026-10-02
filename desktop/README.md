@@ -45,6 +45,8 @@ call has its own timeouts and cannot be cancelled midway.
 - Compact: 99 x 21-point image, 4x6 font, 105-point tray width.
 - Switch layouts live with the native menu checkbox.
   The selection lasts for this run; preferences are not saved yet.
+- Click a linked Codex/Claude name to open that primary chat in its desktop app.
+  See [agent chat links](../docs/agent-chat-links.md) for supported IDs and limitations.
 - Click any ticket reference to open its Linear issue in the default URL handler.
   Each ticket on a multiline row is linked separately; links underline on hover.
   The workspace is currently Bubblehouse; see [future settings](../docs/future-settings.md).

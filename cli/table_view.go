@@ -9,9 +9,10 @@ import (
 // TableView is the CLI's unwrapped table, also used by the desktop overview.
 // Each row is one task (or empty/error checkout); newlines stay within cells.
 type TableView struct {
-	Rows      [][]string `json:"rows"`
-	SpecPaths []string   `json:"specPaths"` // One absolute path per row; empty for non-task rows.
-	Warnings  []string   `json:"warnings"`
+	Rows       [][]string `json:"rows"`
+	SpecPaths  []string   `json:"specPaths"` // One absolute path per row; empty for non-task rows.
+	AgentLinks []string   `json:"agentLinks"`
+	Warnings   []string   `json:"warnings"`
 }
 
 // BuildTable uses the same projection and row builder as terminal output.
@@ -26,6 +27,7 @@ func BuildTable(overview any) (TableView, error) {
 	for _, repo := range report.Repositories {
 		if repo.Git.Error != "" || len(repo.Specs) == 0 {
 			result.SpecPaths = append(result.SpecPaths, "")
+			result.AgentLinks = append(result.AgentLinks, "")
 			continue
 		}
 		for _, spec := range repo.Specs {
@@ -34,6 +36,7 @@ func BuildTable(overview any) (TableView, error) {
 				path = filepath.Join(repo.Path, path)
 			}
 			result.SpecPaths = append(result.SpecPaths, path)
+			result.AgentLinks = append(result.AgentLinks, agentLink(spec))
 		}
 	}
 	if text := strings.TrimSpace(warnings.String()); text != "" {

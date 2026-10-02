@@ -39,7 +39,7 @@ func TestTablePathsAlignWithEmptyAndFailedCheckouts(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := []string{"", "", "/repo/.spec/one.md", "/repo/.spec/two.md"}
-	if len(table.Rows) != len(want) || len(table.SpecPaths) != len(want) {
+	if len(table.Rows) != len(want) || len(table.SpecPaths) != len(want) || len(table.AgentLinks) != len(want) {
 		t.Fatal(table)
 	}
 	for i, p := range want {

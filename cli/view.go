@@ -35,8 +35,10 @@ type taskView struct {
 	Tickets        []string `json:"tickets"`
 	DisplayTitle   string   `json:"display_title"`
 	PrimarySession struct {
-		Engine string `json:"engine"`
-		ID     string `json:"id"`
+		Engine       string `json:"engine"`
+		ID           string `json:"id"`
+		AppSessionID string `json:"app_session_id"`
+		Client       string `json:"client"`
 	} `json:"primary_session"`
 	PrimaryConflict bool         `json:"primary_conflict"`
 	Workflow        workflowView `json:"workflow"`

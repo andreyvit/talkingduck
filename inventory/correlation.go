@@ -341,7 +341,7 @@ func enrich(report Object) Object {
 				continue
 			}
 			p := primaries[0]
-			s["primary_session"] = Object{"engine": p["engine"], "id": p["id"]}
+			s["primary_session"] = Object{"engine": p["engine"], "id": p["id"], "app_session_id": p["app_session_id"], "client": p["client"]}
 			activity := str(obj(p["activity"])["value"])
 			skill := obj(p["zoo_skill_activity"])
 			if len(skill) > 0 && timestamp(p["updated_at"]) >= timestamp(s["last_activity"]) {
