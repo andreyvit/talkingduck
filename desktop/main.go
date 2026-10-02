@@ -137,6 +137,17 @@ func run(opts *cli.Options, mcpPort int) error {
 	menu.Add("Quit TalkingDuck").OnClick(func(*application.Context) { app.Quit() })
 	tray.SetMenu(menu)
 	app.Event.On("inventory:ready", func(*application.CustomEvent) { view.publish() })
+	app.Event.On("inventory:open-ticket", func(event *application.CustomEvent) {
+		ticket, ok := event.Data.(string)
+		if !ok {
+			return
+		}
+		go func() {
+			if err := view.openTicket(ticket); err != nil {
+				app.Event.Emit("inventory:open-error", err.Error())
+			}
+		}()
+	})
 	app.Event.On("inventory:open-spec", func(event *application.CustomEvent) {
 		path, ok := event.Data.(string)
 		if !ok {

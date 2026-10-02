@@ -45,6 +45,9 @@ call has its own timeouts and cannot be cancelled midway.
 - Compact: 99 x 21-point image, 4x6 font, 105-point tray width.
 - Switch layouts live with the native menu checkbox.
   The selection lasts for this run; preferences are not saved yet.
+- Click any ticket reference to open its Linear issue in the default URL handler.
+  Each ticket on a multiline row is linked separately; links underline on hover.
+  The workspace is currently Bubblehouse; see [future settings](../docs/future-settings.md).
 - Click a spec title to preview its file in Marked. Titles underline on hover;
   non-task rows stay plain text. Missing files or app launch errors appear in the window.
 - Closing the window hides it.
@@ -63,7 +66,7 @@ call has its own timeouts and cannot be cancelled midway.
 ## Local MCP
 
 While the app runs, its shared cache is available at `http://127.0.0.1:42389/mcp`.
-`get_inventory` returns compact CLI `-ai` text; `refresh_folder` updates one
+`list_zoo_tasks` returns compact CLI `-ai` text; `refresh_folder` updates one
 configured checkout and the UI. See [MCP setup and tools](../mcpserver/README.md).
 
 ## Variable-width workaround

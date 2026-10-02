@@ -6,14 +6,14 @@ as the window and menu bar. The standalone CLI does not start a server.
 
 Tools:
 
-- `get_inventory {}` returns one MCP text block using the exact CLI `-ai`
+- `list_zoo_tasks {}` returns one MCP text block using the exact CLI `-ai`
   renderer, followed by compact per-folder cache state and observation times.
   Reads are immediate and do not trigger a scan.
 - `refresh_folder {"folder":"back2"}` accepts a configured absolute checkout
   path or unique basename. It waits for the current scan, refreshes only that
   checkout, publishes to the window/tray, and returns the updated compact
   inventory. Unknown or ambiguous names return a tool error. Failed refreshes
-  retain earlier cached data; `get_inventory` reports the error and original age.
+  retain earlier cached data; `list_zoo_tasks` reports the error and original age.
 
 Connect any Streamable HTTP MCP client to the URL above. For clients using an
 `mcpServers` JSON configuration:

@@ -1,0 +1,25 @@
+# Future settings
+
+Configuration backlog, not an implemented settings UI or a settled storage format.
+Keep CLI flags usable; future preferences should supply defaults the flags can override.
+
+| Setting | Current behavior | Future control |
+| --- | --- | --- |
+| Watched checkouts and order | `backend`, then `back2`–`back10` under `~/Developer/prairie`; paths and `--root` can override | Folder picker, add/remove/reorder, stable tray numbers |
+| Linear workspace | `bubblehouse`; all ticket links use `https://linear.app/bubblehouse/issue/<ID>` | Workspace, with per-project overrides if needed; consider other trackers later |
+| Markdown preview | Spec titles open in Marked | Installed-app picker, system default, or built-in preview |
+| Ticket destination | macOS opens the HTTPS URL with its default handler | Optional browser/Linear-app preference |
+| Refresh interval | Refresh folders sequentially, then pause one minute | Pause duration; optional pause/resume background scanning |
+| Menu bar density | Standard by default; Compact toggle lasts for the current run | Persist selected density |
+| Folder summary selection | First listed spec determines the tray stage/activity | Decide how multiple specs and attention states should be prioritized |
+| Agent collection | All local sessions; `--no-agents` and `--agent-limit` supported | Provider selection and collection limits |
+| MCP | Enabled while GUI runs; port 42389, overridden by `--mcp-port` | Enable/disable and port; keep loopback-only binding |
+| Startup | Manual launch, no login registration | Launch at login; initial window visibility |
+
+Implementation pointers: `desktop/main.go` (startup, tray, refresh interval),
+`desktop/ticket_link.go` (Linear workspace), `desktop/spec_preview.go` (Marked),
+`cli/cli.go` (collection flags), `inventory/build.go` (default folders),
+`mcpserver/server.go` (MCP port and loopback transport).
+
+Do not make non-loopback listening a preference by accident. Remote access would
+need a separate design for authentication and inventory privacy.

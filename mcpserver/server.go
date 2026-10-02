@@ -64,7 +64,7 @@ func resolveFolder(paths []string, input string) (string, error) {
 // Handler uses the official SDK's stateless Streamable HTTP transport.
 func Handler(backend Backend) http.Handler {
 	server := mcp.NewServer(&mcp.Implementation{Name: "talkingduck", Version: "0.1.0"}, nil)
-	mcp.AddTool(server, &mcp.Tool{Name: "get_inventory", Description: "Return cached work inventory as compact CLI -ai text, including tickets, stages, primary session IDs and per-folder freshness. Does not scan. Unknown or stale state is not current activity."}, func(ctx context.Context, req *mcp.CallToolRequest, args struct{}) (*mcp.CallToolResult, any, error) {
+	mcp.AddTool(server, &mcp.Tool{Name: "list_zoo_tasks", Description: "Return cached work inventory as compact CLI -ai text, including tickets, stages, primary session IDs and per-folder freshness. Does not scan. Unknown or stale state is not current activity."}, func(ctx context.Context, req *mcp.CallToolRequest, args struct{}) (*mcp.CallToolResult, any, error) {
 		text, err := compact(backend.Snapshot())
 		if err != nil {
 			return nil, nil, err
@@ -72,7 +72,7 @@ func Handler(backend Backend) http.Handler {
 		return textResult(text), nil, nil
 	})
 	type refreshArgs struct {
-		Folder string `json:"folder" jsonschema:"Configured absolute checkout path or unique folder name from get_inventory"`
+		Folder string `json:"folder" jsonschema:"Configured absolute checkout path or unique folder name from list_zoo_tasks"`
 	}
 	mcp.AddTool(server, &mcp.Tool{Name: "refresh_folder", Description: "Refresh one configured checkout in the app's shared cache, wait for completion, update the window and tray, and return compact cached inventory. Reads local Git/spec/session data; does not modify the checkout."}, func(ctx context.Context, req *mcp.CallToolRequest, args refreshArgs) (*mcp.CallToolResult, any, error) {
 		path, err := resolveFolder(backend.Paths(), args.Folder)

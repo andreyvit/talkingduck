@@ -53,7 +53,7 @@ func TestHTTPTools(t *testing.T) {
 	if err != nil || len(listed.Tools) != 2 {
 		t.Fatalf("list: %v %v", listed, err)
 	}
-	result, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "get_inventory", Arguments: map[string]any{}})
+	result, err := session.CallTool(ctx, &mcp.CallToolParams{Name: "list_zoo_tasks", Arguments: map[string]any{}})
 	if err != nil || result.IsError {
 		t.Fatalf("get: %v %v", result, err)
 	}
