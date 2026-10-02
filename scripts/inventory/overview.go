@@ -401,14 +401,16 @@ func render(report Object, size int) string {
 		name := filepath.Base(str(repo["path"]))
 		g := obj(repo["git"])
 		if truth(g["error"]) {
-			rows = append(rows, []string{name, "--", "--", "0", "--", "--", "?", "?", "?/?", "ERROR", "⇣? ⇡?", str(g["error"])})
+			rows = append(rows, []string{name, "--", "--", "0", "--", "--", "?", "?", "?/?", "ERROR", "", "", "⇣? ⇡?", str(g["error"])})
 			continue
 		}
-		local := fmt.Sprintf("±%v ?%v ℹ︎%v", g["tracked"], g["untracked"], g["informational"])
+		tracked := "±" + display(g["tracked"])
+		untracked := "?" + display(g["untracked"])
+		info := "ℹ︎" + display(g["informational"])
 		remote := "⇣" + display(g["behind"]) + " ⇡" + display(g["ahead"])
 		specs := objects(repo["specs"])
 		if len(specs) == 0 {
-			rows = append(rows, []string{name, "--", "--", "0", "--", "0/0", "", "", "0/0", local, remote, str(g["cleanliness"])})
+			rows = append(rows, []string{name, "--", "--", "0", "--", "0/0", "", "", "0/0", tracked, untracked, info, remote, str(g["cleanliness"])})
 			continue
 		}
 		for _, s := range specs {
@@ -428,10 +430,10 @@ func render(report Object, size int) string {
 			if ticket == "" {
 				ticket = "--"
 			}
-			rows = append(rows, []string{name, agent, ticket, display(w["round"]), str(w["stage"]), display(w["subtasks_done"]) + "/" + display(w["subtasks_total"]), str(w["progress"]), str(w["interaction"]), display(w["questions"]) + "/" + display(w["suggestions"]), local, remote, str(s["display_title"])})
+			rows = append(rows, []string{name, agent, ticket, display(w["round"]), str(w["stage"]), display(w["subtasks_done"]) + "/" + display(w["subtasks_total"]), str(w["progress"]), str(w["interaction"]), display(w["questions"]) + "/" + display(w["suggestions"]), tracked, untracked, info, remote, str(s["display_title"])})
 		}
 	}
-	widths := []int{6, 6, 8, 1, 4, 5, 1, 1, 3, 9, 5}
+	widths := []int{6, 6, 8, 1, 4, 5, 1, 1, 3, 2, 2, 2, 5}
 	for _, row := range rows {
 		for i, value := range row[:len(widths)] {
 			for _, line := range strings.Split(value, "\n") {

@@ -202,6 +202,7 @@ status: implemented prototype; correlation and workflow states are heuristic
   - Local Git counters, remote Git counters, spec title.
 - Use one space between padded columns. Fix widths across the table, expanding
   only enough to fit observed values. Unicode symbols occupy terminal cells.
+  Give each local Git counter (`±`, `?`, `ℹ︎`) its own aligned column.
 - Last column uses remaining width and wraps. Use `-width N`, otherwise terminal
   width / `COLUMNS`, otherwise 120. Below the structural minimum the table can
   exceed the requested width; never silently clip identifiers or counters.
