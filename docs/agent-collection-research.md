@@ -1,9 +1,10 @@
 # Agent collection research
 
 Research and local validation: 2026-10-02. Goal: useful observations without hooks,
-then optional enrichment. Implementation: [agents.py](../scripts/inventory/agents.py),
-embedded and called by the Go inventory. Python's standard library reads SQLite;
-no package install, model call, network call, or recursive agent run is required.
+then optional enrichment. Implementation: [agents.go](../scripts/inventory/agents.go),
+with read-only SQLite access through `modernc.org/sqlite`. Collection, correlation,
+and rendering run in Go; no Python runtime or cgo. Go downloads module dependencies
+on the first build. The collector makes no model call, network call, or recursive agent run.
 
 ## Findings
 

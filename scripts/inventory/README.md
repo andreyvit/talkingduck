@@ -1,7 +1,7 @@
 # Local work inventory
 
-One-shot, read-only collector. Go reads agent data with modernc SQLite; an embedded Python helper still handles
-correlation/rendering during the port. No service.
+One-shot, read-only Go collector. Uses modernc SQLite without cgo.
+No Python runtime or service.
 
 ```sh
 go run ./scripts/inventory
@@ -15,7 +15,8 @@ go run ./scripts/inventory /path/to/one /path/to/two
 
 Defaults to `backend`, then `back2` through `back10`, scanned sequentially.
 Paths are configuration, not product identities. Separate worktrees stay separate.
-Requires Git, Go, and `python3`. `-no-agents` skips session collection.
+Requires Git and Go to run from source; a built binary needs Git.
+`-no-agents` skips session collection.
 Does not fetch, write Git state, run agents, install hooks, or contact tickets.
 A failed checkout appears in the report; other checkouts continue. Exit status is
 nonzero if any checkout fails. Each Git command has a 30-second timeout.
@@ -161,8 +162,8 @@ pushed history, missing remote refs, ambiguous ownership, dirty code matching a
 pushed spec, rename/deletion, sorting, ticket parsing, and checkout failures.
 
 ```sh
-go test ./scripts/inventory
+CGO_ENABLED=0 go test ./scripts/inventory
 go vet ./scripts/inventory
-python3 -m unittest discover -s scripts/inventory -p '*_test.py'
+CGO_ENABLED=0 go build -o /tmp/talkingduck-inventory ./scripts/inventory
 git diff --check
 ```

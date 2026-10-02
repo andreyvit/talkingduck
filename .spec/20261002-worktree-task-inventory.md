@@ -24,8 +24,9 @@ status: implemented prototype; correlation and workflow states are heuristic
 
 ### Deliverables
 
-- Entry point: `go run ./scripts/inventory`. Go reads agent sources directly using modernc SQLite without cgo; correlation
-  and rendering still use Python during the port. Git, Go, and Python are required.
+- Entry point: `go run ./scripts/inventory`. Collection, correlation, and rendering
+  run in Go, using modernc SQLite without cgo. Source runs require Git and Go;
+  built binaries require Git. No Python runtime.
 - Default: compact table. `-json`: hierarchy and evidence. `-details`: legacy
   verbose report. `-no-agents`: Git/spec data with unknown session fields.
 - This spec is the behavior contract. Supporting evidence lives in
@@ -225,13 +226,16 @@ status: implemented prototype; correlation and workflow states are heuristic
 
 ### Required checks
 
-- Run Go inventory tests and `go vet`; run Python test discovery for both helpers;
-  run `git diff --check` and check documentation links.
+- Run inventory tests and build with `CGO_ENABLED=0`; run `go vet`,
+  `git diff --check`, and documentation link checks. Synthetic tests cover
+  read-only SQLite access, including uncheckpointed WAL data.
 - Cover pushed-task exclusion, dirty/untracked discovery, ambiguous ownership,
   secondary reviews, primary selection/conflict, counts, stash exclusion,
   upstream failures, multi-ticket alignment, and empty worktrees.
 - Exercise the real local scan read-only. Compare selected matches and secondary
   classifications against transcript evidence; retain uncertainty in the output.
+  The Go port reproduced the previous compact table and compared 1,082 local
+  session identities against the pre-port snapshot.
 
 ### Known gaps
 

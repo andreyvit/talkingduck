@@ -12,7 +12,6 @@ Do not report app tests as passing.
 - `.zoo/`: project workflow configuration.
 - `docs/`: durable AI and developer context.
 - `scripts/inventory/`: read-only Git/spec/session collector; Go reads agent files and SQLite with the cgo-free modernc driver.
-  Task correlation/rendering still uses an embedded Python helper during the port.
 - `scripts/scout/`: small standard-library Go review script; no module needed.
 - `.spec/YYYYMMDD-taskslug.md`: tracked task specs.
 - `.proposals/YYYYMMDD-title.md`: tracked proposals; archive in `.proposals/archived/`.
@@ -58,7 +57,7 @@ For inventory changes, follow [its collection rules](../scripts/inventory/README
 and run:
 
 ```sh
-go test ./scripts/inventory
+CGO_ENABLED=0 go test ./scripts/inventory
 go vet ./scripts/inventory
-python3 -m unittest discover -s scripts/inventory -p '*_test.py'
+CGO_ENABLED=0 go build -o /tmp/talkingduck-inventory ./scripts/inventory
 ```

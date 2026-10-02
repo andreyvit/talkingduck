@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	_ "embed"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -15,9 +14,6 @@ import (
 	"strings"
 	"time"
 )
-
-//go:embed overview.py
-var overviewCollector string
 
 type AgentSession struct {
 	LastMessage struct {
@@ -788,18 +784,8 @@ func main() {
 		}
 	}
 	if !*details {
-		data, _ := json.Marshal(report)
-		args := []string{"-c", overviewCollector, "--width", fmt.Sprint(*width)}
-		if *asJSON {
-			args = append(args, "--json")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-		defer cancel()
-		cmd := exec.CommandContext(ctx, "python3", args...)
-		cmd.Stdin = strings.NewReader(string(data))
-		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
-		if err := cmd.Run(); err != nil {
-			fmt.Fprintln(os.Stderr, "Task correlation failed:", err)
+		if err := printOverview(report, *asJSON, *width); err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 	} else if *asJSON {
