@@ -2,7 +2,7 @@
 
 ## Current state and layout
 
-The first product experiment is a one-shot Git/spec inventory. No Go module,
+The first product experiment is a one-shot Git/spec inventory. A root Go module manages dependencies. No
 Xcode project, application build, browser harness, or release process exists yet.
 Do not report app tests as passing.
 
@@ -11,9 +11,8 @@ Do not report app tests as passing.
 - `.claude/skills`: symlink to shared skills.
 - `.zoo/`: project workflow configuration.
 - `docs/`: durable AI and developer context.
-- `scripts/inventory/`: read-only Git/spec/session collector; Go embeds Python
-  standard-library helpers for SQLite/agent files and task correlation/rendering.
-  Requires `python3`.
+- `scripts/inventory/`: read-only Git/spec/session collector; Go reads agent files and SQLite with the cgo-free modernc driver.
+  Task correlation/rendering still uses an embedded Python helper during the port.
 - `scripts/scout/`: small standard-library Go review script; no module needed.
 - `.spec/YYYYMMDD-taskslug.md`: tracked task specs.
 - `.proposals/YYYYMMDD-title.md`: tracked proposals; archive in `.proposals/archived/`.
@@ -59,7 +58,7 @@ For inventory changes, follow [its collection rules](../scripts/inventory/README
 and run:
 
 ```sh
-go test scripts/inventory/inventory.go scripts/inventory/inventory_test.go
-go vet scripts/inventory/inventory.go
+go test ./scripts/inventory
+go vet ./scripts/inventory
 python3 -m unittest discover -s scripts/inventory -p '*_test.py'
 ```

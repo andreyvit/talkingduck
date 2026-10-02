@@ -8,7 +8,7 @@ another agent or model from the collector. This file is not an installed skill.
 From TalkingDuck:
 
 ```sh
-go run scripts/inventory/inventory.go -json
+go run ./scripts/inventory -json
 ```
 
 Default scope: Prairie `backend`, `back2` through `back10`. Supply explicit
@@ -16,7 +16,7 @@ checkout paths for a different scope; `-agent-limit 5` limits recent sessions; t
 Use `-no-agents` for Git/spec-only output. Standalone session collection:
 
 ```sh
-python3 scripts/inventory/agents.py /absolute/checkout/path
+go run ./scripts/inventory -agents-only /absolute/checkout/path
 ```
 
 Read `agent_sources`, their warnings, and `agent_error` before interpreting missing

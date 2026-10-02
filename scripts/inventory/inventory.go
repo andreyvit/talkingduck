@@ -16,9 +16,6 @@ import (
 	"time"
 )
 
-//go:embed agents.py
-var agentCollector string
-
 //go:embed overview.py
 var overviewCollector string
 
@@ -45,22 +42,6 @@ type AgentReport struct {
 	Limitations []string          `json:"limitations"`
 	ObservedAt  string            `json:"observed_at"`
 	Error       string            `json:"error,omitempty"`
-}
-
-func collectAgents(paths []string, limit int) AgentReport {
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
-	args := append([]string{"-c", agentCollector, "--limit", fmt.Sprint(limit)}, paths...)
-	cmd := exec.CommandContext(ctx, "python3", args...)
-	b, err := cmd.Output()
-	if err != nil {
-		return AgentReport{Error: "Agent collection unavailable: " + err.Error()}
-	}
-	var r AgentReport
-	if err = json.Unmarshal(b, &r); err != nil {
-		r.Error = "Invalid agent collector output: " + err.Error()
-	}
-	return r
 }
 
 type Commit struct {
@@ -741,12 +722,24 @@ func main() {
 	asJSON := flag.Bool("json", false, "emit structured observations and association evidence")
 	details := flag.Bool("details", false, "legacy detailed worktree/session listing")
 	width := flag.Int("width", 0, "table width; 0 uses COLUMNS or 120")
+	agentsOnly := flag.Bool("agents-only", false, "emit raw agent observations as JSON without scanning Git")
+	agentHome := flag.String("home", home, "home directory for agents-only data discovery")
 	flag.Parse()
 	if *agentLimit < 0 {
 		fmt.Fprintln(os.Stderr, "-agent-limit must be nonnegative")
 		os.Exit(2)
 	}
 	paths := flag.Args()
+	if *agentsOnly {
+		data := collectAgentData(*agentHome, paths, *agentLimit, float64(time.Now().UnixNano())/1e9, probeProcess)
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(data); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		return
+	}
 	if len(paths) == 0 {
 		paths = append(paths, filepath.Join(*root, "backend"))
 		for i := 2; i <= 10; i++ {

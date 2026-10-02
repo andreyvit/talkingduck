@@ -9,7 +9,7 @@ guide the next one.
 The first experiment inventories local specs, Git work, and Codex/Claude/Grok sessions:
 
 ```sh
-go run scripts/inventory/inventory.go
+go run ./scripts/inventory
 ```
 
 See [inventory usage and limits](scripts/inventory/README.md), including JSON output,

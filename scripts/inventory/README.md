@@ -1,16 +1,16 @@
 # Local work inventory
 
-One-shot, read-only collector. Standard-library Go plus an embedded Python
-standard-library helpers for agent SQLite/JSON files and task correlation; no module, packages, or service.
+One-shot, read-only collector. Go reads agent data with modernc SQLite; an embedded Python helper still handles
+correlation/rendering during the port. No service.
 
 ```sh
-go run scripts/inventory/inventory.go
+go run ./scripts/inventory
 # Structured data, including paths, timestamps, commits, and association evidence:
-go run scripts/inventory/inventory.go -json
+go run ./scripts/inventory -json
 # Override the default ~/Developer/prairie parent:
-go run scripts/inventory/inventory.go -root /path/to/checkouts
+go run ./scripts/inventory -root /path/to/checkouts
 # Or supply any checkout paths explicitly:
-go run scripts/inventory/inventory.go /path/to/one /path/to/two
+go run ./scripts/inventory /path/to/one /path/to/two
 ```
 
 Defaults to `backend`, then `back2` through `back10`, scanned sequentially.
@@ -142,7 +142,8 @@ Permission remains unknown. Spec references and unique ticket matches provide in
 Codex reads local SQLite/rollouts; Claude Desktop Code reads app metadata,
 transcripts, and its native process registry; Grok reads summaries, transcripts,
 events, and its active registry. No network, UI automation, hooks, or model calls
-run inside the collector. It uses read-only SQLite and bounded 4 MiB log tails.
+run inside the collector. It uses modernc SQLite in read-only/query-only mode (including live WAL data) and
+bounded 4 MiB log tails. Agent collection builds with `CGO_ENABLED=0`.
 Partial or truncated logs are reported; private schema changes can reduce coverage.
 Recent-event activity is an inference; silent open turns become unknown after two
 minutes. Claude's validated native process status does not expire just because a
@@ -160,8 +161,8 @@ pushed history, missing remote refs, ambiguous ownership, dirty code matching a
 pushed spec, rename/deletion, sorting, ticket parsing, and checkout failures.
 
 ```sh
-go test scripts/inventory/inventory.go scripts/inventory/inventory_test.go
-go vet scripts/inventory/inventory.go
+go test ./scripts/inventory
+go vet ./scripts/inventory
 python3 -m unittest discover -s scripts/inventory -p '*_test.py'
 git diff --check
 ```

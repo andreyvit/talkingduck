@@ -24,8 +24,8 @@ status: implemented prototype; correlation and workflow states are heuristic
 
 ### Deliverables
 
-- Entry point: `go run scripts/inventory/inventory.go`. Go embeds two Python
-  standard-library helpers. Git, Go, and Python 3 are required.
+- Entry point: `go run ./scripts/inventory`. Go reads agent sources directly using modernc SQLite without cgo; correlation
+  and rendering still use Python during the port. Git, Go, and Python are required.
 - Default: compact table. `-json`: hierarchy and evidence. `-details`: legacy
   verbose report. `-no-agents`: Git/spec data with unknown session fields.
 - This spec is the behavior contract. Supporting evidence lives in
@@ -82,7 +82,8 @@ status: implemented prototype; correlation and workflow states are heuristic
   Validate process identity; distinguish event time from fork replay time.
 - Scan all discovered top-level candidates by default, including archived app
   metadata. `-agent-limit N` deliberately reduces coverage; registered live
-  Claude/Grok sessions survive that limit. Standalone helper defaults to three.
+  Claude/Grok sessions survive that limit. Raw agent-only JSON is available through `-agents-only`; `-home` overrides its
+  data-discovery home directory.
 
 ### Primary versus secondary
 
