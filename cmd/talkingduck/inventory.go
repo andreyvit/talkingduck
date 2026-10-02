@@ -720,7 +720,12 @@ func main() {
 	width := flag.Int("width", 0, "table width; 0 uses COLUMNS or 120")
 	agentsOnly := flag.Bool("agents-only", false, "emit raw agent observations as JSON without scanning Git")
 	agentHome := flag.String("home", home, "home directory for agents-only data discovery")
+	color := flag.String("color", "auto", "terminal colors: auto, always, never")
 	flag.Parse()
+	if !contains([]string{"auto", "always", "never"}, *color) {
+		fmt.Fprintln(os.Stderr, "-color must be auto, always, or never")
+		os.Exit(2)
+	}
 	if *agentLimit < 0 {
 		fmt.Fprintln(os.Stderr, "-agent-limit must be nonnegative")
 		os.Exit(2)
@@ -784,7 +789,7 @@ func main() {
 		}
 	}
 	if !*details {
-		if err := printOverview(report, *asJSON, *width); err != nil {
+		if err := printOverview(report, *asJSON, *width, useColor(*color)); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}

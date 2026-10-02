@@ -226,7 +226,11 @@ func TestMultilineTableAndUnicode(t *testing.T) {
 	s["workflow"] = Object{"stage": "HL", "round": 1, "subtasks_done": 0, "subtasks_total": 0, "progress": "?", "interaction": "?", "questions": nil, "suggestions": 0}
 	g := Object{"tracked": 0, "untracked": 0, "informational": 1, "ahead": 0, "behind": 0, "cleanliness": "CLEAN"}
 	r := Object{"repositories": []Object{{"path": "/back1", "git": g, "specs": []Object{s}}, {"path": "/back2", "git": g, "specs": []Object{}}}}
-	lines := strings.Split(render(r, 120), "\n")
+	lines := strings.Split(render(r, 120, false), "\n")
+	colored := render(r, 120, true)
+	if rx(`\x1b\[[0-9;]*m`).ReplaceAllString(colored, "") != render(r, 120, false) {
+		t.Fatal("colors changed spacing or wrapping")
+	}
 	if strings.TrimSpace(lines[1]) != "DEV-5678" || !strings.Contains(lines[2], "CLEAN") {
 		t.Fatal(lines)
 	}

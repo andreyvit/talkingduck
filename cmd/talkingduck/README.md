@@ -28,6 +28,11 @@ worktree, latest primary agent, tickets, revision round, stage, subtasks, progre
 question/suggestion counts, local Git counters, upstream counts, title.
 The `±`, `?`, `ℹ︎`, `⇣`, and `⇡` counters each have their own aligned column.
 Every number reserves at least two digits, including rounds and paired counts.
+Colors are automatic in terminals; pipes and JSON stay plain. Use `-color always`
+or `-color never` to override; auto honors `NO_COLOR` and `TERM=dumb`.
+Zeros/unknowns are gray. Codex is cyan, Claude orange, Grok purple; stages have
+distinct colors. Nonzero tracked/untracked/info/behind/ahead counts are
+yellow/green/blue/red/cyan. Attention is yellow; the trailing title stays white.
 Tickets use separate lines; remaining cells are top aligned. The title wraps into
 remaining width. Use `-width 150` to choose a width; `-details` keeps the old report.
 

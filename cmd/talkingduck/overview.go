@@ -427,7 +427,7 @@ func tableCell(s string, column int) string {
 
 func numeric(v any) string { return fmt.Sprintf("%2s", display(v)) }
 
-func render(report Object, size int) string {
+func render(report Object, size int, colors bool) string {
 	rows := [][]string{}
 	for _, repo := range objects(report["repositories"]) {
 		name := filepath.Base(str(repo["path"]))
@@ -504,6 +504,9 @@ func render(report Object, size int) string {
 				if i < len(widths) {
 					value += strings.Repeat(" ", max(0, widths[i]-cellWidth(value)))
 				}
+				if colors {
+					value = colorCell(value, i)
+				}
 				values = append(values, value)
 			}
 			out = append(out, strings.TrimRight(strings.Join(values, " "), " "))
@@ -523,7 +526,7 @@ func tableWidth(requested int) int {
 	}
 	return 120
 }
-func printOverview(report Report, asJSON bool, size int) error {
+func printOverview(report Report, asJSON bool, size int, colors bool) error {
 	b, e := json.Marshal(report)
 	if e != nil {
 		return e
@@ -538,7 +541,7 @@ func printOverview(report Report, asJSON bool, size int) error {
 		enc.SetIndent("", "  ")
 		return enc.Encode(data)
 	}
-	fmt.Println(render(data, tableWidth(size)))
+	fmt.Println(render(data, tableWidth(size), colors))
 	if report.AgentError != "" {
 		fmt.Fprintln(os.Stderr, report.AgentError)
 	}

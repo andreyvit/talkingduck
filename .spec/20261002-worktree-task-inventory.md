@@ -211,6 +211,11 @@ status: implemented prototype; correlation and workflow states are heuristic
   exceed the requested width; never silently clip identifiers or counters.
 - Multiple tickets occupy separate physical lines in one cell. Other cells are
   top aligned. Long titles may also increase row height.
+- Color terminal output automatically; keep pipes plain. `-color always|never`
+  overrides detection; auto honors `NO_COLOR` and `TERM=dumb`. JSON stays plain.
+  Zero counts and unknowns are gray; agents, stages, and nonzero counter columns
+  have distinct colors. Attention is yellow, conflicts/errors red, titles white.
+  Apply ANSI escapes after layout so colors cannot change alignment or wrapping.
 
 ### JSON and diagnostics
 
