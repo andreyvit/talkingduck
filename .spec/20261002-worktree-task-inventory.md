@@ -24,7 +24,7 @@ status: implemented prototype; correlation and workflow states are heuristic
 
 ### Deliverables
 
-- Entry point: `go run ./scripts/inventory`. Collection, correlation, and rendering
+- Entry point: `go run ./cmd/talkingduck`. Collection, correlation, and rendering
   run in Go, using modernc SQLite without cgo. Source runs require Git and Go;
   built binaries require Git. No Python runtime.
 - Default: compact table. `-json`: hierarchy and evidence. `-details`: legacy

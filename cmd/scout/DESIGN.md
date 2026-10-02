@@ -8,7 +8,7 @@ run them using the command in `docs/development.md`.
 
 ## CLI and output
 
-`go run ./scripts/scout/scout.go [-highlevel-plan|-plan] [-uber] [-since <ref>|upstream] [-v] [check names...]`
+`go run ./cmd/scout/scout.go [-highlevel-plan|-plan] [-uber] [-since <ref>|upstream] [-v] [check names...]`
 
 - Default: implementation review of uncommitted plus untracked files.
 - `-highlevel-plan`: high-level spec review; `-plan`: low-level spec review.

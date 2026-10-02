@@ -15,8 +15,8 @@ func TestGroups(t *testing.T) {
 		product, doc bool
 	}{
 		{"main.go", true, false}, {"App/State.swift", true, false},
-		{"main_test.go", true, false}, {"scripts/scout/scout.go", false, false},
-		{"scripts/scout/scout_test.go", false, false}, {"docs/product.md", false, true},
+		{"main_test.go", true, false}, {"cmd/scout/scout.go", false, false},
+		{"cmd/scout/scout_test.go", false, false}, {"docs/product.md", false, true},
 		{"README.md", false, true}, {"AGENTS.md", false, true}, {".zoo/review.md", false, true},
 		{".spec/task.md", false, false}, {"images/duck.png", false, false},
 		{"mydocs/test.md", false, false}, {"README.md.old", false, false},
@@ -28,7 +28,7 @@ func TestGroups(t *testing.T) {
 }
 
 func TestModeGates(t *testing.T) {
-	changes := []change{{path: "main.go"}, {path: "docs/product.md"}, {path: "scripts/scout/scout.go"}}
+	changes := []change{{path: "main.go"}, {path: "docs/product.md"}, {path: "cmd/scout/scout.go"}}
 	for _, opts := range []options{{highlevel: true}, {plan: true}, {plan: true, uber: true}, {highlevel: true, uber: true}} {
 		items, err := questions(changes, opts)
 		if err != nil || strings.Contains(strings.Join(items, "\n"), "[folder-context]") {
@@ -64,6 +64,14 @@ func TestModeGates(t *testing.T) {
 	items, err = questions(changes, options{uber: true})
 	if err != nil || !strings.HasPrefix(items[len(codeQuestions)], "Does the entire change") || !strings.Contains(items[len(codeQuestions)+1], "[folder-context]") {
 		t.Fatal("plain uber question must precede gated items")
+	}
+}
+
+func TestScoutDirectoryRenameExcluded(t *testing.T) {
+	changes := []change{{path: "cmd/scout/scout.go", oldPath: "scripts/scout/scout.go"}}
+	items, err := questions(changes, options{selected: []string{"folder-context", "state-evidence"}})
+	if err != nil || len(items) != 0 {
+		t.Fatalf("scout rename produced product questions: %v, %v", items, err)
 	}
 }
 

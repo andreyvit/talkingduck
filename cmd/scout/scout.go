@@ -49,7 +49,8 @@ type check struct {
 }
 
 func productFile(path string) bool {
-	if strings.HasPrefix(path, "scripts/scout/") {
+	// Ranges crossing the directory move still contain the old path.
+	if strings.HasPrefix(path, "cmd/scout/") || strings.HasPrefix(path, "scripts/scout/") {
 		return false
 	}
 	switch filepath.Ext(path) {

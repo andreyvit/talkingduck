@@ -11,8 +11,8 @@ Do not report app tests as passing.
 - `.claude/skills`: symlink to shared skills.
 - `.zoo/`: project workflow configuration.
 - `docs/`: durable AI and developer context.
-- `scripts/inventory/`: read-only Git/spec/session collector; Go reads agent files and SQLite with the cgo-free modernc driver.
-- `scripts/scout/`: small standard-library Go review script; no module needed.
+- `cmd/talkingduck/`: read-only Git/spec/session collector; Go reads agent files and SQLite with the cgo-free modernc driver.
+- `cmd/scout/`: small standard-library Go review script; no module needed.
 - `.spec/YYYYMMDD-taskslug.md`: tracked task specs.
 - `.proposals/YYYYMMDD-title.md`: tracked proposals; archive in `.proposals/archived/`.
 - `.tasks/YYYYMMDD-taskslug-research.md` and
@@ -42,7 +42,7 @@ deployment commands are defined.
 For scout changes, run its own tests:
 
 ```sh
-go test scripts/scout/scout.go scripts/scout/scout_test.go
+go test cmd/scout/scout.go cmd/scout/scout_test.go
 ```
 
 For documentation and setup changes, check links, installed copies, symlinks,
@@ -50,14 +50,14 @@ ignore rules, and `git diff --check`. For future code, add relevant validation
 commands here when the implementation provides them.
 
 The scout prints questions for a reviewer; it does not verify the product or
-run agents. See [its design](../scripts/scout/DESIGN.md). While editing the scout,
-follow [its instructions](../scripts/scout/AGENTS.md).
+run agents. See [its design](../cmd/scout/DESIGN.md). While editing the scout,
+follow [its instructions](../cmd/scout/AGENTS.md).
 
-For inventory changes, follow [its collection rules](../scripts/inventory/README.md)
+For inventory changes, follow [its collection rules](../cmd/talkingduck/README.md)
 and run:
 
 ```sh
-CGO_ENABLED=0 go test ./scripts/inventory
-go vet ./scripts/inventory
-CGO_ENABLED=0 go build -o /tmp/talkingduck-inventory ./scripts/inventory
+CGO_ENABLED=0 go test ./cmd/talkingduck
+go vet ./cmd/talkingduck
+CGO_ENABLED=0 go build -o /tmp/talkingduck ./cmd/talkingduck
 ```

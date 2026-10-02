@@ -4,13 +4,13 @@ One-shot, read-only Go collector. Uses modernc SQLite without cgo.
 No Python runtime or service.
 
 ```sh
-go run ./scripts/inventory
+go run ./cmd/talkingduck
 # Structured data, including paths, timestamps, commits, and association evidence:
-go run ./scripts/inventory -json
+go run ./cmd/talkingduck -json
 # Override the default ~/Developer/prairie parent:
-go run ./scripts/inventory -root /path/to/checkouts
+go run ./cmd/talkingduck -root /path/to/checkouts
 # Or supply any checkout paths explicitly:
-go run ./scripts/inventory /path/to/one /path/to/two
+go run ./cmd/talkingduck /path/to/one /path/to/two
 ```
 
 Defaults to `backend`, then `back2` through `back10`, scanned sequentially.
@@ -163,8 +163,8 @@ pushed history, missing remote refs, ambiguous ownership, dirty code matching a
 pushed spec, rename/deletion, sorting, ticket parsing, and checkout failures.
 
 ```sh
-CGO_ENABLED=0 go test ./scripts/inventory
-go vet ./scripts/inventory
-CGO_ENABLED=0 go build -o /tmp/talkingduck-inventory ./scripts/inventory
+CGO_ENABLED=0 go test ./cmd/talkingduck
+go vet ./cmd/talkingduck
+CGO_ENABLED=0 go build -o /tmp/talkingduck ./cmd/talkingduck
 git diff --check
 ```

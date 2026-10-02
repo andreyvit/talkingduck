@@ -63,7 +63,7 @@ ambiguous, and stale observations honestly, with their source and update time.
 
 ## Incremental approach
 
-Start with the [Go inventory script](../scripts/inventory/README.md): scan Prairie
+Start with the [Go inventory script](../cmd/talkingduck/README.md): scan Prairie
 `backend` through `back10`, collect specs from unpushed, dirty, and untracked work,
 and report tickets, stages, ordering, and evidence. Pushed history is outside this
 first view. Support other paths explicitly. Local sessions now nest under their inferred Zoo specs. The compact table shows
