@@ -1,0 +1,4 @@
+interface:
+  display_name: "Commit"
+  short_description: "Commit reviewed TalkingDuck changes"
+  default_prompt: "Use $commit to validate and commit the completed TalkingDuck changes."
