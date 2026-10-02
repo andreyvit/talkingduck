@@ -81,3 +81,12 @@ func renderSessions(data any) (string, error) {
 	}
 	return strings.Join(append(lines, "Key: worktree agent session=ID activity=observed state question=yes/no/unknown updated=source time title; unknown is not idle or no."), "\n"), nil
 }
+
+// FormatAI renders the same compact text as -ai, without collecting inventory.
+func FormatAI(overview any) (string, error) {
+	report, err := tableData(overview)
+	if err != nil {
+		return "", err
+	}
+	return renderAI(report), nil
+}

@@ -19,6 +19,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/events"
 	"talkingduck/cli"
 	"talkingduck/inventory"
+	"talkingduck/mcpserver"
 	"talkingduck/menubarimage"
 )
 
@@ -40,6 +41,7 @@ func main() {
 	log.SetFlags(0)
 	opts := cli.RegisterFlags(flag.CommandLine)
 	gui := flag.Bool("gui", os.Getenv("TALKINGDUCK_GUI") == "1", "show the menu bar app")
+	mcpPort := flag.Int("mcp-port", mcpserver.DefaultPort, "loopback MCP HTTP port (GUI only)")
 	flag.Parse()
 	if !*gui {
 		os.Exit(cli.Run(opts, flag.Args()))
@@ -47,12 +49,12 @@ func main() {
 	if len(flag.Args()) > 0 {
 		opts.Inventory.Paths = flag.Args()
 	}
-	if err := run(opts); err != nil {
+	if err := run(opts, *mcpPort); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(opts *cli.Options) error {
+func run(opts *cli.Options, mcpPort int) error {
 	assets, err := fs.Sub(frontend, "frontend")
 	if err != nil {
 		return err
@@ -152,6 +154,14 @@ func run(opts *cli.Options) error {
 			log.Printf("tray menu setup failed: %v", err)
 		}
 		update("", nil)
+		server, addr, err := mcpserver.Start(mcpPort, view)
+		if err != nil {
+			log.Printf("MCP server failed: %v", err)
+			app.Event.Emit("mock:error", "MCP server failed: "+err.Error())
+		} else {
+			log.Printf("MCP listening at http://%s/mcp", addr)
+			go func() { <-ctx.Done(); _ = server.Close() }()
+		}
 		go view.run(ctx, time.Minute)
 	})
 	return app.Run()

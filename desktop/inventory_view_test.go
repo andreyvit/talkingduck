@@ -126,3 +126,45 @@ func TestInventoryTrayUsesCacheAndFirstTask(t *testing.T) {
 		t.Fatal(cells)
 	}
 }
+
+func TestTargetedRefreshWaitsForScannerAndPublishesFailure(t *testing.T) {
+	c := &testCache{updates: make(chan string, 1), release: make(chan struct{}, 1)}
+	published := make(chan inventoryState, 1)
+	v := &inventoryView{cache: c, emit: func(s inventoryState) { published <- s }}
+	v.scanMu.Lock()
+	done := make(chan error, 1)
+	go func() { done <- v.RefreshFolder(context.Background(), "/b") }()
+	select {
+	case <-c.updates:
+		t.Fatal("overlapped scanner")
+	case <-time.After(20 * time.Millisecond):
+	}
+	v.scanMu.Unlock()
+	select {
+	case path := <-c.updates:
+		if path != "/b" {
+			t.Fatal(path)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("no targeted scan")
+	}
+	c.release <- struct{}{}
+	if err := <-done; err == nil {
+		t.Fatal("lost refresh error")
+	}
+	select {
+	case <-published:
+	case <-time.After(time.Second):
+		t.Fatal("did not publish cache after failed scan")
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := v.RefreshFolder(ctx, "/a"); err != context.Canceled {
+		t.Fatal(err)
+	}
+	select {
+	case <-c.updates:
+		t.Fatal("scanned cancelled request")
+	default:
+	}
+}

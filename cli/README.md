@@ -29,3 +29,6 @@ See [command usage](../cmd/talkingduck/README.md) for all flags and output meani
 the terminal renderer, plus diagnostics and row-aligned absolute spec paths for preview links. The desktop window consumes these cells
 directly; multiline tickets remain within one task row. It adds no collection
 logic or state inference.
+
+`FormatAI(overview)` renders the same compact text as `-ai` without collection,
+for the local MCP server and other callers.

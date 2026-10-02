@@ -8,6 +8,7 @@ Start here; read only what the task needs.
 - [Inventory behavior spec](../.spec/20261002-worktree-task-inventory.md): worktree/task/session hierarchy, compact table, stages, correlation, and limits.
 - [Local work inventory](../cmd/talkingduck/README.md): one-shot Git/spec collector, ordering, and limits.
 - [Shared inventory builder](../inventory/README.md): collection, per-worktree refresh, and cached snapshots for CLI/desktop/MCP callers.
+- [Local MCP server](../mcpserver/README.md): loopback HTTP tools for cached inventory and targeted refresh.
 - [Shared CLI](../cli/README.md): flags, output, and entry-point integration.
 - [Agent collection research](agent-collection-research.md): local schemas, live checks, monitor comparisons, optional hooks.
 - [Agent inventory instructions](agent-inventory-instructions.md): collect once, then enrich unknowns with app tools or UI.

@@ -16,6 +16,7 @@ The window uses the CLI's shared table rows.
 - `cmd/talkingduck/`: thin cgo-free CLI entry point.
 - `cli/`: reusable flag registration, terminal output, and exit codes.
 - `desktop/`: Wails app, native tray-width shim, embedded overview, and local build script; see [desktop instructions](../desktop/README.md).
+- `mcpserver/`: loopback Streamable HTTP tools using the desktop cache; see [MCP setup](../mcpserver/README.md).
 - `menubarimage/`: shared standard/compact pixel renderer used by the app and scratch command.
 - `inventory/`: read-only builder, correlation, and in-memory per-worktree cache; modernc SQLite without cgo.
 - `cmd/scout/`: small standard-library Go review script; no module needed.

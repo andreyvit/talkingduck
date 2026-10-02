@@ -60,6 +60,12 @@ call has its own timeouts and cannot be cancelled midway.
   modified (including informational Markdown changes). Multiple-task priority
   remains a future decision.
 
+## Local MCP
+
+While the app runs, its shared cache is available at `http://127.0.0.1:42389/mcp`.
+`get_inventory` returns compact CLI `-ai` text; `refresh_folder` updates one
+configured checkout and the UI. See [MCP setup and tools](../mcpserver/README.md).
+
 ## Variable-width workaround
 
 Wails creates and owns the `NSStatusItem`, native menu, handlers, and lifecycle.
