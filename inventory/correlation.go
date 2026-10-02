@@ -127,7 +127,7 @@ func transcriptEvidence(session Object) ([]conversationEntry, bool) {
 		} else {
 			continue
 		}
-		for _, tag := range []string{"rules", "user_info", "environment_context", "system-reminder"} {
+		for _, tag := range []string{"rules", "user_info", "environment_context", "system-reminder", "memory-context"} {
 			text = rx(`(?s)<`+tag+`>.*?</`+tag+`>`).ReplaceAllString(text, "")
 		}
 		if strings.HasPrefix(text, "# AGENTS.md instructions") || strings.HasPrefix(text, "<environment_context>") {
@@ -175,6 +175,54 @@ func intersects(a []string, b any) bool {
 	}
 	return false
 }
+
+// Compacted/reused chats can name historical tasks alongside the active one.
+// Accept a narrow current-task label attached to a spec path, not recency alone.
+func activeSpecReferences(rows []conversationEntry, specs []Object) map[string]Object {
+	var latest map[string]Object
+	for _, row := range rows {
+		current := map[string]Object{}
+		for _, line := range strings.Split(row.text, "\n") {
+			for _, spec := range specs {
+				path := str(spec["path"])
+				base := filepath.Base(path)
+				if !specReference(line, base) {
+					continue
+				}
+				i := strings.Index(line, base)
+				before, after := line[:i], line[i+len(base):]
+				// Remove the directory prefix before checking a "Current task:" label.
+				if start := strings.LastIndex(before, ".spec/"); start >= 0 {
+					before = before[:start]
+				}
+				before = strings.TrimRight(before, " `*_[(:=-")
+				after = strings.TrimLeft(after, " `*_]):=-")
+				label := `(?:active|current) (?:zoo )?(?:task|spec)(?: file)?`
+				prefix := matches(`(?i)`+label+`$`, before) && !matches(`(?i)\b(?:not|previous|previously|formerly|old|no longer)\b`, before)
+				suffix := matches(`(?i)^(?:is (?:the )?)?`+label+`\b`, after)
+				status := matches("(?i)^(?:frontmatter )?status:\\s*(?:executing|implementing)\\b", strings.ReplaceAll(after, "`", ""))
+				if prefix || suffix || status {
+					current[path] = Object{"kind": "explicit current task declaration", "at": row.at, "speaker": row.role, "excerpt": runePrefix(strings.TrimSpace(line), 500)}
+				}
+			}
+		}
+		if len(current) > 0 {
+			latest = current
+		} else if len(latest) > 0 {
+			// Later discussion of another spec can signal another task switch.
+			// Without a new declaration, fall back to the ordinary ambiguity rules.
+			for _, spec := range specs {
+				path := str(spec["path"])
+				if latest[path] == nil && specReference(row.text, filepath.Base(path)) {
+					latest = nil
+					break
+				}
+			}
+		}
+	}
+	return latest
+}
+
 func associate(session Object, specs []Object) string {
 	rows, bounded := transcriptEvidence(session)
 	session["zoo_skill_activity"] = skillActivity(rows)
@@ -253,6 +301,11 @@ func associate(session Object, specs []Object) string {
 				}
 			}
 		}
+	}
+	// Current-task declarations supersede older names/tickets in a reused chat.
+	// Multiple declarations in the same message remain ambiguous.
+	if active := activeSpecReferences(rows, specs); len(active) > 0 {
+		hits = active
 	}
 	if len(hits) == 1 {
 		for path, evidence := range hits {

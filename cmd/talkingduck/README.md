@@ -64,6 +64,11 @@ matches remain unassigned, never attached by folder or spec recency alone.
 When spec references and title tickets do not match, a unique ticket match from
 user messages can associate the session. Shared tickets remain ambiguous;
 tool output, injected context, and assistant-only ticket mentions do not count.
+In reused or compacted chats, an explicit active/current-task label attached to a
+spec path, or an explicit executing/implementing status, takes precedence over
+historical references. Conflicting labels stay
+ambiguous; later discussion of another spec invalidates that focus. Injected
+memory manifests do not establish ownership.
 
 See the [single behavior spec](../../.spec/20261002-worktree-task-inventory.md)
 for selection, status rules, evidence limits, and the complete output contract.

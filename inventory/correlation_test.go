@@ -232,3 +232,35 @@ func TestMalformedEvidenceIsSkipped(t *testing.T) {
 		t.Fatal(rows)
 	}
 }
+
+func TestCurrentTaskDeclarationOverridesHistoricalReferences(t *testing.T) {
+	current, old := taskFixture(), taskFixture()
+	old["path"], old["tickets"] = ".spec/other.md", []string{"DEV-9999"}
+	for _, tc := range []struct{ name, text, want string }{
+		{"compaction", "Earlier work DEV-9999 is paused.\n- `.spec/other.md`: parked task.\n- `" + str(current["path"]) + "`: active Zoo task. Execute until done.", str(current["path"])},
+		{"label", "Current task: `" + str(current["path"]) + "`\nPrevious work: .spec/other.md", str(current["path"])},
+		{"executing status", "Spec `" + str(current["path"]) + "`: frontmatter `status: executing subtask 1`.\nParked: .spec/other.md — do not execute.", str(current["path"])},
+		{"two active", "Current task: `" + str(current["path"]) + "`\nCurrent task: .spec/other.md", ""},
+		{"not active", "Previous active task: `" + str(current["path"]) + "`\nOther reference: .spec/other.md", ""},
+		{"memory", "<memory-context>Current task: `" + str(current["path"]) + "`</memory-context>\nRelated .spec/other.md", str(old["path"])},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a := overviewSession()
+			a["title"] = "Mixed task discussion"
+			a["transcript_path"] = conversationFixture(t, "user", tc.text)
+			got := associate(a, []Object{current, old})
+			if got != tc.want {
+				t.Fatal(got, a["spec_association"])
+			}
+		})
+	}
+	rows := []conversationEntry{{"user", "Current task: .spec/other.md", nil}, {"assistant", str(current["path"]) + ": active Zoo task.", nil}}
+	hits := activeSpecReferences(rows, []Object{current, old})
+	if len(hits) != 1 || hits[str(current["path"])] == nil {
+		t.Fatal(hits)
+	}
+	rows = append(rows, conversationEntry{"user", "Let's discuss .spec/other.md again", nil})
+	if activeSpecReferences(rows, []Object{current, old}) != nil {
+		t.Fatal("old focus survived later discussion of another task")
+	}
+}

@@ -107,6 +107,11 @@ status: implemented prototype; correlation and workflow states are heuristic
 
 - Match exact spec basenames in user/assistant conversation text. Ignore tool
   output and known injected context. References are evidence, not proven ownership.
+  Ignore injected memory manifests too. A spec explicitly labeled active/current
+  task, or given an explicit executing/implementing status, takes precedence over
+  historical references, including in compaction summaries.
+  Multiple current-task labels remain ambiguous; later references to another spec
+  without a new label invalidate the prior focus. Preserve the matched declaration.
 - If several specs are referenced, a unique task ticket in the session title can
   corroborate one. Without spec references, a unique title-ticket match is fallback.
   If neither matches, use tickets in user messages; shared tickets or references
