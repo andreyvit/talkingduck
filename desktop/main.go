@@ -88,9 +88,9 @@ func run(opts *cli.Options) error {
 		window.Show()
 		window.Focus()
 	})
-	// Bypass Wails' pre-click menu attachment. Programmatic OpenMenu tracks the
-	// menu explicitly and clears the temporary attachment after dismissal.
-	tray.OnRightClick(func() { log.Print("tray: right-click open menu"); tray.OpenMenu() })
+	// Disable Wails' automatic menu attachment. The native monitor installed
+	// after startup handles right-clicks before the status button tracks them.
+	tray.OnRightClick(func() {})
 
 	var mu sync.Mutex
 	cells := append([]menubarimage.Cell(nil), sample...)
@@ -131,6 +131,12 @@ func run(opts *cli.Options) error {
 	tray.SetMenu(menu)
 	app.Event.On("inventory:ready", func(*application.CustomEvent) { view.publish() })
 	app.Event.On("inventory:refresh", func(*application.CustomEvent) { view.refresh() })
-	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) { update(""); view.refresh() })
+	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
+		if err := installTrayMenu(tray); err != nil {
+			log.Printf("tray menu setup failed: %v", err)
+		}
+		update("")
+		view.refresh()
+	})
 	return app.Run()
 }

@@ -6,6 +6,40 @@ package main
 #cgo CFLAGS: -x objective-c
 #cgo LDFLAGS: -framework Cocoa
 #import <Cocoa/Cocoa.h>
+#import <objc/runtime.h>
+
+static char tdMenuMonitorKey;
+
+// Consume right-down before NSStatusBarButton enters its own tracking loop.
+// Keep the Wails-created menu and its item callbacks, but avoid showMenu's
+// synthetic mouseDown and temporary statusItem.menu attachment.
+static void tdInstallMenuMonitor(void *handle, void *menuHandle) {
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        NSStatusItem *item = (NSStatusItem *)handle;
+        NSMenu *menu = (NSMenu *)menuHandle;
+        id previous = objc_getAssociatedObject(item, &tdMenuMonitorKey);
+        if (previous) [NSEvent removeMonitor:previous];
+        id monitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskRightMouseDown
+            handler:^NSEvent *(NSEvent *event) {
+                NSStatusBarButton *button = item.button;
+                if (event.window != button.window) return event;
+                NSPoint point = [button convertPoint:event.locationInWindow fromView:nil];
+                if (!NSPointInRect(point, button.bounds)) return event;
+                NSLog(@"TalkingDuck tray: native right-click menu open");
+                [button highlight:YES];
+                @try {
+                    [menu popUpMenuPositioningItem:nil
+                        atLocation:NSMakePoint(NSMinX(button.bounds), NSMinY(button.bounds))
+                        inView:button];
+                } @finally {
+                    [button highlight:NO];
+                    NSLog(@"TalkingDuck tray: native right-click menu closed");
+                }
+                return nil;
+            }];
+        objc_setAssociatedObject(item, &tdMenuMonitorKey, monitor, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    });
+}
 
 // Called off the main thread; the block follows Wails' queued image assignment.
 static double tdWidenTray(void *handle, double width, double height, double padding) {
@@ -92,5 +126,29 @@ func updateWideTray(tray *application.SystemTray, data []byte, width, height, pa
 	if actual != float64(width) {
 		return fmt.Errorf("native image width %.0f; expected %d", actual, width)
 	}
+	return nil
+}
+
+// installTrayMenu runs after Wails has created the status item and native menu.
+func installTrayMenu(tray *application.SystemTray) error {
+	var handle, menu unsafe.Pointer
+	err := application.InvokeSyncWithError(func() error {
+		var err error
+		handle, err = nativeTrayHandle(tray)
+		if err != nil {
+			return err
+		}
+		native := reflect.ValueOf(tray).Elem().FieldByName("impl").Elem().Elem()
+		field := native.FieldByName("nsMenu")
+		if !field.IsValid() || field.Kind() != reflect.UnsafePointer || field.IsNil() {
+			return fmt.Errorf("Wails native tray menu unavailable")
+		}
+		menu = field.UnsafePointer()
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	C.tdInstallMenuMonitor(handle, menu)
 	return nil
 }

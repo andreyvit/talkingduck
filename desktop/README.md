@@ -26,11 +26,14 @@ Previous rows remain visible during refresh and after a fatal refresh error.
 
 - Left-click the tray image: hide the overview if visible and focused; otherwise
   show and focus it.
-- Right-click: native Wails menu with open, toggle styles, refresh, and quit.
-  An explicit `OnRightClick` handler calls `OpenMenu`, bypassing Wails' automatic
-  pre-click attachment after a report that it opened only on alternate clicks.
-  The suspected cause is attachment timing; repeated manual clicks still need
-  confirmation on the affected desktop.
+- Right-click: native Wails-created menu with open, compact mode, refresh, and quit.
+  A local AppKit event monitor consumes right-down on the status button and opens
+  that menu directly with `popUpMenuPositioningItem`. It leaves left-clicks alone.
+  The earlier `OnRightClick` → `OpenMenu` workaround still failed on alternate
+  clicks: `OpenMenu` also synthesizes a button mouse-down. This adapter avoids
+  both that path and temporary `statusItem.menu` assignment.
+  Build/vet pass; repeated physical right-clicks still need verification because
+  the available UI automation exposes the window but not the status item.
 - Standard (default): 123 x 23-point image, 5x7 font, 131-point tray width.
 - Compact: 99 x 21-point image, 4x6 font, 105-point tray width.
 - Switch layouts live with the native menu checkbox.
@@ -57,7 +60,9 @@ adapts foreground and transparent text cutouts to the menu bar appearance.
 No Wails fork, Go memory offsets, Objective-C method swizzling, or replacement
 status item. The Go field access depends on private framework fields: the shim checks
 build metadata for the exact unmodified Wails version and checks reflected field
-kinds before reading the pointer. Revalidate it before upgrading Wails.
+kinds before reading the pointer. The menu adapter also reads `nsMenu`; its
+monitor lives for the app process (this prototype does not recreate trays).
+Revalidate both adapters before upgrading Wails.
 
 Wails assigns the image asynchronously on the main dispatch queue. Its Go
 `InvokeSync` uses a different scheduling mechanism; simply calling it again was
