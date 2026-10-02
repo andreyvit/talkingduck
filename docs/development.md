@@ -2,9 +2,9 @@
 
 ## Current state and layout
 
-The first product experiment is a one-shot Git/spec inventory. A root Go module manages dependencies. No
-Xcode project, application build, browser harness, or release process exists yet.
-Do not report app tests as passing.
+The inventory CLI and a mock macOS menu bar app share one root Go module.
+The desktop prototype has a local app build, but no release/notarization process.
+GUI mode displays mock data; it is not connected to live collection yet.
 
 - `.agents/skills/`: Zoo 3.2, `terse`, `linus`, and the local `commit` skill.
 - `.codex/agents/`, `.claude/agents/`: installed Zoo roles.
@@ -13,6 +13,8 @@ Do not report app tests as passing.
 - `docs/`: durable AI and developer context.
 - `cmd/talkingduck/`: thin cgo-free CLI entry point.
 - `cli/`: reusable flag registration, terminal output, and exit codes.
+- `desktop/`: Wails app, native tray-width shim, embedded overview, and local build script; see [desktop instructions](../desktop/README.md).
+- `menubarimage/`: shared standard/compact pixel renderer used by the app and scratch command.
 - `inventory/`: read-only Git/spec/session builder and correlation; modernc SQLite without cgo.
 - `cmd/scout/`: small standard-library Go review script; no module needed.
 - `.spec/YYYYMMDD-taskslug.md`: tracked task specs.
@@ -36,8 +38,9 @@ fixtures; use synthetic examples. Read-only monitoring is a sensible initial
 experiment, but product actions require a separate concrete design.
 
 Use the local `commit` skill for commits. Review staged content, keep changes
-coherent, and describe the purpose. Push only when requested. No release or
-deployment commands are defined.
+coherent, and describe the purpose. Push only when requested. `desktop/build.sh`
+creates an ad-hoc-signed local app;
+no distribution release or deployment commands are defined.
 
 ## Validation
 

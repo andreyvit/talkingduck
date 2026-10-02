@@ -1,10 +1,12 @@
 # Menu bar image experiment
 
-Standalone, standard-library Go renderer; no Wails, cgo, font installation, or
+Standalone command using the shared [`menubarimage`](../../menubarimage/image.go)
+standard-library renderer; no Wails, cgo, font installation, or
 changes to the inventory collector. Run from the repository root:
 
 ```sh
 CGO_ENABLED=0 go run ./cmd/scratch-imagegen
+CGO_ENABLED=0 go run ./cmd/scratch-imagegen -compact
 CGO_ENABLED=0 go run ./cmd/scratch-imagegen -input /path/to/cells.json -out .tasks/menubar-images
 ```
 
@@ -20,8 +22,9 @@ States: `idle` (dim dotted border), `running` (solid outline), `attention`
 (filled with transparent reversed text), `unknown` (corner marks).
 
 The renderer lays out cells in two rows, preserving input order. Ten cells use
-123 x 23 logical pixels. The 5x7 pixel font is deliberately aligned to logical
-pixels. Outputs include transparent 2x PNG icons and composited light/dark
+123 x 23 logical pixels with a 5x7 font by default. `-compact` selects a 4x6
+font and 99 x 21 grid. Both fonts align deliberately to logical pixels. Outputs
+include transparent 2x PNG icons and composited light/dark
 previews at 1x and 4x. The enlarged preview uses nearest-neighbor scaling.
 The integration must assign the icon its logical size; @2x naming alone is not
 sufficient when passing image bytes to a native API.

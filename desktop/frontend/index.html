@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TalkingDuck</title>
+<style>
+:root{color-scheme:light dark;font-family:-apple-system,BlinkMacSystemFont,sans-serif}body{margin:28px;background:light-dark(#f5f5f7,#202126);color:light-dark(#202126,#eee)}h1{font-size:24px;margin-bottom:6px}p{color:light-dark(#666,#aaa);font-size:13px;line-height:1.5}.preview{background:#e9ecf2;border-radius:12px;padding:20px;margin:20px 0;display:flex;align-items:center;gap:24px}.preview img{width:198px;height:42px;image-rendering:pixelated}.preview span{color:#555;font-size:12px}table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;color:light-dark(#777,#aaa);font-size:11px;text-transform:uppercase;letter-spacing:.06em}td,th{padding:6px 8px;border-bottom:1px solid #8883}td:nth-child(2){font-family:monospace}.state{font-size:12px}.attention{font-weight:650}button{font:inherit;padding:8px 14px;border:1px solid #8886;border-radius:7px;cursor:pointer;background:light-dark(white,#34363c);color:inherit}footer{display:flex;gap:12px;align-items:center;margin-top:20px}#error{color:#d66}
+</style>
+<h1>TalkingDuck</h1><p>Mock checkout overview · no repositories are being scanned.</p>
+<div class="preview"><img id="preview" alt="Two rows of checkout status"><span>Menu bar preview<br>Enlarged 2×</span></div>
+<table><thead><tr><th>Checkout</th><th>Stage</th><th>Activity</th></tr></thead><tbody id="rows"></tbody></table>
+<footer><button id="compact">Use compact layout</button><button id="toggle">Toggle style sample</button><span id="mode">Sample inventory</span></footer><p id="error"></p>
+<script type="module">
+import {Events} from '/wails/runtime.js';
+const names={'-':'Clean',d:'Dirty',H:'High-level planning',L:'Low-level planning',F:'Final review',R:'Rebase'};
+Events.On('mock:snapshot',event=>{
+ const data=event.data;
+ document.querySelector('#error').textContent='';
+ document.querySelector('#compact').textContent=data.compact?'Use standard layout':'Use compact layout';
+ document.querySelector('#preview').src=data.image;
+ document.querySelector('#preview').style.width=`${data.width*2}px`;
+ document.querySelector('#preview').style.height=`${data.height*2}px`;
+ document.querySelector('#mode').textContent=data.styles?'Synthetic style sample':'Sample inventory';
+ document.querySelector('#rows').replaceChildren(...data.cells.map(c=>{
+  const tr=document.createElement('tr');
+  for(const text of [c.number===1?'backend':`back${c.number}`,`${c.stage} — ${names[c.stage]||c.stage}`,c.state]){const td=document.createElement('td');td.textContent=text;tr.append(td)}
+  tr.lastChild.className='state '+c.state;return tr;
+ }));
+});
+Events.On('mock:error',e=>document.querySelector('#error').textContent=e.data);
+document.querySelector('#compact').onclick=()=>Events.Emit('mock:compact');
+document.querySelector('#toggle').onclick=()=>Events.Emit('mock:toggle');
+Events.Emit('mock:ready');
+</script></html>

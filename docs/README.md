@@ -4,6 +4,7 @@ Start here; read only what the task needs.
 
 - [product.md](product.md): purpose, user needs, boundaries, open decisions.
 - [development.md](development.md): repository layout, work conventions, validation.
+- [Desktop prototype](../desktop/README.md): mock Wails menu bar app, standard/compact layouts, native width shim, build and checks.
 - [Inventory behavior spec](../.spec/20261002-worktree-task-inventory.md): worktree/task/session hierarchy, compact table, stages, correlation, and limits.
 - [Local work inventory](../cmd/talkingduck/README.md): one-shot Git/spec collector, ordering, and limits.
 - [Shared inventory builder](../inventory/README.md): collection API and snapshots for CLI/desktop callers.
