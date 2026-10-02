@@ -70,6 +70,10 @@ historical references. Conflicting labels stay
 ambiguous; later discussion of another spec invalidates that focus. Injected
 memory manifests do not establish ownership.
 
+Grok can retain a saved `subagent` label after interactive resume. A verified
+live registration for the same session and folder overrides that label, with
+the discrepancy recorded. Explicit parent sessions remain excluded.
+
 See the [single behavior spec](../../.spec/20261002-worktree-task-inventory.md)
 for selection, status rules, evidence limits, and the complete output contract.
 

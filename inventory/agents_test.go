@@ -194,6 +194,37 @@ func TestGrokChildrenExcluded(t *testing.T) {
 	}
 }
 
+func TestGrokResumedSubagentRegistration(t *testing.T) {
+	for _, tc := range []struct {
+		name, process, registryCWD, parent string
+		want                               bool
+	}{
+		{"resumed", "alive", "/synthetic/repo", "", true},
+		{"stopped", "stopped", "/synthetic/repo", "", false},
+		{"unverified", "unknown", "/synthetic/repo", "", false},
+		{"wrong folder", "alive", "/other/repo", "", false},
+		{"explicit child", "alive", "/synthetic/repo", "parent", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			home := t.TempDir()
+			folder := filepath.Join(home, "sessions", "repo", "session")
+			writeJSON(t, filepath.Join(folder, "summary.json"), Object{"info": Object{"id": "session", "cwd": "/synthetic/repo"}, "session_kind": "subagent", "parent_session_id": tc.parent})
+			writeJSON(t, filepath.Join(home, "active_sessions.json"), []Object{{"session_id": "session", "cwd": tc.registryCWD}})
+			writeJSON(t, filepath.Join(folder, "events.jsonl"), Object{"type": "turn_started", "ts": iso(testNow)})
+			ss, _, _ := collectGrok(home, nil, 3, testNow, func(Object, string) Object { return Object{"value": tc.process} })
+			if (len(ss) == 1) != tc.want {
+				t.Fatal(ss)
+			}
+			if tc.want {
+				associate(ss[0], nil)
+				if str(obj(ss[0]["activity"])["value"]) != "running" || str(obj(ss[0]["task_role"])["value"]) != "primary" {
+					t.Fatal(ss[0])
+				}
+			}
+		})
+	}
+}
+
 func TestProcessProbeRejectsPIDReuse(t *testing.T) {
 	dir := t.TempDir()
 	p := filepath.Join(dir, "ps")

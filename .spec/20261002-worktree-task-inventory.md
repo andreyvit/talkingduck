@@ -94,7 +94,10 @@ status: implemented prototype; correlation and workflow states are heuristic
 
 - Observed Zoo invocation rules: Claude uses `--no-session-persistence`; Codex
   uses `--ephemeral`; Grok has no equivalent flag and retains review sessions.
-- Exclude explicit native subagents during source collection. Classify a retained
+- Exclude explicit native subagents during source collection. A Grok session with
+  no explicit parent can retain a stale subagent label after interactive resume:
+  include it when the same session and folder have a verified live registration.
+  Preserve the saved label and record the override. Classify a retained
   Grok headless session as secondary when its prompt requests review-only work.
 - A top-level Desktop/interactive CLI session is an inferred primary. Headless
   sessions without clear review evidence remain role-unknown. Merely having

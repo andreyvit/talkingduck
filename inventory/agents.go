@@ -448,6 +448,14 @@ func collectGrok(home string, roots map[string]bool, limit int, now float64, pro
 	} else if !os.IsNotExist(e) {
 		warnings = append(warnings, "Grok active-session registry unavailable")
 	}
+	probes := map[string]Object{}
+	extra := map[string]bool{}
+	for sid, d := range registry {
+		if scoped(d["cwd"], roots) {
+			probes[sid] = probe(d, "grok")
+			extra[sid] = str(probes[sid]["value"]) == "alive"
+		}
+	}
 	for _, p := range glob(filepath.Join(home, "sessions", "*", "*", "summary.json")) {
 		d, e := readObject(p)
 		if e != nil {
@@ -455,7 +463,11 @@ func collectGrok(home string, roots map[string]bool, limit int, now float64, pro
 			continue
 		}
 		info := obj(d["info"])
-		if truth(d["parent_session_id"]) || strings.HasPrefix(str(d["session_kind"]), "subagent") || !scoped(info["cwd"], roots) {
+		// Resuming a session interactively can leave a stale subagent label.
+		// Require a matching live registry entry; explicit parents still win.
+		registered := extra[str(info["id"])] && str(registry[str(info["id"])]["cwd"]) == str(info["cwd"])
+		child := strings.HasPrefix(str(d["session_kind"]), "subagent")
+		if truth(d["parent_session_id"]) || (child && !registered) || !scoped(info["cwd"], roots) {
 			continue
 		}
 		client := "cli"
@@ -464,15 +476,10 @@ func collectGrok(home string, roots map[string]bool, limit int, now float64, pro
 		}
 		s := newSession("grok", str(info["id"]), str(info["cwd"]), str(first(d["generated_title"], d["session_summary"])), p, first(d["last_active_at"], d["updated_at"]), client)
 		s["session_kind"] = textOr(d["session_kind"], "unknown")
-		candidates = append(candidates, s)
-	}
-	probes := map[string]Object{}
-	extra := map[string]bool{}
-	for sid, d := range registry {
-		if scoped(d["cwd"], roots) {
-			probes[sid] = probe(d, "grok")
-			extra[sid] = str(probes[sid]["value"]) == "alive"
+		if child && registered {
+			warn(s, "Saved subagent label overridden by matching live interactive registry entry")
 		}
+		candidates = append(candidates, s)
 	}
 	selected := selectRecent(candidates, limit, extra)
 	for _, s := range selected {
