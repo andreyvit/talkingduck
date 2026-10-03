@@ -26,6 +26,7 @@ func save(path string, im image.Image) error {
 func run() error {
 	input := flag.String("input", "", "JSON array of number/stage/state cells (defaults to synthetic style sample)")
 	dir := flag.String("out", ".tasks/menubar-images", "output directory")
+	agents := flag.Bool("agent-backdrops", false, "preview cropped Claude/Codex/Grok background motifs")
 	compact := flag.Bool("compact", false, "use the smaller 4x6 font and tighter spacing")
 	flag.Parse()
 	mode := menubarimage.Standard
@@ -63,6 +64,9 @@ func run() error {
 		fg, bg color.NRGBA
 	}{{"dark", color.NRGBA{240, 242, 246, 255}, color.NRGBA{34, 37, 43, 255}}, {"light", color.NRGBA{30, 33, 39, 255}, color.NRGBA{233, 236, 242, 255}}} {
 		icon := menubarimage.Render(cells, theme.fg, mode)
+		if *agents {
+			icon = agentBackdrop(icon, cells, mode, theme.fg)
+		}
 		if e := save(filepath.Join(*dir, theme.name+"-icon@2x.png"), menubarimage.Scale(icon, 2)); e != nil {
 			return e
 		}

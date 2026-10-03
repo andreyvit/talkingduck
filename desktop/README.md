@@ -121,3 +121,8 @@ macOS versions.
 Ticket numbers and linked task titles have small copy buttons. Space is reserved;
 buttons appear faintly on text hover or keyboard focus, brighten on button hover,
 and briefly show a checkmark after copying the exact text through Wails.
+
+Scratch-only agent backdrop experiment: `go run ./cmd/scratch-imagegen
+-agent-backdrops -out .tasks/agent-backdrops`. Repeats Claude/Codex/Grok-inspired
+cropped motifs at the right edge. This experiment renders at four pixels per
+logical point before the scratch preview scaling; it does not change the app.
