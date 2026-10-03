@@ -24,12 +24,16 @@ func agentBackdrop(base *image.NRGBA, cells []menubarimage.Cell, mode menubarima
 	}
 	widths, positions := make([]int, len(cells)), make([]int, len(cells))
 	total, rowWidth := 0, 0
-	for i, c := range cells {
+	labelWidth := scratchLabelWidth(10, advance)
+	for _, c := range cells {
+		labelWidth = max(labelWidth, scratchLabelWidth(c.Number, advance))
+	}
+	for i := range cells {
 		if i == cols {
 			total = rowWidth - gap
 			rowWidth = 0
 		}
-		widths[i] = scratchLabelWidth(c.Number, advance) + 3 + 2 + 5
+		widths[i] = labelWidth + 3 + 2 + 5
 		positions[i] = rowWidth
 		rowWidth += widths[i] + gap
 	}
