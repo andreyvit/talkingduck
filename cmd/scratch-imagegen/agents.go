@@ -29,7 +29,7 @@ func agentBackdrop(base *image.NRGBA, cells []menubarimage.Cell, mode menubarima
 			total = rowWidth - gap
 			rowWidth = 0
 		}
-		widths[i] = (len(strconv.Itoa(c.Number))+1)*advance - 1 + 1 + 1 + 5
+		widths[i] = (len(strconv.Itoa(c.Number))+1)*advance - 1 + 3 + 2 + 5
 		positions[i] = rowWidth
 		rowWidth += widths[i] + gap
 	}
@@ -60,7 +60,7 @@ func agentBackdrop(base *image.NRGBA, cells []menubarimage.Cell, mode menubarima
 		tx := (oldW - width) / 2
 		for y := 0; y < glyphH; y++ {
 			for x := 0; x < width; x++ {
-				expanded.SetNRGBA(nx+1+x, oy+2+y, base.NRGBAAt(ox+tx+x, oy+2+y))
+				expanded.SetNRGBA(nx+3+x, oy+2+y, base.NRGBAAt(ox+tx+x, oy+2+y))
 			}
 		}
 	}
