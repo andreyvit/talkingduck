@@ -18,15 +18,27 @@ func agentBackdrop(base *image.NRGBA, cells []menubarimage.Cell, mode menubarima
 	}
 	cols := (len(cells) + 1) / 2
 	oldW := cw
-	cw += 5
-	expanded := image.NewNRGBA(image.Rect(0, 0, cols*(cw+gap)-gap, ch*2+1))
 	advance, glyphH := 6, 7
 	if mode == menubarimage.Compact {
 		advance, glyphH = 5, 6
 	}
+	widths, positions := make([]int, len(cells)), make([]int, len(cells))
+	total, rowWidth := 0, 0
+	for i, c := range cells {
+		if i == cols {
+			total = rowWidth - gap
+			rowWidth = 0
+		}
+		widths[i] = (len(strconv.Itoa(c.Number))+1)*advance - 1 + 1 + 1 + 5
+		positions[i] = rowWidth
+		rowWidth += widths[i] + gap
+	}
+	total = max(total, rowWidth-gap)
+	expanded := image.NewNRGBA(image.Rect(0, 0, total, ch*2+1))
 	for i, c := range cells {
 		ox, oy := (i%cols)*(oldW+gap), (i/cols)*(ch+1)
-		nx := (i % cols) * (cw + gap)
+		nx := positions[i]
+		cw := widths[i]
 		for y := 0; y < ch; y++ {
 			for x := 0; x < cw; x++ {
 				var ink color.NRGBA
@@ -48,16 +60,17 @@ func agentBackdrop(base *image.NRGBA, cells []menubarimage.Cell, mode menubarima
 		tx := (oldW - width) / 2
 		for y := 0; y < glyphH; y++ {
 			for x := 0; x < width; x++ {
-				expanded.SetNRGBA(nx+2+x, oy+2+y, base.NRGBAAt(ox+tx+x, oy+2+y))
+				expanded.SetNRGBA(nx+1+x, oy+2+y, base.NRGBAAt(ox+tx+x, oy+2+y))
 			}
 		}
 	}
 	out := menubarimage.Scale(expanded, 4)
 
 	for i, c := range cells {
-		ox, oy := (i%cols)*(cw+gap), (i/cols)*(ch+1)
+		cw := widths[i]
+		ox, oy := positions[i], (i/cols)*(ch+1)
 		for py := 1; py < (ch-1)*4; py++ {
-			for px := (cw - 6) * 4; px < cw*4; px++ {
+			for px := (cw - 5) * 4; px < cw*4; px++ {
 				x, y := float64(px)/4-float64(cw)+.4, float64(py)/4-float64(ch)/2
 				hit := false
 				switch i % 3 {
