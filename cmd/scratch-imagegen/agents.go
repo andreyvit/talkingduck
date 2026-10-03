@@ -29,7 +29,7 @@ func agentBackdrop(base *image.NRGBA, cells []menubarimage.Cell, mode menubarima
 			total = rowWidth - gap
 			rowWidth = 0
 		}
-		widths[i] = (len(strconv.Itoa(c.Number))+1)*advance - 1 + 3 + 2 + 5
+		widths[i] = scratchLabelWidth(c.Number, advance) + 3 + 2 + 5
 		positions[i] = rowWidth
 		rowWidth += widths[i] + gap
 	}
@@ -58,10 +58,30 @@ func agentBackdrop(base *image.NRGBA, cells []menubarimage.Cell, mode menubarima
 		}
 		width := (len(strconv.Itoa(c.Number))+1)*advance - 1
 		tx := (oldW - width) / 2
-		for y := 0; y < glyphH; y++ {
-			for x := 0; x < width; x++ {
-				expanded.SetNRGBA(nx+3+x, oy+2+y, base.NRGBAAt(ox+tx+x, oy+2+y))
+		number := strconv.Itoa(c.Number)
+		label := number + c.Stage
+		dest := nx + 3
+		for j, r := range label {
+			narrow := len(number) > 1 && j < len(number) && r == '1'
+			glyphWidth := advance - 1
+			if narrow {
+				glyphWidth = 1
 			}
+			for y := 0; y < glyphH; y++ {
+				for x := 0; x < glyphWidth; x++ {
+					ink := base.NRGBAAt(ox+tx+j*advance+x, oy+2+y)
+					if narrow {
+						ink = fg
+						if c.State == "attention" {
+							ink = color.NRGBA{}
+						} else if c.State == "idle" {
+							ink.A = 115
+						}
+					}
+					expanded.SetNRGBA(dest+x, oy+2+y, ink)
+				}
+			}
+			dest += glyphWidth + 1
 		}
 	}
 	out := menubarimage.Scale(expanded, 4)
@@ -105,4 +125,18 @@ func agentBackdrop(base *image.NRGBA, cells []menubarimage.Cell, mode menubarima
 		}
 	}
 	return out
+}
+
+// Only digit 1 inside a multi-digit number gets the clock-style narrow glyph.
+func scratchLabelWidth(number, advance int) int {
+	digits := strconv.Itoa(number)
+	width := (len(digits)+1)*advance - 1
+	if len(digits) > 1 {
+		for _, r := range digits {
+			if r == '1' {
+				width -= advance - 2
+			}
+		}
+	}
+	return width
 }
