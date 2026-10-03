@@ -15,10 +15,11 @@ type sourceView struct {
 	Warnings []string `json:"warnings"`
 }
 type worktreeView struct {
-	Path     string     `json:"path"`
-	Git      gitView    `json:"git"`
-	Specs    []taskView `json:"specs"`
-	Warnings []string   `json:"warnings"`
+	UnassignedCommits []string   `json:"unassigned_commits"`
+	Path              string     `json:"path"`
+	Git               gitView    `json:"git"`
+	Specs             []taskView `json:"specs"`
+	Warnings          []string   `json:"warnings"`
 }
 type gitView struct {
 	Tracked       any      `json:"tracked"`

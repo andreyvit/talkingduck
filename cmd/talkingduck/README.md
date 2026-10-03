@@ -96,6 +96,8 @@ only and warns. Remote knowledge may be stale; fetch separately when desired.
 
 Discovery reads tracked and nonignored untracked Markdown under `.spec/`, including
 archives. Historical specs are omitted unless local evidence selects them.
+If no spec is found but commits remain unassigned, the worktree row explicitly
+shows the unpushed commit count and `spec unknown`, alongside file cleanliness.
 Rename sources and destinations are reported separately for now.
 
 ## Associations and uncertainty
