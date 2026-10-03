@@ -132,3 +132,8 @@ Codex loops, Grok slashed ring), selected from each folder’s first task. Unkno
 agents have no motif. Both densities use equal-width cells, left-aligned labels,
 and narrow vertical ones only within multi-digit numbers. Motifs render at 4×
 backing resolution while AppKit receives the original logical dimensions.
+
+Scratch `*-preview-1x.png` files now use logical-size pixels; `*-preview-4x.png`
+uses nearest-neighbor enlargement of that actual-size raster. `*-icon@2x.png`
+is a correctly sized Retina asset. Downsampling averages premultiplied coverage;
+AppKit may rasterize differently. Agent strokes are wider and vertically centered.

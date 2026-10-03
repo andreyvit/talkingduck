@@ -96,24 +96,24 @@ func RenderAgents(cells []Cell, fg color.NRGBA, mode Mode) *image.NRGBA {
 	for i, c := range cells {
 		cw := widths[i]
 		ox, oy := positions[i], (i/cols)*(ch+1)
-		for py := 1; py < (ch-1)*4; py++ {
+		for py := 4; py < (ch-1)*4; py++ {
 			for px := (cw - 5) * 4; px < cw*4; px++ {
-				x, y := float64(px)/4-float64(cw)+.4, float64(py)/4-float64(ch)/2
+				x, y := (float64(px)+.5)/4-float64(cw)+.5, (float64(py)+.5)/4-float64(ch)/2
 				hit := false
 				switch c.Agent {
 				case "claude": // Claude: radial, slightly uneven sunburst.
 					// Eight broad spokes and a visible hub survive menu-bar downsampling.
-					sx := x + 1.2
+					sx := x + 1
 					r, a := math.Hypot(sx, y), math.Atan2(y, sx)
-					hit = r < 1.1 || (r < 4.5 && math.Abs(math.Sin(a*4))*r < .65)
+					hit = r < 1.2 || (r < 4.5 && math.Abs(math.Sin(a*4))*r < .85)
 				case "codex": // Codex/OpenAI-inspired interlocking loops.
 					for n := 0; n < 6; n++ {
 						a := float64(n) * math.Pi / 3
 						r := math.Hypot(x-2.15*math.Cos(a), y-2.15*math.Sin(a))
-						hit = hit || math.Abs(r-2.4) < .55
+						hit = hit || math.Abs(r-2.4) < .7
 					}
 				case "grok": // Grok: ring with a diagonal slash.
-					hit = math.Abs(math.Hypot(x, y)-3.8) < .4 || (math.Abs(x+y) < .48 && math.Abs(y) < 4.7)
+					hit = math.Abs(math.Hypot(x, y)-3.7) < .7 || (math.Abs(x+y)/math.Sqrt2 < .7 && math.Abs(y) < 4.7)
 				}
 				if !hit {
 					continue

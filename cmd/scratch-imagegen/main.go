@@ -64,10 +64,13 @@ func run() error {
 		fg, bg color.NRGBA
 	}{{"dark", color.NRGBA{240, 242, 246, 255}, color.NRGBA{34, 37, 43, 255}}, {"light", color.NRGBA{30, 33, 39, 255}, color.NRGBA{233, 236, 242, 255}}} {
 		icon := menubarimage.Render(cells, theme.fg, mode)
+		retina := menubarimage.Scale(icon, 2)
 		if *agents {
-			icon = agentBackdrop(icon, cells, mode, theme.fg)
+			backing := agentBackdrop(icon, cells, mode, theme.fg)
+			retina = downsample(backing, 2)
+			icon = downsample(backing, 4)
 		}
-		if e := save(filepath.Join(*dir, theme.name+"-icon@2x.png"), menubarimage.Scale(icon, 2)); e != nil {
+		if e := save(filepath.Join(*dir, theme.name+"-icon@2x.png"), retina); e != nil {
 			return e
 		}
 		preview := image.NewNRGBA(image.Rect(0, 0, icon.Bounds().Dx()+16, icon.Bounds().Dy()+8))
