@@ -117,3 +117,7 @@ available space (especially around a MacBook notch). The compact renderer uses
 a 4x6 font, 19x10 cells, and 1-point gaps.
 This does not establish readability on every display or verification on other
 macOS versions.
+
+Ticket numbers and linked task titles have small copy buttons. Space is reserved;
+buttons appear faintly on text hover or keyboard focus, brighten on button hover,
+and briefly show a checkmark after copying the exact text through Wails.
