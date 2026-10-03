@@ -19,6 +19,9 @@ func inventoryCells(snapshot *inventory.Snapshot) []menubarimage.Cell {
 				Error       string `json:"error"`
 			} `json:"git"`
 			Specs []struct {
+				PrimarySession struct {
+					Engine string `json:"engine"`
+				} `json:"primary_session"`
 				Workflow struct {
 					Stage       string `json:"stage"`
 					Progress    string `json:"progress"`
@@ -43,6 +46,7 @@ func inventoryCells(snapshot *inventory.Snapshot) []menubarimage.Cell {
 				}
 			} else {
 				w := repo.Specs[0].Workflow
+				c.Agent = repo.Specs[0].PrimarySession.Engine
 				if stage, ok := map[string]string{"HL": "H", "LL": "L", "EX": "E", "FIN": "F", "SQ": "Q", "REBA": "R", "PUSH": "P"}[w.Stage]; ok {
 					c.Stage = stage
 				}

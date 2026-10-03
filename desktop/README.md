@@ -126,3 +126,9 @@ Scratch-only agent backdrop experiment: `go run ./cmd/scratch-imagegen
 -agent-backdrops -out .tasks/agent-backdrops`. Repeats Claude/Codex/Grok-inspired
 cropped motifs at the right edge. This experiment renders at four pixels per
 logical point before the scratch preview scaling; it does not change the app.
+
+The live tray now uses the approved cropped agent motifs (Claude sunburst,
+Codex loops, Grok slashed ring), selected from each folder’s first task. Unknown
+agents have no motif. Both densities use equal-width cells, left-aligned labels,
+and narrow vertical ones only within multi-digit numbers. Motifs render at 4×
+backing resolution while AppKit receives the original logical dimensions.

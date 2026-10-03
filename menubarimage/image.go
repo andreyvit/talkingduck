@@ -9,6 +9,7 @@ import (
 )
 
 type Cell struct {
+	Agent  string `json:"agent,omitempty"`
 	Number int    `json:"number"`
 	Stage  string `json:"stage"`
 	State  string `json:"state"` // idle, running, attention, unknown

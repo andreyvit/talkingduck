@@ -27,11 +27,11 @@ import (
 var frontend embed.FS
 
 func icon(cells []menubarimage.Cell, mode menubarimage.Mode) ([]byte, error) {
-	im := menubarimage.Render(cells, color.NRGBA{A: 255}, mode)
-	// Upscale the deliberately pixel-aligned font to a 2x representation.
+	im := menubarimage.RenderAgents(cells, color.NRGBA{A: 255}, mode)
+	// Agent motifs use four backing pixels per logical point.
 	var b bytes.Buffer
-	// Encode at 2x so AppKit has the full backing resolution at the renderer’s logical size.
-	if err := png.Encode(&b, menubarimage.Scale(im, 2)); err != nil {
+	// The tray adapter sets the logical image size explicitly.
+	if err := png.Encode(&b, im); err != nil {
 		return nil, err
 	}
 	return b.Bytes(), nil
@@ -116,16 +116,16 @@ func run(opts *cli.Options, mcpPort int) error {
 			compactItem.SetChecked(compact)
 		}
 		data, err := icon(cells, mode)
-		bounds := menubarimage.Render(cells, color.NRGBA{A: 255}, mode).Bounds()
+		bounds := menubarimage.RenderAgents(cells, color.NRGBA{A: 255}, mode).Bounds()
 		if err == nil {
-			err = updateWideTray(tray, data, bounds.Dx(), bounds.Dy(), padding)
+			err = updateWideTray(tray, data, bounds.Dx()/4, bounds.Dy()/4, padding)
 		}
 		if err != nil {
 			log.Printf("tray update failed: %v", err)
 			app.Event.Emit("mock:error", err.Error())
 			return
 		}
-		log.Printf("tray: image=%dx%d points; item=%d points", bounds.Dx(), bounds.Dy(), bounds.Dx()+padding)
+		log.Printf("tray: image=%dx%d points; item=%d points", bounds.Dx()/4, bounds.Dy()/4, bounds.Dx()/4+padding)
 	}
 	view.updateTray = func(snapshot *inventory.Snapshot) { update("", snapshot) }
 	menu := app.Menu.New()
