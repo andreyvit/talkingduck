@@ -226,6 +226,9 @@ func activeSpecReferences(rows []conversationEntry, specs []Object) map[string]O
 func associate(session Object, specs []Object) string {
 	rows, bounded := transcriptEvidence(session)
 	session["zoo_skill_activity"] = skillActivity(rows)
+	receipts := zooReceipts(rows)
+	session["zoo_receipts"] = receipts
+	receiptPath, receiptRole := receiptOwnership(receipts, specs)
 	prompts := []string{}
 	for _, row := range rows {
 		if row.role == "user" && len(prompts) < 3 {
@@ -244,6 +247,9 @@ func associate(session Object, specs []Object) string {
 		reason = "Headless does not establish whether this is a primary task"
 	case contains([]string{"desktop", "cli"}, str(session["client"])):
 		role, reason = "primary", "Top-level interactive session; inferred from client metadata"
+	}
+	if receiptRole != "" && !truth(session["parent_id"]) {
+		role, reason = receiptRole, "Explicit Zoo ownership receipt"
 	}
 	session["task_role"] = Object{"value": role, "reason": reason, "confidence": "inferred"}
 	if bounded {
@@ -306,6 +312,9 @@ func associate(session Object, specs []Object) string {
 	// Multiple declarations in the same message remain ambiguous.
 	if active := activeSpecReferences(rows, specs); len(active) > 0 {
 		hits = active
+	}
+	if receiptPath != "" {
+		hits = map[string]Object{receiptPath: {"kind": "explicit Zoo ownership receipt"}}
 	}
 	if len(hits) == 1 {
 		for path, evidence := range hits {
@@ -397,12 +406,13 @@ func enrich(report Object) Object {
 			s["primary_session"] = Object{"engine": p["engine"], "id": p["id"], "app_session_id": p["app_session_id"], "client": p["client"]}
 			activity := str(obj(p["activity"])["value"])
 			skill := obj(p["zoo_skill_activity"])
-			if len(skill) > 0 && timestamp(p["updated_at"]) >= timestamp(s["last_activity"]) {
+			if str(w["stage_confidence"]) != "explicit" && len(skill) > 0 && timestamp(p["updated_at"]) >= timestamp(s["last_activity"]) {
 				w["stage"], w["skill_evidence"], w["progress"] = skill["stage"], skill, "?"
 				if str(skill["state"]) == "completed" {
 					w["progress"] = "✓"
 				}
 			}
+			applyZooReceipts(w, p, str(s["path"]))
 			if activity == "running" {
 				w["progress"] = "▶"
 			}

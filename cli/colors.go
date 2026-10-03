@@ -60,7 +60,7 @@ func colorCell(text string, column int) string {
 		return paint(text, color)
 	}
 	if column == 4 {
-		color := map[string]int{"HL": 75, "LL": 141, "EX": 81, "FIN": 114, "SQ": 212, "PUSH": 221, "REBA": 209}[value]
+		color := map[string]int{"INV": 75, "HL": 75, "LL": 141, "EX": 81, "FIN": 114, "SQ": 212, "PUSH": 221, "REBA": 209}[value]
 		if color == 0 {
 			color = gray
 		}

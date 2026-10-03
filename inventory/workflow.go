@@ -197,7 +197,9 @@ func taskState(spec Object, text string) Object {
 	if ready || (latest != nil && matches(`(?i)complete|finished|passed|ready`, str(latest["entry"]))) {
 		progress = "✓"
 	}
-	return Object{"stage": stage, "round": round, "round_evidence": revisionEvents, "round_confidence": "inferred", "squashed_this_round": squashed, "latest_logged_action": latest, "subtasks_done": done, "subtasks_total": len(subtasks), "suggestions": suggestions, "progress": progress, "source": spec["path"], "reason": "Inferred from chronological spec Log, status, and top-level sections; missing history can undercount rounds"}
+	w := Object{"stage": stage, "round": round, "round_evidence": revisionEvents, "round_confidence": "inferred", "squashed_this_round": squashed, "latest_logged_action": latest, "subtasks_done": done, "subtasks_total": len(subtasks), "suggestions": suggestions, "progress": progress, "source": spec["path"], "reason": "Inferred from chronological spec Log, status, and top-level sections; missing history can undercount rounds"}
+	applyZooMetadata(w, text)
+	return w
 }
 
 type conversationEntry struct {

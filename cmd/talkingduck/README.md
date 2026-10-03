@@ -70,6 +70,18 @@ historical references. Conflicting labels stay
 ambiguous; later discussion of another spec invalidates that focus. Injected
 memory manifests do not establish ownership.
 
+Current Zoo frontmatter takes precedence: `revision_round` (initial round 0),
+`stage` (including INV), `stage_complete`, and `tickets` (including an empty list).
+Parsing uses restricted regular expressions, not a YAML dependency. Unsupported
+or duplicate fields fall back to legacy inference; older round counts remain
+inferred. H1 supplies the task title.
+
+Standalone assistant receipts identify primary/review ownership and current-round
+squash, rebase, and push operations. Push/closeout rebase context is preserved;
+start/failure does not imply completion. Fenced examples, quoted lines, user
+instructions, and other-task/other-round operations do not drive those overlays.
+Receipts do not prove runtime activity. Patchset formatting alone does not mean SQ.
+
 Grok can retain a saved `subagent` label after interactive resume. A verified
 live registration for the same session and folder overrides that label, with
 the discrepancy recorded. Explicit parent sessions remain excluded.

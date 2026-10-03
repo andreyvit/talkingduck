@@ -226,6 +226,7 @@ func stage(status string) string {
 	return "unknown"
 }
 func parseSpec(path, body string) *Spec {
+	body = strings.ReplaceAll(body, "\r\n", "\n")
 	s := &Spec{commitOrder: 1 << 30, Path: path, Title: strings.TrimSuffix(filepath.Base(path), ".md"), Status: "unknown", body: body, Tickets: []string{}, Commits: []string{}, DirtyFiles: []string{}, Evidence: []Evidence{}}
 	if strings.HasPrefix(body, "---\n") {
 		if end := strings.Index(body[4:], "\n---"); end >= 0 {
@@ -264,8 +265,13 @@ func parseSpec(path, body string) *Spec {
 		}
 	}
 	s.Tickets = tickets(primary)
+	if explicit, ok := zooTickets(body); ok {
+		s.Tickets = explicit
+		s.Evidence = append(s.Evidence, Evidence{"explicit frontmatter tickets", path, false})
+	} else {
+		s.Evidence = append(s.Evidence, Evidence{"tickets inferred from filename and request", path, true})
+	}
 	s.MentionedTickets = tickets(request)
-	s.Evidence = append(s.Evidence, Evidence{"tickets inferred from filename and request", path, true})
 	s.Stage = stage(s.Status)
 	return s
 }

@@ -62,7 +62,8 @@ status: implemented prototype; correlation and workflow states are heuristic
   inferred; unresolved multiple indirect owners stay unassigned.
 - Tickets come from the filename, first request paragraph, explicit Ticket(s)
   lines, and Also include lines. Preserve multiple IDs and background mentions
-  separately. Issue-like identifiers can include non-Linear references.
+  separately. Valid frontmatter `tickets` overrides those guesses, including an
+  empty list. Accept inline or indented block lists; use restricted regex parsing.
 - Use the spec H1 when present; otherwise show its filename slug without date and
   leading numeric ticket prefix. Preserve the original title/path in the inventory snapshot.
 
@@ -129,6 +130,7 @@ status: implemented prototype; correlation and workflow states are heuristic
 ### Task stage
 
 - `--`: insufficient stage evidence or work outside the defined execution stages.
+  `INV`: explicit investigation stage.
 - `HL` / `LL`: high-level / low-level planning, including their spec reviews.
   A later low-level clause takes precedence over earlier high-level approval.
 - `EX`: execution. Count top-level `[ ]`, `[>]`, and `[x]` entries only inside
@@ -146,8 +148,9 @@ status: implemented prototype; correlation and workflow states are heuristic
 
 ### Revision rounds
 
-- Display a number immediately before stage: 0 before meaningful work, 1 for
-  initial planning/execution, 2 after one major revision request, and so on.
+- Prefer frontmatter `revision_round`: initial work is 0; increment only when a
+  user revision reopens finished execution. Preserve zero as an explicit value.
+  Older specs retain the legacy inferred numbering (initial work = 1).
 - Infer from chronological Log entries identifying user revision requests, or
   explicit task-round/major-iteration numbers. Review-loop round numbers never
   increment the task round. Routine review findings are not major revisions.
@@ -155,8 +158,13 @@ status: implemented prototype; correlation and workflow states are heuristic
   produce SQ in round 2; that round needs its own completed squash.
 - Preserve matched revision entries, latest logged action, and inference confidence
   in the inventory snapshot. Missing or loosely worded log history can undercount revisions.
-- Future Zoo frontmatter may publish round, stage, operation context, and squash
-  round explicitly. This collector does not modify source specs or require it.
+- Prefer valid frontmatter `stage` (`INV`, `HL`, `LL`, `EX`, `FIN`) and
+  `stage_complete`. Missing, duplicate, or unsupported fields retain inference.
+  Read standalone assistant Zoo receipts for task start/resume/switch and review
+  ownership. Preserve other receipts as evidence; ignore fenced/quoted examples.
+  Current-round squash/rebase/push receipts supply operation overlays, including
+  push/closeout rebase context. Failed/start receipts do not claim completion;
+  patchset formatting alone never means SQ. Later work receipts invalidate SQ.
 
 ### Progress and interaction
 
