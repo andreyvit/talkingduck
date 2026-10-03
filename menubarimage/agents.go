@@ -120,12 +120,12 @@ func RenderAgents(cells []Cell, fg color.NRGBA, mode Mode) *image.NRGBA {
 				old := out.NRGBAAt(xx, yy)
 				if c.State == "attention" {
 					if old.A == 255 {
-						old.A = 185
+						old.A = 0
 						out.SetNRGBA(xx, yy, old)
 					}
 				} else if old.A == 0 {
 					ink := fg
-					ink.A = 85
+					ink.A = 255
 					out.SetNRGBA(xx, yy, ink)
 				}
 			}
