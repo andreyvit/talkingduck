@@ -61,3 +61,26 @@ func TestAgentStrokesStayOnLogicalPixels(t *testing.T) {
 		}
 	}
 }
+
+// Outlined and filled cells must show the same motif with opposite polarity.
+func TestAgentMotifPolarity(t *testing.T) {
+	for _, mode := range []Mode{Standard, Compact} {
+		for agent := range agentPixels {
+			cell := Cell{Number: 10, Stage: "H", Agent: agent, State: "running"}
+			normal := RenderAgents([]Cell{cell}, color.NRGBA{A: 255}, mode)
+			cell.State = "attention"
+			filled := RenderAgents([]Cell{cell}, color.NRGBA{A: 255}, mode)
+			height := 11
+			if mode == Compact {
+				height = 10
+			}
+			for y := 4; y < (height-1)*4; y++ {
+				for x := normal.Bounds().Dx() - 20; x < normal.Bounds().Dx(); x++ {
+					if int(normal.NRGBAAt(x, y).A)+int(filled.NRGBAAt(x, y).A) != 255 {
+						t.Fatalf("motif changed with state: %v %s at %d,%d", mode, agent, x, y)
+					}
+				}
+			}
+		}
+	}
+}

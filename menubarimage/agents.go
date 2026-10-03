@@ -106,21 +106,17 @@ func RenderAgents(cells []Cell, fg color.NRGBA, mode Mode) *image.NRGBA {
 				}
 				hit := my >= 0 && my < len(motif) && mx >= 0 && mx < 5 && motif[my][mx] == '1'
 
-				if !hit {
+				if len(motif) == 0 {
 					continue
 				}
-				xx, yy := ox*4+px, oy*4+py
-				old := out.NRGBAAt(xx, yy)
-				if c.State == "attention" {
-					if old.A == 255 {
-						old.A = 0
-						out.SetNRGBA(xx, yy, old)
-					}
-				} else if old.A == 0 {
-					ink := fg
+				// Replace the right border too: it otherwise joins the strokes
+				// and changes the silhouette between outlined and filled cells.
+				ink := color.NRGBA{}
+				if hit != (c.State == "attention") {
+					ink = fg
 					ink.A = 255
-					out.SetNRGBA(xx, yy, ink)
 				}
+				out.SetNRGBA(ox*4+px, oy*4+py, ink)
 			}
 		}
 	}
@@ -145,36 +141,36 @@ func agentLabelWidth(number, advance int) int {
 // the design; each stroke is a full logical pixel at both display densities.
 var agentPixels = map[string][]string{
 	"claude": {
-		"00010",
+		"01001",
+		"00101",
 		"10010",
-		"01010",
-		"00111",
-		"11111",
-		"00111",
-		"01010",
+		"01111",
+		"00011",
+		"01111",
 		"10010",
-		"00010",
+		"00101",
+		"01001",
 	},
 	"codex": {
 		"00111",
-		"01001",
-		"11010",
+		"01100",
+		"11001",
 		"10001",
-		"10110",
+		"01111",
 		"10001",
-		"11010",
-		"01001",
+		"11001",
+		"01100",
 		"00111",
 	},
 	"grok": {
 		"00111",
 		"01000",
-		"10000",
 		"10001",
-		"10010",
-		"10100",
+		"10011",
+		"10110",
+		"01100",
 		"11000",
-		"01000",
+		"11000",
 		"10111",
 	},
 }
