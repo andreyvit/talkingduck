@@ -13,15 +13,19 @@ import (
 )
 
 type transcriptState struct {
-	pending           map[string]Object
-	lifecycle         string
-	latest, end       any
-	started, terminal bool
+	streamRole, streamText string
+	pending                map[string]Object
+	lifecycle              string
+	latest, end            any
+	started, terminal      bool
 }
 
 func fresh(at any, now float64) bool { t := timestamp(at); return t != 0 && now-t >= -5 && now-t < 120 }
-func codexTranscript(s Object, rows []Object) transcriptState {
+func codexTranscript(s Object, rows []Object, previous ...transcriptState) transcriptState {
 	st := transcriptState{pending: map[string]Object{}}
+	if len(previous) > 0 {
+		st = previous[0]
+	}
 	for _, r := range rows {
 		p := obj(r["payload"])
 		at := r["timestamp"]
@@ -70,8 +74,11 @@ func codexTranscript(s Object, rows []Object) transcriptState {
 	}
 	return st
 }
-func claudeTranscript(s Object, rows []Object) transcriptState {
+func claudeTranscript(s Object, rows []Object, previous ...transcriptState) transcriptState {
 	st := transcriptState{pending: map[string]Object{}}
+	if len(previous) > 0 {
+		st = previous[0]
+	}
 	for _, r := range rows {
 		typ, at := str(r["type"]), r["timestamp"]
 		if truth(at) {
@@ -104,9 +111,12 @@ func claudeTranscript(s Object, rows []Object) transcriptState {
 	}
 	return st
 }
-func grokUpdates(s Object, rows []Object) transcriptState {
+func grokUpdates(s Object, rows []Object, previous ...transcriptState) transcriptState {
 	st := transcriptState{pending: map[string]Object{}}
-	streamRole, streamText := "", ""
+	if len(previous) > 0 {
+		st = previous[0]
+	}
+	streamRole, streamText := st.streamRole, st.streamText
 	for _, r := range rows {
 		p := obj(r["params"])
 		u := obj(p["update"])
@@ -145,6 +155,7 @@ func grokUpdates(s Object, rows []Object) transcriptState {
 			clear(st.pending)
 		}
 	}
+	st.streamRole, st.streamText = streamRole, streamText
 	return st
 }
 

@@ -250,7 +250,12 @@ status: implemented prototype; correlation and workflow states are heuristic
 - Publish each refresh atomically. Failures retain last successful data and its
   timestamp, expose the error, and fail `Snapshot.Failed()`. Source warnings remain
   nonfatal. Top-level observation time is the newest row, not all rows' freshness.
-- Same-worktree refreshes serialize; other worktrees can refresh independently.
+- Same-worktree full refreshes serialize; other worktrees can refresh independently.
+  Desktop polls cheap change signals every five seconds. `UpdateLive` reparses
+  known specs and incrementally reads known session logs using cached Git/ownership.
+  It runs concurrently with full collection; separate publication locks and snapshot
+  generations prevent stale results from overwriting newer statuses. Full discovery
+  remains periodic. See `docs/live-refresh.md` for limits and freshness fields.
   Cached running/attention states must be interpreted using per-row timestamps.
 - GUI/MCP callers own scheduling and stale-age policy. No timer, disk persistence,
   singleton, or GUI/MCP wiring is added. CLI retains one-shot `Build` behavior.

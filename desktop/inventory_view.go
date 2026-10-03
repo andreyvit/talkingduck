@@ -28,13 +28,15 @@ type inventoryCache interface {
 }
 
 type inventoryView struct {
-	scanMu     sync.Mutex
-	mu         sync.Mutex
-	cache      inventoryCache
-	state      inventoryState
-	requests   chan struct{}
-	emit       func(inventoryState)
-	updateTray func(*inventory.Snapshot)
+	publicationMu sync.Mutex
+	generation    float64
+	scanMu        sync.Mutex
+	mu            sync.Mutex
+	cache         inventoryCache
+	state         inventoryState
+	requests      chan struct{}
+	emit          func(inventoryState)
+	updateTray    func(*inventory.Snapshot)
 }
 
 func (v *inventoryView) publish() {
@@ -74,6 +76,13 @@ func (v *inventoryView) render(path string, complete bool) {
 }
 
 func (v *inventoryView) publishTable(snapshot *inventory.Snapshot, table cli.TableView, err error) {
+	v.publicationMu.Lock()
+	defer v.publicationMu.Unlock()
+	generation, _ := snapshot.Overview["generation"].(float64)
+	if generation > 0 && generation < v.generation {
+		return
+	}
+	v.generation = generation
 	v.mu.Lock()
 	if err != nil {
 		v.state.Error = err.Error()

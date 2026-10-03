@@ -185,6 +185,7 @@ func run(opts *cli.Options, mcpPort int) error {
 			go func() { <-ctx.Done(); _ = server.Close() }()
 		}
 		go view.run(ctx, time.Minute)
+		go view.watchChanges(ctx, !opts.Inventory.NoAgents)
 	})
 	return app.Run()
 }

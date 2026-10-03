@@ -83,3 +83,10 @@ copy data in memory so caller edits cannot affect the cache. Copy cost scales
 with snapshot size. Updates to the same folder serialize; different folders may
 refresh concurrently. Returned snapshots are internally consistent and stable
 after later updates. There is no global cache singleton or `os.Exit` in this API.
+
+`UpdateLive(path)` updates known specs and incrementally reads known session logs
+against cached Git/ownership. It runs concurrently with full collection, invokes
+no subprocesses, and sets `cache.live_observed_at` without changing Git freshness.
+It returns false before a full baseline exists. Snapshot generations prevent stale
+UI publication. See [live refresh](../docs/live-refresh.md) for signals, locking,
+incremental parsing, and discovery limits.

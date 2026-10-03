@@ -379,60 +379,64 @@ func enrich(report Object) Object {
 		delete(repo, "agents")
 		repo["unassigned_sessions"] = unassigned
 		for _, s := range specs {
-			primaries := []Object{}
-			active := 0
-			for _, session := range objects(s["sessions"]) {
-				if str(obj(session["task_role"])["value"]) == "primary" {
-					primaries = append(primaries, session)
-					if contains([]string{"running", "waiting"}, str(obj(session["activity"])["value"])) {
-						active++
-					}
-				}
-			}
-			sort.Slice(primaries, func(i, j int) bool {
-				a, b := timestamp(primaries[i]["updated_at"]), timestamp(primaries[j]["updated_at"])
-				if a != b {
-					return a > b
-				}
-				return str(primaries[i]["id"]) > str(primaries[j]["id"])
-			})
-			s["primary_conflict"] = active > 1
-			w := obj(s["workflow"])
-			w["interaction"], w["questions"] = "?", nil
-			if len(primaries) == 0 {
-				continue
-			}
-			p := primaries[0]
-			s["primary_session"] = Object{"engine": p["engine"], "id": p["id"], "app_session_id": p["app_session_id"], "client": p["client"]}
-			activity := str(obj(p["activity"])["value"])
-			skill := obj(p["zoo_skill_activity"])
-			if str(w["stage_confidence"]) != "explicit" && len(skill) > 0 && timestamp(p["updated_at"]) >= timestamp(s["last_activity"]) {
-				w["stage"], w["skill_evidence"], w["progress"] = skill["stage"], skill, "?"
-				if str(skill["state"]) == "completed" {
-					w["progress"] = "✓"
-				}
-			}
-			applyZooReceipts(w, p, str(s["path"]))
-			if activity == "running" {
-				w["progress"] = "▶"
-			}
-			q := str(obj(p["question"])["value"])
-			if activity == "waiting" || q == "yes" {
-				w["interaction"] = "!"
-			} else if q == "no" {
-				w["interaction"] = ""
-			}
-			pending := objects(p["pending_questions"])
-			if len(pending) > 0 {
-				n := 0
-				for _, q := range pending {
-					n += max(1, len(array(q["prompts"])))
-				}
-				w["questions"] = n
-			} else if q == "no" {
-				w["questions"] = 0
-			}
+			finishTask(s)
 		}
 	}
 	return report
+}
+
+func finishTask(s Object) {
+	primaries := []Object{}
+	active := 0
+	for _, session := range objects(s["sessions"]) {
+		if str(obj(session["task_role"])["value"]) == "primary" {
+			primaries = append(primaries, session)
+			if contains([]string{"running", "waiting"}, str(obj(session["activity"])["value"])) {
+				active++
+			}
+		}
+	}
+	sort.Slice(primaries, func(i, j int) bool {
+		a, b := timestamp(primaries[i]["updated_at"]), timestamp(primaries[j]["updated_at"])
+		if a != b {
+			return a > b
+		}
+		return str(primaries[i]["id"]) > str(primaries[j]["id"])
+	})
+	s["primary_conflict"] = active > 1
+	w := obj(s["workflow"])
+	w["interaction"], w["questions"] = "?", nil
+	if len(primaries) == 0 {
+		return
+	}
+	p := primaries[0]
+	s["primary_session"] = Object{"engine": p["engine"], "id": p["id"], "app_session_id": p["app_session_id"], "client": p["client"]}
+	activity := str(obj(p["activity"])["value"])
+	skill := obj(p["zoo_skill_activity"])
+	if str(w["stage_confidence"]) != "explicit" && len(skill) > 0 && timestamp(p["updated_at"]) >= timestamp(s["last_activity"]) {
+		w["stage"], w["skill_evidence"], w["progress"] = skill["stage"], skill, "?"
+		if str(skill["state"]) == "completed" {
+			w["progress"] = "✓"
+		}
+	}
+	applyZooReceipts(w, p, str(s["path"]))
+	if activity == "running" {
+		w["progress"] = "▶"
+	}
+	q := str(obj(p["question"])["value"])
+	if activity == "waiting" || q == "yes" {
+		w["interaction"] = "!"
+	} else if q == "no" {
+		w["interaction"] = ""
+	}
+	pending := objects(p["pending_questions"])
+	if len(pending) > 0 {
+		n := 0
+		for _, q := range pending {
+			n += max(1, len(array(q["prompts"])))
+		}
+		w["questions"] = n
+	} else if q == "no" {
+		w["questions"] = 0
+	}
 }

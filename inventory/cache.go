@@ -12,14 +12,17 @@ import (
 // ObservedAt stays at the last successful collection start when refresh fails.
 // UpdatedAt marks completion of the latest attempt; zero times mean never.
 type RefreshState struct {
-	State       string    `json:"state"` // pending, updating, ready, error
-	ObservedAt  time.Time `json:"observed_at"`
-	AttemptedAt time.Time `json:"attempted_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	Error       string    `json:"error,omitempty"`
+	LiveObservedAt time.Time `json:"live_observed_at,omitempty"`
+	State          string    `json:"state"` // pending, updating, ready, error
+	ObservedAt     time.Time `json:"observed_at"`
+	AttemptedAt    time.Time `json:"attempted_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+	Error          string    `json:"error,omitempty"`
 }
 
 type cachedWorktree struct {
+	liveMu   sync.Mutex // Only cheap refresh/publication; never held during full scans.
+	live     *liveState
 	update   sync.Mutex // Serialize updates of this worktree only.
 	snapshot *Snapshot  // Immutable once published, protected by Inventory.mu.
 	refresh  RefreshState
@@ -29,11 +32,12 @@ type cachedWorktree struct {
 // create it with New. It owns no timer, goroutine, disk cache, or app lifecycle.
 // Update and Snapshot may be called concurrently. Do not copy an Inventory.
 type Inventory struct {
-	mu      sync.RWMutex
-	paths   []string
-	entries map[string]*cachedWorktree
-	options Options
-	build   func(Options) (*Snapshot, error)
+	generation uint64
+	mu         sync.RWMutex
+	paths      []string
+	entries    map[string]*cachedWorktree
+	options    Options
+	build      func(Options) (*Snapshot, error)
 }
 
 // New validates configuration without scanning. Pending folders are visible in
@@ -70,6 +74,7 @@ func (c *Inventory) Update(path string) error {
 	entry.update.Lock()
 	defer entry.update.Unlock()
 	c.mu.Lock()
+	c.generation++
 	entry.refresh.State = "updating"
 	entry.refresh.AttemptedAt = time.Now().UTC()
 	c.mu.Unlock()
@@ -79,8 +84,17 @@ func (c *Inventory) Update(path string) error {
 	if err == nil && snapshot.Failed() {
 		err = fmt.Errorf("%s: %s", path, snapshot.Details.Repositories[0].Error)
 	}
+	entry.liveMu.Lock()
+	defer entry.liveMu.Unlock()
+	if err == nil {
+		if entry.live == nil {
+			entry.live = &liveState{sessions: map[string]*liveSession{}}
+		}
+		refreshLiveSnapshot(snapshot, entry.live, time.Now().UTC())
+	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	c.generation++
 	entry.refresh.UpdatedAt = time.Now().UTC()
 	if err != nil {
 		entry.refresh.State = "error"
@@ -106,6 +120,7 @@ func (c *Inventory) Snapshot() *Snapshot {
 	}
 	observations := make([]observation, 0, len(c.paths))
 	c.mu.RLock()
+	generation := c.generation
 	for _, p := range c.paths {
 		entry := c.entries[p]
 		observations = append(observations, observation{p, entry.snapshot, entry.refresh})
@@ -155,7 +170,7 @@ func (c *Inventory) Snapshot() *Snapshot {
 		report.Repositories = append(report.Repositories, repo)
 		repos = append(repos, row)
 	}
-	overview := Object{"schema_version": 2, "observed_at": report.ObservedAt, "boundary": report.Boundary, "repositories": repos, "agent_sources": report.AgentSources, "agent_limitations": report.AgentLimitations, "cached": true}
+	overview := Object{"generation": generation, "schema_version": 2, "observed_at": report.ObservedAt, "boundary": report.Boundary, "repositories": repos, "agent_sources": report.AgentSources, "agent_limitations": report.AgentLimitations, "cached": true}
 	// All values originate from JSON-compatible builder output; serialization also
 	// detaches nested slices/maps in both the typed and dynamic reports.
 	b, err := json.Marshal(Snapshot{Overview: overview, Details: report})
