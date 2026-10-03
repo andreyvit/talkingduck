@@ -65,11 +65,11 @@ ambiguous, and stale observations honestly, with their source and update time.
 
 Start with the [Go inventory script](../cmd/talkingduck/README.md): scan Prairie
 `backend` through `back10`, collect specs from unpushed, dirty, and untracked work,
-and report tickets, stages, ordering, and evidence. Pushed history is outside this
-first view. Support other paths explicitly. Local sessions now nest under their inferred Zoo specs. The compact table shows
+and report tickets, stages, ordering, and evidence. Keep one recently pushed task per worktree, eligible only after it was observed
+as local work. Support other paths explicitly. Local sessions now nest under their inferred Zoo specs. The compact table shows
 revision round, stage, subtask counts, attention, and Git counters; secondary reviews cannot choose
 the displayed primary agent. Unknowns remain explicit. See the
-[behavior spec](../.spec/20261002-worktree-task-inventory.md). Durable history and stronger live integrations come later. Keep the scout small too. Learn from these results before choosing a UI,
+[behavior spec](../.spec/20261002-worktree-task-inventory.md). Bounded local task history supports that retention. Stronger live integrations come later. Keep the scout small too. Learn from these results before choosing a UI,
 automation, storage, or whether to move to Swift.
 
 Open decisions: better activity ordering and associations; agent integration

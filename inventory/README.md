@@ -1,7 +1,7 @@
 # Inventory builder and cache
 
 `inventory` owns read-only Git/spec/session collection, association, workflow
-inference, and shared results. It has no flags, terminal formatting, stdout/stderr
+inference, and shared results. Optional history writes only TalkingDuck’s own state file. It has no flags, terminal formatting, stdout/stderr
 writes, process exit, Wails import, or cgo requirement.
 
 ```go
@@ -59,7 +59,8 @@ for _, path := range cache.Paths() {
 and scoped agent sessions. Shared provider indexes may still be read to discover
 those sessions. It atomically replaces that folder after the scan; it never
 rescans or clears other folders. Scheduling belongs to the GUI/MCP caller: the
-cache starts no timer or background goroutine and persists nothing to disk.
+cache starts no timer or background goroutine. Full updates persist task history
+when `Options.HistoryPath` is set; snapshots and cheap updates never write it.
 
 Each repository has `cache` metadata in both snapshot forms:
 
@@ -90,3 +91,26 @@ no subprocesses, and sets `cache.live_observed_at` without changing Git freshnes
 It returns false before a full baseline exists. Snapshot generations prevent stale
 UI publication. See [live refresh](../docs/live-refresh.md) for signals, locking,
 incremental parsing, and discovery limits.
+
+## Recently pushed tasks
+
+Set `HistoryPath: inventory.DefaultHistoryPath()` to enable retention. Library
+callers default to disabled; CLI and desktop enable it. On macOS the file is
+`~/Library/Application Support/TalkingDuck/state.json`; other systems use
+`os.UserConfigDir()/TalkingDuck/state.json`. `-state-file PATH` overrides it;
+`-state-file ''` disables it.
+
+The versioned JSON maps absolute worktree paths to at most 100 relative spec paths,
+last-seen times, and activity times. Only tasks observed in local/unpushed selection
+enter history. Each full refresh appends at most one most-recent historical task
+that no longer qualifies locally and whose spec still exists, after active tasks.
+Its stage is `PUSHED`, with no attention marker. Pulled-only specs never qualify.
+Reopened tasks return to normal selection; deleted files leave history. Retention
+has no time expiry and does not renew the historical last-seen time.
+
+`PUSHED` is inferred from remembered local selection disappearing, not proof of a
+push command. Reset/discard operations can look the same. Failed or warned scans
+cannot establish this transition. Full scans detect it; five-second updates retain
+it. The file stores no session content. A separate advisory lock and atomic file
+replacement preserve concurrent CLI/desktop updates. Corrupt/unknown state files
+are preserved and reported as warnings; collection still works without retention.

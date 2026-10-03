@@ -23,6 +23,7 @@ type Options struct {
 func RegisterFlags(fs *flag.FlagSet) *Options {
 	home, _ := os.UserHomeDir()
 	o := &Options{}
+	fs.StringVar(&o.Inventory.HistoryPath, "state-file", inventory.DefaultHistoryPath(), "persistent task history; empty disables retention")
 	fs.StringVar(&o.Inventory.Root, "root", filepath.Join(home, "Developer", "prairie"), "parent of backend and back2 through back10")
 	fs.BoolVar(&o.Inventory.NoAgents, "no-agents", false, "skip local agent session collection")
 	fs.IntVar(&o.Inventory.AgentLimit, "agent-limit", 0, "recent sessions per provider and folder; 0 = all")

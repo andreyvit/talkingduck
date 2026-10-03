@@ -12,10 +12,11 @@ import (
 // Options controls collection. Empty Paths uses backend and back2–back10 under Root.
 // Empty Root uses ~/Developer/prairie. AgentLimit zero includes all local sessions.
 type Options struct {
-	Paths      []string
-	Root       string
-	NoAgents   bool
-	AgentLimit int
+	HistoryPath string // Empty disables persistent recently-pushed history.
+	Paths       []string
+	Root        string
+	NoAgents    bool
+	AgentLimit  int
 }
 
 // Snapshot keeps the full correlated hierarchy and the legacy detailed report.
@@ -48,6 +49,11 @@ func Build(opts Options) (*Snapshot, error) {
 	report := Report{ObservedAt: time.Now().UTC(), Boundary: "Unpushed = HEAD commits absent from local remote-tracking refs. No fetch; remote knowledge may be stale. Agent states include uncertainty; see JSON evidence.", Repositories: []Repo{}}
 	for _, p := range paths {
 		report.Repositories = append(report.Repositories, scan(p, report.ObservedAt))
+	}
+	if err := applyHistory(&report, opts.HistoryPath); err != nil {
+		for i := range report.Repositories {
+			report.Repositories[i].Warnings = append(report.Repositories[i].Warnings, "Task history: "+err.Error())
+		}
 	}
 	if !opts.NoAgents {
 		roots := []string{}

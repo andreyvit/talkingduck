@@ -386,6 +386,13 @@ func enrich(report Object) Object {
 }
 
 func finishTask(s Object) {
+	defer func() {
+		if truth(s["recently_pushed"]) {
+			w := obj(s["workflow"])
+			w["stage"], w["progress"], w["interaction"], w["questions"] = "PUSHED", "", "", 0
+			w["reason"] = "Remembered local task no longer in unpushed selection; pushed state inferred"
+		}
+	}()
 	primaries := []Object{}
 	active := 0
 	for _, session := range objects(s["sessions"]) {

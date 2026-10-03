@@ -1,6 +1,6 @@
 # Local work inventory
 
-One-shot, read-only Go collector. Uses modernc SQLite without cgo.
+One-shot Go collector; reads projects and keeps its own bounded task history. Uses modernc SQLite without cgo.
 No Python runtime or service.
 
 ```sh
@@ -17,6 +17,10 @@ Defaults to `backend`, then `back2` through `back10`, scanned sequentially.
 Paths are configuration, not product identities. Separate worktrees stay separate.
 Requires Git and Go to run from source; a built binary needs Git.
 `-no-agents` skips session collection.
+Recent local tasks are remembered in `~/Library/Application Support/TalkingDuck/state.json`
+on macOS. One task per worktree stays visible as `PUSHED` after leaving local
+selection. Pulled-only tasks do not qualify. Use `-state-file PATH` to relocate
+history or `-state-file ''` to disable it. See [retention rules](../../inventory/README.md#recently-pushed-tasks).
 Does not fetch, write Git state, run agents, install hooks, or contact tickets.
 A failed checkout appears in the report; other checkouts continue. Exit status is
 nonzero if any checkout fails. Each Git command has a 30-second timeout.
@@ -48,7 +52,7 @@ yellow/green/blue/red/cyan. Attention is yellow; the trailing title stays white.
 Tickets use separate lines; remaining cells are top aligned. The title wraps into
 remaining width. Use `-width 150` to choose a width; `-details` keeps the old report.
 
-Stages: `-- HL LL EX FIN SQ PUSH REBA`. SQ means squash ran in this round;
+Stages: `-- HL LL EX FIN SQ PUSH PUSHED REBA`. SQ means squash ran in this round;
 a new revision resets it. REBA means standalone Zoo rebase; push/closeout retain
 PUSH/FIN. The spec Log and explicit primary-chat skill invocations supply evidence. `▶` means working,
 `✓` ready/awaiting the next action, `!` interaction needed, `?` unknown.

@@ -67,6 +67,7 @@ type Change struct {
 }
 
 type Spec struct {
+	RecentlyPushed   bool       `json:"recently_pushed,omitempty"`
 	GitStatus        string     `json:"git_status,omitempty"`
 	MentionedTickets []string   `json:"mentioned_tickets"`
 	Path             string     `json:"path"`

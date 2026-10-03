@@ -12,7 +12,8 @@ status: implemented prototype; correlation and workflow states are heuristic
 - Model **worktree → task (Zoo spec file) → sessions**. Expect at most one active
   primary session per task; expose conflicts instead of silently accepting them.
 - Keep one row per unpushed task. Keep an empty worktree visible with a cleanliness
-  label when no task qualifies. Pushed history has no rows in this iteration.
+  label when no task qualifies. Retain one recently local task as `PUSHED` after
+  it leaves unpushed selection; never introduce pulled-only tasks from history.
 
 ### Operating model
 
@@ -50,6 +51,24 @@ status: implemented prototype; correlation and workflow states are heuristic
   describe new local work; session activity alone never resurrects a pushed task.
 - Missing remote refs mean unknown history: show local changes and a warning.
   Squashed/cherry-picked equivalents are not detected by commit identity.
+
+### Recent pushed retention
+
+- Persist at most 100 previously selected specs per absolute worktree path in one
+  versioned JSON file: relative spec path, last-seen time, and activity time.
+- Append one most-recent eligible historical task after active rows when it leaves
+  local selection and its file still exists. Sort last-seen time, then activity.
+  Retained rows do not renew their last-seen time; there is no time expiry.
+- Show `PUSHED`, with no progress/input attention. Reopened tasks return to normal
+  local selection. Missing files leave history. Pulling alone never adds history.
+- This is inferred completion, not proof of a push: discarding local work can look
+  identical. Failed/warned scans cannot infer the transition.
+- Full refreshes update history; cheap polls preserve its result. Store by default
+  in `~/Library/Application Support/TalkingDuck/state.json` on macOS. CLI/desktop
+  enable it; library callers opt in with `HistoryPath`. `-state-file ''` disables it.
+- Lock and atomically replace the file for concurrent callers. Preserve corrupt
+  or unsupported files with a warning. Store no transcript content. See the
+  [builder docs](../inventory/README.md#recently-pushed-tasks).
 
 ### Evidence and identity
 
@@ -141,7 +160,8 @@ status: implemented prototype; correlation and workflow states are heuristic
   the latest logged workflow action. Commit count alone never establishes SQ.
   Later execution/review can return to EX/FIN; squash does not prohibit changes.
 - `PUSH`: explicit Zoo push invocation or logged push readiness. It is an
-  operation/stage observation, never authorization to push.
+  operation/stage observation, never authorization to push. `PUSHED` separately
+  marks a remembered task that has left local selection.
 - `REBA`: standalone Zoo rebase running or just finished. Within Zoo push it stays
   PUSH; within Zoo closeout it finishes as FIN. Read chronological skill context
   from the spec log and explicit invocations/results in associated primary chats.
@@ -308,5 +328,5 @@ status: implemented prototype; correlation and workflow states are heuristic
   inspection by the calling agent. The collector never recursively invokes one.
 - Hooks may later add explicit ownership, role, stage, question lifecycle, and
   parent IDs. They remain a bonus layer; filesystem collection stays useful alone.
-- Durable history, recent pushed tasks, interactive control, and app shape remain
+- Broader historical views, interactive control, and app shape remain
   future work. This experiment does not select a UI framework or service.

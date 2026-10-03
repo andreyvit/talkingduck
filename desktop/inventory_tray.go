@@ -47,10 +47,12 @@ func inventoryCells(snapshot *inventory.Snapshot) []menubarimage.Cell {
 			} else {
 				w := repo.Specs[0].Workflow
 				c.Agent = repo.Specs[0].PrimarySession.Engine
-				if stage, ok := map[string]string{"HL": "H", "LL": "L", "EX": "E", "FIN": "F", "SQ": "Q", "REBA": "R", "PUSH": "P"}[w.Stage]; ok {
+				if stage, ok := map[string]string{"HL": "H", "LL": "L", "EX": "E", "FIN": "F", "SQ": "Q", "REBA": "R", "PUSH": "P", "PUSHED": "P"}[w.Stage]; ok {
 					c.Stage = stage
 				}
 				switch {
+				case w.Stage == "PUSHED":
+					c.State = "idle"
 				case w.Interaction == "!" || w.Progress == "✓":
 					c.State = "attention"
 				case w.Progress == "▶":
