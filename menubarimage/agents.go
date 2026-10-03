@@ -3,7 +3,6 @@ package menubarimage
 import (
 	"image"
 	"image/color"
-	"math"
 	"strconv"
 )
 
@@ -98,23 +97,15 @@ func RenderAgents(cells []Cell, fg color.NRGBA, mode Mode) *image.NRGBA {
 		ox, oy := positions[i], (i/cols)*(ch+1)
 		for py := 4; py < (ch-1)*4; py++ {
 			for px := (cw - 5) * 4; px < cw*4; px++ {
-				x, y := (float64(px)+.5)/4-float64(cw)+.5, (float64(py)+.5)/4-float64(ch)/2
-				hit := false
-				switch c.Agent {
-				case "claude": // Claude: radial, slightly uneven sunburst.
-					// Eight broad spokes and a visible hub survive menu-bar downsampling.
-					sx := x + 1
-					r, a := math.Hypot(sx, y), math.Atan2(y, sx)
-					hit = r < 1.2 || (r < 4.5 && math.Abs(math.Sin(a*4))*r < .85)
-				case "codex": // Codex/OpenAI-inspired interlocking loops.
-					for n := 0; n < 6; n++ {
-						a := float64(n) * math.Pi / 3
-						r := math.Hypot(x-2.15*math.Cos(a), y-2.15*math.Sin(a))
-						hit = hit || math.Abs(r-2.4) < .7
-					}
-				case "grok": // Grok: ring with a diagonal slash.
-					hit = math.Abs(math.Hypot(x, y)-3.7) < .7 || (math.Abs(x+y)/math.Sqrt2 < .7 && math.Abs(y) < 4.7)
+				// Draw on the logical pixel grid, then scale exactly: no hairlines
+				// or overlapping antialiased curves that collapse into solid blobs.
+				motif := agentPixels[c.Agent]
+				mx, my := px/4-(cw-5), py/4-1
+				if mode == Compact && my >= 4 {
+					my++ // Omit the center row to preserve vertical symmetry at 8 pixels.
 				}
+				hit := my >= 0 && my < len(motif) && mx >= 0 && mx < 5 && motif[my][mx] == '1'
+
 				if !hit {
 					continue
 				}
@@ -148,4 +139,42 @@ func agentLabelWidth(number, advance int) int {
 		}
 	}
 	return width
+}
+
+// Cropped, deliberately simplified agent silhouettes. Negative space is part of
+// the design; each stroke is a full logical pixel at both display densities.
+var agentPixels = map[string][]string{
+	"claude": {
+		"00010",
+		"10010",
+		"01010",
+		"00111",
+		"11111",
+		"00111",
+		"01010",
+		"10010",
+		"00010",
+	},
+	"codex": {
+		"00111",
+		"01001",
+		"11010",
+		"10001",
+		"10110",
+		"10001",
+		"11010",
+		"01001",
+		"00111",
+	},
+	"grok": {
+		"00111",
+		"01000",
+		"10000",
+		"10001",
+		"10010",
+		"10100",
+		"11000",
+		"01000",
+		"10111",
+	},
 }

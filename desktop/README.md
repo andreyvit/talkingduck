@@ -137,3 +137,7 @@ Scratch `*-preview-1x.png` files now use logical-size pixels; `*-preview-4x.png`
 uses nearest-neighbor enlargement of that actual-size raster. `*-icon@2x.png`
 is a correctly sized Retina asset. Downsampling averages premultiplied coverage;
 AppKit may rasterize differently. Agent strokes are wider and vertically centered.
+
+Agent motifs use explicit logical-pixel masks, with clear negative space rather
+than overlapping tiny curves. Each stroke survives 1× display rasterization;
+standard and compact layouts use 9- and 8-pixel-high masks respectively.

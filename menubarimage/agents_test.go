@@ -42,3 +42,22 @@ func TestAgentMotifsAndEqualGrid(t *testing.T) {
 		t.Fatal("nonempty")
 	}
 }
+
+func TestAgentStrokesStayOnLogicalPixels(t *testing.T) {
+	for _, mode := range []Mode{Standard, Compact} {
+		for agent := range agentPixels {
+			im := RenderAgents([]Cell{{Number: 10, Stage: "H", State: "attention", Agent: agent}}, color.NRGBA{A: 255}, mode)
+			for y := 0; y < im.Bounds().Dy(); y++ {
+				for x := 0; x < im.Bounds().Dx(); x++ {
+					a := im.NRGBAAt(x, y).A
+					if a != 0 && a != 255 {
+						t.Fatal("partial coverage", mode, agent, x, y, a)
+					}
+					if im.NRGBAAt(x, y) != im.NRGBAAt(x/4*4, y/4*4) {
+						t.Fatal("subpixel stroke", mode, agent, x, y)
+					}
+				}
+			}
+		}
+	}
+}
