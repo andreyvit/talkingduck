@@ -96,7 +96,7 @@ func RenderAgents(cells []Cell, fg color.NRGBA, mode Mode) *image.NRGBA {
 		cw := widths[i]
 		ox, oy := positions[i], (i/cols)*(ch+1)
 		for py := 4; py < (ch-1)*4; py++ {
-			for px := (cw - 5) * 4; px < cw*4; px++ {
+			for px := (cw - 5) * 4; px < (cw-1)*4; px++ {
 				// Draw on the logical pixel grid, then scale exactly: no hairlines
 				// or overlapping antialiased curves that collapse into solid blobs.
 				motif := agentPixels[c.Agent]
@@ -109,8 +109,7 @@ func RenderAgents(cells []Cell, fg color.NRGBA, mode Mode) *image.NRGBA {
 				if len(motif) == 0 {
 					continue
 				}
-				// Replace the right border too: it otherwise joins the strokes
-				// and changes the silhouette between outlined and filled cells.
+				// Keep the outer border intact; crop the motif inside it.
 				ink := color.NRGBA{}
 				if hit != (c.State == "attention") {
 					ink = fg

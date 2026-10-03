@@ -75,9 +75,30 @@ func TestAgentMotifPolarity(t *testing.T) {
 				height = 10
 			}
 			for y := 4; y < (height-1)*4; y++ {
-				for x := normal.Bounds().Dx() - 20; x < normal.Bounds().Dx(); x++ {
+				for x := normal.Bounds().Dx() - 20; x < normal.Bounds().Dx()-4; x++ {
 					if int(normal.NRGBAAt(x, y).A)+int(filled.NRGBAAt(x, y).A) != 255 {
 						t.Fatalf("motif changed with state: %v %s at %d,%d", mode, agent, x, y)
+					}
+				}
+			}
+		}
+	}
+}
+
+// Agent artwork must not erase or brighten the cell's status border.
+func TestAgentPreservesRightBorder(t *testing.T) {
+	for _, mode := range []Mode{Standard, Compact} {
+		for _, state := range []string{"running", "idle", "attention", "unknown"} {
+			cell := Cell{Number: 10, Stage: "H", State: state}
+			base := RenderAgents([]Cell{cell}, color.NRGBA{A: 255}, mode)
+			for agent := range agentPixels {
+				cell.Agent = agent
+				got := RenderAgents([]Cell{cell}, color.NRGBA{A: 255}, mode)
+				for y := 0; y < got.Bounds().Dy(); y++ {
+					for x := got.Bounds().Dx() - 4; x < got.Bounds().Dx(); x++ {
+						if got.NRGBAAt(x, y) != base.NRGBAAt(x, y) {
+							t.Fatalf("right border changed: %v %s %s at %d,%d", mode, state, agent, x, y)
+						}
 					}
 				}
 			}
