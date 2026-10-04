@@ -19,7 +19,9 @@ when its database/WAL changes; compare per-folder results to avoid waking other
 folders. SQLite connections are short-lived and read-only.
 
 This is a hint detector. Unsupported schemas and inaccessible sources leave the
-periodic full scan as fallback. No hooks or filesystem-watcher dependency.
+periodic full scan as fallback. No hooks; the desktop loop still polls. A native watcher dependency is installed
+for the [watchcheck diagnostic](../cmd/watchcheck/README.md), but is not yet wired
+into refresh scheduling.
 
 ## Cheap updates
 

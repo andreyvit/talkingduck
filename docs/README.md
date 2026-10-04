@@ -9,6 +9,7 @@ Start here; read only what the task needs.
 - [Desktop prototype](../desktop/README.md): cached inventory window and Wails menu bar, standard/compact layouts, native width shim, build and checks.
 - [Inventory behavior spec](../.spec/20261002-worktree-task-inventory.md): worktree/task/session hierarchy, compact table, stages, correlation, and limits.
 - [Local work inventory](../cmd/talkingduck/README.md): one-shot Git/spec collector, ordering, and limits.
+- [Native watcher diagnostic](../cmd/watchcheck/README.md): repeatable recursive event checks, including cgo-free macOS FSEvents.
 - [Live refresh](live-refresh.md): five-second cheap updates, background scans, signals, and synchronization.
 - [Shared inventory builder](../inventory/README.md): collection, per-worktree refresh, and cached snapshots for CLI/desktop/MCP callers.
 - [Local MCP server](../mcpserver/README.md): loopback HTTP tools for cached inventory and targeted refresh.
