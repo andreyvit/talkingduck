@@ -4,8 +4,8 @@
 
 The inventory CLI and macOS menu bar app share one root Go module.
 The desktop prototype has a local app build, but no release/notarization process.
-The GUI window and menu bar share cached inventory. The app refreshes folders
-sequentially, publishes each result, then waits one minute before the next pass.
+The GUI window and menu bar share cached inventory. Native events and process/recovery timers feed independent cheap and expensive
+queues with per-folder cooldowns/throttles; see [live refresh](live-refresh.md).
 The window uses the CLI's shared table rows.
 
 - `.agents/skills/`: Zoo 3.2, `terse`, `linus`, and the local `commit` skill.
@@ -18,6 +18,7 @@ The window uses the CLI's shared table rows.
 - `desktop/`: Wails app, native tray-width shim, embedded overview, and local build script; see [desktop instructions](../desktop/README.md).
 - `mcpserver/`: loopback Streamable HTTP tools using the desktop cache; see [MCP setup](../mcpserver/README.md).
 - `menubarimage/`: shared standard/compact pixel renderer used by the app and scratch command.
+- `monitor/`: event-coalescing queues; deterministic deadline and concurrency tests.
 - `inventory/`: read-only builder, correlation, and in-memory per-worktree cache; modernc SQLite without cgo.
 - `cmd/scout/`: small standard-library Go review script; no module needed.
 - `.spec/YYYYMMDD-taskslug.md`: tracked task specs.
@@ -68,6 +69,6 @@ and run:
 CGO_ENABLED=0 go test ./inventory ./cli ./cmd/talkingduck
 go vet ./inventory ./cli ./cmd/talkingduck
 # For cache/concurrency changes:
-go test -race ./inventory
+go test -race ./inventory ./monitor
 CGO_ENABLED=0 go build -o /tmp/talkingduck ./cmd/talkingduck
 ```

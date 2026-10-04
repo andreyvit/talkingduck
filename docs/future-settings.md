@@ -10,7 +10,8 @@ Keep CLI flags usable; future preferences should supply defaults the flags can o
 | Markdown preview | Spec titles open in Marked | Installed-app picker, system default, or built-in preview |
 | Agent chat destination | Native Codex and Claude Code deep links when IDs are known | Per-agent app preference and future remote/cloud routing; see [chat links](agent-chat-links.md) |
 | Ticket destination | macOS opens the HTTPS URL with its default handler | Optional browser/Linear-app preference |
-| Refresh interval | Refresh folders sequentially, then pause one minute | Pause duration; optional pause/resume background scanning |
+| Remote fetch | Startup and every 15 minutes independently of scanning; failed attempts also throttled | Fetch interval and enable/disable |
+| Refresh scheduling | Cheap cooldown 1–5s/throttle 5s; expensive cooldown 5–20s/throttle 60s; process checks 30s; recovery 10min | Per-queue timing; optional pause/resume |
 | Menu bar density | Standard by default; Compact toggle lasts for the current run | Persist selected density |
 | Folder summary selection | First listed spec determines the tray stage/activity | Decide how multiple specs and attention states should be prioritized |
 | Agent collection | All local sessions; `--no-agents` and `--agent-limit` supported | Provider selection and collection limits |

@@ -13,7 +13,6 @@ import (
 	"log"
 	"os"
 	"sync"
-	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
@@ -74,7 +73,8 @@ func run(opts *cli.Options, mcpPort int) error {
 		Title: "TalkingDuck — Inventory", Width: 1280, Height: 720, URL: "/", Hidden: true,
 	})
 	window.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) { e.Cancel(); window.Hide() })
-	view := &inventoryView{cache: cache, requests: make(chan struct{}), emit: func(state inventoryState) { app.Event.Emit("inventory:snapshot", state) }}
+	view := &inventoryView{cache: cache, fetch: fetchRemote, emit: func(state inventoryState) { app.Event.Emit("inventory:snapshot", state) }}
+	view.startQueues(ctx, !opts.Inventory.NoAgents)
 	cells := inventoryCells(cache.Snapshot())
 	tray := app.SystemTray.New()
 	data, err := icon(cells, menubarimage.Standard)
@@ -184,7 +184,6 @@ func run(opts *cli.Options, mcpPort int) error {
 			log.Printf("MCP listening at http://%s/mcp", addr)
 			go func() { <-ctx.Done(); _ = server.Close() }()
 		}
-		go view.run(ctx, time.Minute)
 		go view.watchChanges(ctx, !opts.Inventory.NoAgents)
 	})
 	return app.Run()

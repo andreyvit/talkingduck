@@ -110,7 +110,7 @@ has no time expiry and does not renew the historical last-seen time.
 
 `PUSHED` is inferred from remembered local selection disappearing, not proof of a
 push command. Reset/discard operations can look the same. Failed or warned scans
-cannot establish this transition. Full scans detect it; five-second updates retain
+cannot establish this transition. Full scans detect it; cheap updates retain
 it. The file stores no session content. A separate advisory lock and atomic file
 replacement preserve concurrent CLI/desktop updates. Corrupt/unknown state files
 are preserved and reported as warnings; collection still works without retention.

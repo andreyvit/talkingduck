@@ -17,8 +17,9 @@ registration. Existing files are not edited. Each step waits up to five seconds
 or Ctrl-C; a forced kill can leave them behind. Nonzero exit means setup failed or
 an expected event was missed. Concurrent unrelated events are discarded.
 
-This is an event-delivery diagnostic, not a Git-status implementation. It does not
-change the desktop refresh schedule or enable skipping scans yet. Events can be
+This is an event-delivery diagnostic, not a Git-status implementation. The desktop uses the same library for
+[event-driven refresh](../../docs/live-refresh.md). Running this diagnostic does
+not change its schedule. Events can be
 coalesced: the test checks expected flags and paths, not exact event counts.
 
 ## Observed on 2026-10-04

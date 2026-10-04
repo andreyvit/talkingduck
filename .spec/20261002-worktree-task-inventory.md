@@ -17,8 +17,10 @@ status: implemented prototype; correlation and workflow states are heuristic
 
 ### Operating model
 
-- CLI runs once, sequentially. Reusable inventory supports cached per-worktree
-  refresh; neither mode uses hooks, network/model calls, or UI automation.
+- CLI runs once, sequentially. Desktop events feed independent cheap/full queues;
+  see [cooldowns, throttles, and recovery](../docs/live-refresh.md). Reusable inventory supports cached per-worktree
+  refresh. Collection uses no hooks, model calls, or UI automation; desktop fetch
+  runs independently and its filesystem changes trigger refreshes.
 - Default to Prairie `backend`, then `back2`–`back10`. Accept arbitrary paths and
   a replacement parent directory; names are defaults, not permanent identities.
 - Read local Git and agent data. Never fetch, alter app state, send prompts, or
@@ -63,7 +65,7 @@ status: implemented prototype; correlation and workflow states are heuristic
   local selection. Missing files leave history. Pulling alone never adds history.
 - This is inferred completion, not proof of a push: discarding local work can look
   identical. Failed/warned scans cannot infer the transition.
-- Full refreshes update history; cheap polls preserve its result. Store by default
+- Full refreshes update history; cheap updates preserve its result. Store by default
   in `~/Library/Application Support/TalkingDuck/state.json` on macOS. CLI/desktop
   enable it; library callers opt in with `HistoryPath`. `-state-file ''` disables it.
 - Lock and atomically replace the file for concurrent callers. Preserve corrupt
@@ -271,11 +273,11 @@ status: implemented prototype; correlation and workflow states are heuristic
   timestamp, expose the error, and fail `Snapshot.Failed()`. Source warnings remain
   nonfatal. Top-level observation time is the newest row, not all rows' freshness.
 - Same-worktree full refreshes serialize; other worktrees can refresh independently.
-  Desktop polls cheap change signals every five seconds. `UpdateLive` reparses
+  Desktop uses native events, 30-second process checks, and ten-minute recovery. `UpdateLive` reparses
   known specs and incrementally reads known session logs using cached Git/ownership.
   It runs concurrently with full collection; separate publication locks and snapshot
   generations prevent stale results from overwriting newer statuses. Full discovery
-  remains periodic. See `docs/live-refresh.md` for limits and freshness fields.
+  uses the expensive event queue plus recovery. See `docs/live-refresh.md` for limits and freshness fields.
   Cached running/attention states must be interpreted using per-row timestamps.
 - GUI/MCP callers own scheduling and stale-age policy. No timer, disk persistence,
   singleton, or GUI/MCP wiring is added. CLI retains one-shot `Build` behavior.

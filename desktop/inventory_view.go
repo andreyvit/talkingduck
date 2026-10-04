@@ -4,13 +4,14 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"path/filepath"
 	"sync"
 	"time"
 
 	"talkingduck/cli"
 	"talkingduck/inventory"
+	"talkingduck/monitor"
 )
 
 type inventoryState struct {
@@ -30,11 +31,17 @@ type inventoryCache interface {
 type inventoryView struct {
 	publicationMu sync.Mutex
 	generation    float64
+	fetchSlots    chan struct{}
+	fetchMu       sync.Mutex
+	fetch         func(context.Context, string) error
+	lastFetch     map[string]time.Time
+	fetchErrors   map[string]string
 	scanMu        sync.Mutex
 	mu            sync.Mutex
 	cache         inventoryCache
 	state         inventoryState
-	requests      chan struct{}
+	cheap         *monitor.Queue
+	expensive     *monitor.Queue
 	emit          func(inventoryState)
 	updateTray    func(*inventory.Snapshot)
 }
@@ -46,12 +53,9 @@ func (v *inventoryView) publish() {
 	v.emit(state)
 }
 
-// Manual refresh wakes a sleeping scheduler; requests during a pass coalesce.
+// Manual refresh enters the same full-reconciliation path as recovery.
 func (v *inventoryView) refresh() {
-	select {
-	case v.requests <- struct{}{}:
-	default:
-	}
+	v.event(inventory.ChangeEvent{Reconcile: true})
 }
 
 func (v *inventoryView) render(path string, complete bool) {
@@ -83,6 +87,13 @@ func (v *inventoryView) publishTable(snapshot *inventory.Snapshot, table cli.Tab
 		return
 	}
 	v.generation = generation
+	v.fetchMu.Lock()
+	for _, path := range v.cache.Paths() {
+		if warning := v.fetchErrors[path]; warning != "" {
+			table.Warnings = append(table.Warnings, filepath.Base(path)+": "+warning)
+		}
+	}
+	v.fetchMu.Unlock()
 	v.mu.Lock()
 	if err != nil {
 		v.state.Error = err.Error()
@@ -102,6 +113,23 @@ func (v *inventoryView) Snapshot() *inventory.Snapshot { return v.cache.Snapshot
 
 // Share the scheduler's scan lock so MCP never overlaps a background scan.
 func (v *inventoryView) RefreshFolder(ctx context.Context, path string) error {
+	valid := false
+	for _, p := range v.cache.Paths() {
+		if p == path {
+			valid = true
+			break
+		}
+	}
+	if !valid {
+		return fmt.Errorf("worktree is not configured: %s", path)
+	}
+	if v.expensive != nil {
+		return v.expensive.Request(ctx, path)
+	}
+	return v.scanFolder(ctx, path)
+}
+
+func (v *inventoryView) scanFolder(ctx context.Context, path string) error {
 	v.scanMu.Lock()
 	defer v.scanMu.Unlock()
 	if err := ctx.Err(); err != nil {
@@ -123,48 +151,4 @@ func (v *inventoryView) RefreshFolder(ctx context.Context, path string) error {
 		return err
 	}
 	return tableErr
-}
-
-// One sequential pass, then a full interval of rest. Cancellation stops before
-// the next folder; the collector bounds its current scan but cannot cancel it.
-func (v *inventoryView) run(ctx context.Context, interval time.Duration) {
-	for {
-		for _, path := range v.cache.Paths() {
-			if ctx.Err() != nil {
-				return
-			}
-			v.scanMu.Lock()
-			if ctx.Err() != nil {
-				v.scanMu.Unlock()
-				return
-			}
-			v.render(path, false)
-			if err := v.cache.Update(path); err != nil {
-				log.Printf("inventory: %s: %v", path, err)
-			}
-			if ctx.Err() != nil {
-				v.scanMu.Unlock()
-				return
-			}
-			v.render(path, false)
-			v.scanMu.Unlock()
-			log.Printf("inventory: refreshed %s", filepath.Base(path))
-		}
-		if ctx.Err() != nil {
-			return
-		}
-		v.scanMu.Lock()
-		v.render("", true)
-		v.scanMu.Unlock()
-		log.Printf("inventory: pass complete; next pass in %s", interval)
-		timer := time.NewTimer(interval)
-		select {
-		case <-ctx.Done():
-			timer.Stop()
-			return
-		case <-v.requests:
-			timer.Stop()
-		case <-timer.C:
-		}
-	}
 }

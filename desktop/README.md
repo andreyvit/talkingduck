@@ -20,13 +20,15 @@ notarize, install, or register autostart. Generated output stays under `.tasks/`
 The bundle's `LSEnvironment` sets `TALKINGDUCK_GUI=1`; direct execution requires
 `--gui`. Without GUI mode the desktop executable calls the shared `cli.Run`, just like
 `cmd/talkingduck`. The standalone CLI remains cgo-free. The GUI creates one in-memory cache and
-scans each configured checkout sequentially, publishing after each folder.
-After a full pass finishes it waits one minute, then repeats while running,
-even with the window hidden. Refresh starts a pass immediately during the pause;
-requests during an active pass coalesce. Collection flags and paths apply.
+updates folders through independent cheap and expensive queues, even while hidden.
+Native filesystem events, changed process statuses (checked every 30 seconds),
+and ten-minute recovery feed those queues. Cheap cooldown is 1–5 seconds with a
+5-second completion throttle; expensive cooldown is 5–20 seconds with a 60-second
+completion throttle. Manual/MCP refreshes join the expensive queue. See
+[event-driven refresh](../docs/live-refresh.md). Collection flags and paths apply.
 Previous rows remain visible during refresh; failed folders retain their last
 successful data and show a warning. Unscanned folders show explicit placeholders.
-The status names the current folder and the latest completed pass, not a shared
+The status names the current folder and the latest completed refresh, not a shared
 observation time for every row. Quit stops scheduling; an in-flight collector
 call has its own timeouts and cannot be cancelled midway.
 `--gui=false` overrides the bundle environment when needed.
@@ -141,3 +143,15 @@ AppKit may rasterize differently. Agent strokes are wider and vertically centere
 Agent motifs use explicit logical-pixel masks, with clear negative space rather
 than overlapping tiny curves. Each stroke survives 1× display rasterization;
 standard and compact layouts use 9- and 8-pixel-high masks respectively.
+
+The desktop starts background `git fetch --all --quiet` at startup and every
+15 minutes, independently of inventory processing.
+At most five fetches run concurrently; remaining folders queue in the background.
+New refs trigger filesystem events and enter the expensive queue.
+Fetch is noninteractive, bounded
+to one minute, and failures leave scanning enabled with a stale-count warning
+in the overview. The CLI collector itself does not fetch.
+
+A `cannot lock ref` fetch failure gets up to three retries, 250 ms apart,
+within the same concurrency slot and one-minute timeout. Persistent ref-lock
+errors are ignored; independent fetch errors still produce warnings.

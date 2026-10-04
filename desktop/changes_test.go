@@ -6,6 +6,7 @@ import (
 	"context"
 	"talkingduck/cli"
 	"talkingduck/inventory"
+	"talkingduck/monitor"
 	"testing"
 	"time"
 )
@@ -45,4 +46,44 @@ func TestOlderPublicationCannotOverwriteLiveTable(t *testing.T) {
 	if v.state.Rows[0][0] != "new" {
 		t.Fatal(v.state.Rows)
 	}
+}
+
+func TestSourceEventsAndManualRefreshShareQueues(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	cheap, full := make(chan string, 8), make(chan string, 8)
+	v := &inventoryView{cache: &liveTestCache{}, cheap: monitor.NewQueue(monitor.Policy{}), expensive: monitor.NewQueue(monitor.Policy{})}
+	go v.cheap.Run(ctx, func(_ context.Context, path string) error { cheap <- path; return nil })
+	go v.expensive.Run(ctx, func(_ context.Context, path string) error { full <- path; return nil })
+	receive := func(ch chan string, want string) {
+		t.Helper()
+		select {
+		case got := <-ch:
+			if got != want {
+				t.Fatalf("%q != %q", got, want)
+			}
+		case <-time.After(time.Second):
+			t.Fatal("missing queued job")
+		}
+	}
+	v.event(inventory.ChangeEvent{Path: "/b", Cheap: true, Expensive: true})
+	receive(cheap, "/b")
+	receive(full, "/b")
+	// Process events use this same route; no direct cache update.
+	v.event(inventory.ChangeEvent{Path: "/a", Expensive: true})
+	receive(full, "/a")
+	done := make(chan error, 1)
+	go func() { done <- v.RefreshFolder(ctx, "/b") }()
+	receive(full, "/b")
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	v.event(inventory.ChangeEvent{Providers: true})
+	receive(cheap, providerQueueKey)
+	v.refresh()
+	receive(cheap, providerQueueKey)
+	receive(cheap, "/a")
+	receive(cheap, "/b")
+	receive(full, "/a")
+	receive(full, "/b")
 }

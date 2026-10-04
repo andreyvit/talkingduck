@@ -10,7 +10,7 @@ Start here; read only what the task needs.
 - [Inventory behavior spec](../.spec/20261002-worktree-task-inventory.md): worktree/task/session hierarchy, compact table, stages, correlation, and limits.
 - [Local work inventory](../cmd/talkingduck/README.md): one-shot Git/spec collector, ordering, and limits.
 - [Native watcher diagnostic](../cmd/watchcheck/README.md): repeatable recursive event checks, including cgo-free macOS FSEvents.
-- [Live refresh](live-refresh.md): five-second cheap updates, background scans, signals, and synchronization.
+- [Live refresh](live-refresh.md): native event sources, cheap/expensive queues, cooldowns, throttles, and recovery.
 - [Shared inventory builder](../inventory/README.md): collection, per-worktree refresh, and cached snapshots for CLI/desktop/MCP callers.
 - [Local MCP server](../mcpserver/README.md): loopback HTTP tools for cached inventory and targeted refresh.
 - [Shared CLI](../cli/README.md): flags, output, and entry-point integration.

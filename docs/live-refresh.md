@@ -1,54 +1,79 @@
-# Live refresh
+# Event-driven refresh
 
-The desktop runs two independent loops:
+The desktop has independent cheap and expensive queues. Event sources mark work
+pending; they do not collect inventory. No routine five-second filesystem poll or
+unconditional one-minute inventory pass remains.
 
-- Every five seconds, probe change signals and cheaply refresh affected folders.
-- Keep the existing sequential full scan, followed by a minute of rest. Manual/MCP
-  full scans share its scan lock. A folder never runs two full scans concurrently.
+| Queue | Cooldown: quiet / maximum wait | Throttle after processing finishes |
+| --- | --- | --- |
+| Cheap | 1 second / 5 seconds | 5 seconds per worktree |
+| Expensive | 5 seconds / 20 seconds | 60 seconds per worktree |
 
-Cheap updates run even while a full scan of the same folder is blocked. No Git,
-`ps`, network calls, or provider-wide transcript parsing occurs in this path.
+For a pending batch, eligibility is the later of the throttle deadline and
+`min(last event + quiet period, first event + maximum wait)`. A busy worker can
+add queueing delay. Events during processing form the next batch; finishing does
+not clear them. Each queue has one worker. A slow expensive scan cannot occupy
+the cheap worker. Manual/MCP refreshes use the expensive queue too; MCP waits for
+its requested batch, subject to request cancellation.
 
-## Signals
+## Event sources
 
-Poll file metadata under `.spec`, not the source tree. Poll Claude Desktop/session
-metadata and linked transcript metadata; Grok summaries, registry, and event/update
-files; Codex database/WAL metadata and the latest 20 thread rollouts per folder.
-Read JSON metadata only when its file changes. Query Codex thread metadata only
-when its database/WAL changes; compare per-folder results to avoid waking other
-folders. SQLite connections are short-lived and read-only.
+- **Native filesystem:** fswatcher v0.1.0, FSEvents through purego on macOS.
+  Watch worktrees recursively, plus actual Git and shared Git directories resolved
+  through `.git`/`commondir` files. Source/Git changes request expensive work;
+  spec changes request both queues. Watch provider roots for session/transcript,
+  registry, SQLite database and WAL changes. Ignore SQLite SHM notifications.
+- **Provider routing:** filesystem events request a coalesced cheap metadata check.
+  Existing `ChangeProbe` maps changed evidence to worktrees. Shared SQLite changes
+  query thread metadata; cached JSON/file metadata avoids full history parsing.
+  Affected folders then enter both queues. This discovery step can add latency
+  before the per-folder cooldown; no idle polling of provider files remains.
+- **Process liveness:** every 30 seconds, compare identity-checked Claude/Grok
+  registry processes. Changed identity/liveness (including removed records) emits
+  the same per-folder expensive event. Observation timestamps alone emit nothing.
+  Codex has no equivalent per-chat PID evidence in the current collector.
+- **Recovery:** startup, watcher errors/dropped-event reports, manual refresh, and
+  a ten-minute timer request full reconciliation through the same event path.
+  The recovery timer also recreates watches to repair replaced roots. If creating
+  the native watcher fails entirely, warn and fall back to minute reconciliation.
+- **Fetch:** launches independently at startup and every 15 minutes, up to five
+  concurrent fetches. Ref/index/filesystem changes return through native events;
+  completion does not directly trigger collection. Failed fetches remain warnings.
 
-This is a hint detector. Unsupported schemas and inaccessible sources leave the
-periodic full scan as fallback. No hooks; the desktop loop still polls. A native watcher dependency is installed
-for the [watchcheck diagnostic](../cmd/watchcheck/README.md), but is not yet wired
-into refresh scheduling.
+File notifications are hints, not Git status or proof of agent activity. Directory
+replacement and event loss can require recovery. Unsupported provider schemas and
+inaccessible data remain warnings/unknowns. No hooks or recursive agent calls.
 
-## Cheap updates
+## Collection
 
-`Inventory.UpdateLive(path)` reparses known task specs against cached Git selection
-and ownership. It updates title, tickets, workflow stage, completion, and counts.
-Known task sessions use incremental JSONL cursors: read appended complete lines,
-retain partial final lines, and reset on truncation/replacement. Initial/reset
-reads use a 256 KiB tail. Existing provider reducers retain state across appends;
-Grok lifecycle events and new receipts are included. No full-history reparse.
+Cheap work reparses known specs against cached Git selection and ownership, then
+reads appended complete transcript lines with incremental cursors. It updates
+workflow, title, tickets, questions and transcript-derived activity. Initial/reset
+reads use a 256 KiB tail. Truncation/replacement resets the cursor. No Git or `ps`
+runs in the cheap queue.
 
-New task/session discovery, ownership reassignment, Git cleanliness/commit
-association, and process checks remain on the full scan. A disappeared spec keeps
-its last result until discovery reconciles it. The cheap path does not claim those
-observations became fresh. `cache.live_observed_at` is separate from full-scan
-`cache.observed_at`. Transcript-derived activity remains inferred.
+Expensive work discovers tasks/sessions, checks Git cleanliness and commit
+association, reassesses ownership/process evidence, and updates retained pushed
+history. New/deleted tasks and native registry status can therefore wait for the
+expensive throttle. Running process checks is an independent event source; its
+changes do not directly mutate cached activity.
 
-## Synchronization
+Collection already sets `GIT_OPTIONAL_LOCKS=0`, preventing optional index refresh
+writes by `git status`. TalkingDuck history is outside default watched worktrees
+in Application Support. Fetch intentionally writes Git data. Custom state-file
+placement inside a watched worktree would create feedback and should be avoided.
 
-A per-folder full-scan lock prevents duplicate expensive work. A separate brief
-publication lock protects cheap updates and the final full-scan publication;
-expensive collection never holds it. Before publishing a full result, refresh its
-known specs/session evidence again so an old scan cannot undo a newer status.
+## Synchronization and checks
 
-Snapshots carry monotonic cache generations. UI publication is serialized and
-rejects older generations, including tray updates. Readers keep receiving stable,
-detached snapshots during either kind of update.
+Full refreshes serialize; cache publication briefly shares a lock with cheap
+updates. Full collection does not hold that publication lock. Before publishing,
+a full result refreshes known specs/session evidence again to avoid undoing newer
+cheap updates. Snapshot generations reject old UI publications. Cached reads stay
+immediate and detached.
 
-Measured on backend during development: Git/spec scan about 155 ms; agent
-collection 2.37 s; repeated cheap updates about 7–8 ms. Two-folder signal checks
-about 120 ms after warmup. These are observations, not latency guarantees.
+Queue tests cover exact deadlines, continuous-event caps, completion-based
+throttling, coalescing, events during a blocked job, independent cheap work, and
+cancellation. Native tests cover spec events and external Git directories. Process
+tests cover timestamp noise, liveness changes, removed records and folder scoping.
+The [native diagnostic](../cmd/watchcheck/README.md) passed all ten Prairie folders
+without cgo; it does not diagnose another app's watcher or guarantee lossless delivery.
