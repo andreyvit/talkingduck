@@ -399,6 +399,8 @@ func RunTUI(opts *Options, paths []string) int {
 			}
 			if err != nil {
 				tell(err.Error())
+			} else if verb == "c" {
+				tell("Copied: " + item.Text)
 			} else {
 				tell("Done: " + item.Text)
 			}
