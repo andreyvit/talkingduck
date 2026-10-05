@@ -232,7 +232,10 @@ func (s *tuiState) draw(screen tcell.Screen) {
 		}
 	}
 	s.top = max(0, min(s.top, max(0, len(layout.Lines)-viewport)))
-	hover, _ := s.mouseHit(s.mouseState.x, s.mouseState.y)
+	hover := table.Hit{}
+	if _, ok := s.mouseHit(s.mouseState.x, s.mouseState.y); ok && s.mouseState.x > 0 {
+		hover, _ = layout.HoverTest(s.mouseState.x-1, s.mouseState.y-2+s.top)
+	}
 	for line := s.top; line < len(layout.Lines) && line < s.top+viewport; line++ {
 		visual := layout.Lines[line]
 		row := s.model.Rows[visual.Row]

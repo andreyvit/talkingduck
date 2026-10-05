@@ -31,3 +31,24 @@ func (l Layout) HitTest(x, y int) (Hit, bool) {
 	}
 	return hit, true
 }
+
+// HoverRegion extends a single item's hover across its cell line, without
+// turning blank space into a link or copy button.
+type HoverRegion struct {
+	X, Width int
+	Source   *ItemRef
+}
+
+func (l Layout) HoverTest(x, y int) (Hit, bool) {
+	hit, ok := l.HitTest(x, y)
+	if !ok || hit.Source != nil {
+		return hit, ok
+	}
+	for _, region := range l.Lines[y].Hover {
+		if x >= region.X && x < region.X+region.Width {
+			hit.Source = region.Source
+			break
+		}
+	}
+	return hit, ok
+}

@@ -15,6 +15,7 @@ type Span struct {
 type VisualLine struct {
 	Row   int
 	Spans []Span
+	Hover []HoverRegion
 }
 type Layout struct {
 	Widths []int
@@ -54,7 +55,7 @@ func FormatWithOptions(t Table, width int, options FormatOptions) Layout {
 				n := Width(l.Text())
 				for _, item := range l.Items {
 					if !item.Hidden && item.Copy != nil && options.CopyControl != "" {
-						n += 1 + Width(options.CopyControl)
+						n += Width(options.CopyControl)
 					}
 				}
 				if prefixes && l.Text() != "" {
@@ -103,7 +104,7 @@ func FormatWithOptions(t Table, width int, options FormatOptions) Layout {
 					ref := &ItemRef{Row: ri, Column: ci, Line: li, Item: ii}
 					parts := []string{item.Text}
 					if item.Copy != nil && options.CopyControl != "" {
-						parts = append(parts, " "+options.CopyControl)
+						parts = append(parts, options.CopyControl)
 					}
 					for part, content := range parts {
 						graphemes := uniseg.NewGraphemes(content)
@@ -148,7 +149,24 @@ func FormatWithOptions(t Table, width int, options FormatOptions) Layout {
 			x := 0
 			for ci := range t.Columns {
 				if line < len(cells[ci]) {
-					for _, s := range cells[ci][line] {
+					spans := cells[ci][line]
+					for _, span := range spans {
+						if span.Source == nil {
+							continue
+						}
+						source := span.Source
+						count := 0
+						for _, item := range row.Cells[ci].Lines[source.Line].Items {
+							if !item.Hidden {
+								count++
+							}
+						}
+						if count == 1 {
+							visual.Hover = append(visual.Hover, HoverRegion{X: x, Width: result.Widths[ci], Source: source})
+						}
+						break
+					}
+					for _, s := range spans {
 						s.X += x
 						visual.Spans = append(visual.Spans, s)
 					}

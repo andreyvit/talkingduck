@@ -23,17 +23,17 @@ func TestTUIMouseActionsAndHover(t *testing.T) {
 		s.draw(screen)
 	}
 	click := func(x, y int) { mouse(x, y, tcell.Button1); mouse(x, y, tcell.ButtonNone) }
-	// Folder copy occupies x=4..5; it appears on hover without moving the text.
-	r, _, _, _ := screen.GetContent(5, 2)
+	// Folder copy occupies x=4; it appears on hover without moving the text.
+	r, _, _, _ := screen.GetContent(4, 2)
 	if r == '©' {
 		t.Fatal("copy visible without hover")
 	}
-	mouse(2, 2, tcell.ButtonNone)
-	r, _, _, _ = screen.GetContent(5, 2)
+	mouse(6, 2, tcell.ButtonNone) // Whitespace within the single-item folder cell.
+	r, _, _, _ = screen.GetContent(4, 2)
 	if r != '©' {
 		t.Fatal("copy not visible on hover")
 	}
-	click(5, 2)
+	click(4, 2)
 	click(8, 3) // Second ticket, separate physical line.
 	if fmt.Sprint(calls) != "[c:one o:DEV-2]" {
 		t.Fatal(calls)
@@ -72,7 +72,7 @@ func TestTUIMouseActionsAndHover(t *testing.T) {
 	}
 	screen.SetSize(12, 4)
 	s.draw(screen)
-	click(5, 2)
+	click(4, 2)
 	if len(calls) != 3 {
 		t.Fatal("small screen retained targets")
 	}

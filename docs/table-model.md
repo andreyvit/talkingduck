@@ -43,3 +43,7 @@ still display their error.
 
 TUI headers use colored bold text on the normal background; numeric labels use
 their column colors. Uber and progress have blank labels and one-cell minimums.
+
+Copy controls touch item text with no added space. A cell line with one visible
+item extends hover across its full width, including whitespace; blank space
+still only selects the row. Lines with multiple items keep individual hover targets.
