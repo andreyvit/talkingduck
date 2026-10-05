@@ -4,16 +4,18 @@ import (
 	"bytes"
 	"path/filepath"
 	"strings"
+	"talkingduck/table"
 )
 
 // TableView is the CLI's unwrapped table, also used by the desktop overview.
 // Each row is one task (or empty/error checkout); newlines stay within cells.
 type TableView struct {
-	WorktreePaths []string   `json:"worktreePaths"` // Absolute worktree path for every row, even when its label is blank.
-	Rows          [][]string `json:"rows"`
-	SpecPaths     []string   `json:"specPaths"` // One absolute path per row; empty for non-task rows.
-	AgentLinks    []string   `json:"agentLinks"`
-	Warnings      []string   `json:"warnings"`
+	Model         table.Table `json:"table"`
+	WorktreePaths []string    `json:"worktreePaths"` // Absolute worktree path for every row, even when its label is blank.
+	Rows          [][]string  `json:"rows"`
+	SpecPaths     []string    `json:"specPaths"` // One absolute path per row; empty for non-task rows.
+	AgentLinks    []string    `json:"agentLinks"`
+	Warnings      []string    `json:"warnings"`
 }
 
 // BuildTable uses the same projection and row builder as terminal output.
@@ -55,5 +57,6 @@ func BuildTable(overview any) (TableView, error) {
 	if text := strings.TrimSpace(warnings.String()); text != "" {
 		result.Warnings = strings.Split(text, "\n")
 	}
+	result.Model = modelTable(result)
 	return result, nil
 }

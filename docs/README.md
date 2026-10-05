@@ -13,6 +13,7 @@ Start here; read only what the task needs.
 - [Live refresh](live-refresh.md): native event sources, cheap/expensive queues, cooldowns, throttles, and recovery.
 - [Shared inventory builder](../inventory/README.md): collection, per-worktree refresh, and cached snapshots for CLI/desktop/MCP callers.
 - [Local MCP server](../mcpserver/README.md): loopback HTTP tools for cached inventory and targeted refresh.
+- [Shared table model](table-model.md): presentation data, layout, links, copy values, and chord keys.
 - [Shared CLI](../cli/README.md): flags, output, and entry-point integration.
 - [Agent collection research](agent-collection-research.md): local schemas, live checks, monitor comparisons, optional hooks.
 - [Agent inventory instructions](agent-inventory-instructions.md): collect once, then enrich unknowns with app tools or UI.

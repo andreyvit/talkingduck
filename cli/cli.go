@@ -82,7 +82,11 @@ func RunTo(opts *Options, paths []string, out, stderr io.Writer) int {
 			if opts.AI {
 				text = renderAI(view)
 			} else {
-				text = render(view, tableWidth(opts.Width, out), useColor(opts.Color, out))
+				tableView, tableErr := BuildTable(snapshot.Overview)
+				if tableErr != nil {
+					return fail(tableErr)
+				}
+				text = formatModel(tableView.Model, tableWidth(opts.Width, out), useColor(opts.Color, out))
 			}
 			_, err = fmt.Fprintln(out, text)
 			printWarnings(stderr, view)
