@@ -93,7 +93,7 @@ func TestTUIChordsSelectionAndRefresh(t *testing.T) {
 	if s.selected != 2 {
 		t.Fatal("selection moved", s.selected)
 	}
-	if !s.key(tcell.NewEventKey(tcell.KeyRune, 'q', tcell.ModNone)) {
+	if !s.key(tcell.NewEventKey(tcell.KeyRune, 'Q', tcell.ModNone)) {
 		t.Fatal("quit")
 	}
 }
@@ -146,5 +146,24 @@ func TestLongChordSurvivesRefresh(t *testing.T) {
 	s.key(tcell.NewEventKey(tcell.KeyRune, 'f', tcell.ModNone))
 	if calls != 1 {
 		t.Fatal(calls, s.chord)
+	}
+}
+
+func TestQuitKeys(t *testing.T) {
+	for _, pending := range []bool{false, true} {
+		s := tuiState{model: tuiFixture()}
+		if pending {
+			s.chord = "o"
+			s.choices = s.model.Rows[0].Matches("c", "t")
+		}
+		if s.key(tcell.NewEventKey(tcell.KeyRune, 'q', tcell.ModNone)) {
+			t.Fatal("lowercase q quit")
+		}
+		if !s.key(tcell.NewEventKey(tcell.KeyRune, 'Q', tcell.ModShift)) {
+			t.Fatal("Shift-Q did not quit")
+		}
+		if !s.key(tcell.NewEventKey(tcell.KeyCtrlC, 0, tcell.ModCtrl)) {
+			t.Fatal("Ctrl-C did not quit")
+		}
 	}
 }

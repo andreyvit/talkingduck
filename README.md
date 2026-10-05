@@ -36,7 +36,7 @@ go run ./cmd/talkingduck -gui     # installed Mac app
 In the TUI: ↑/↓ selects, `r` refreshes the selected worktree, `R` refreshes all.
 Use `oa` agent, `ot` ticket, `os` spec, `of` folder; `ct` ticket number, `cs` spec
 title, `cf` folder path. Multiple tickets open a chooser. `og` is reserved.
-Esc cancels a chord/chooser; `q` or Ctrl-C quits. ←/→ scroll wide tables.
+Esc cancels a chord/chooser; Shift-Q or Ctrl-C quits. ←/→ scroll wide tables.
 
 See [inventory usage and limits](cmd/talkingduck/README.md), including compact `-ai` output,
 and [agent collection research](docs/agent-collection-research.md).

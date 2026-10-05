@@ -282,7 +282,7 @@ status: implemented prototype; correlation and workflow states are heuristic
 - Desktop, aligned status, and TUI consume this presentation model. Formatting
   tests cover Unicode, wrapping, alignment, multiline rows, history, and actions.
 - TUI uses tcell, a dark palette, cyan selection, status highlights, and a compact
-  key bar. Up/Down selects; Left/Right scrolls wide tables; q/Ctrl-C exits.
+  key bar. Up/Down selects; Left/Right scrolls wide tables; Shift-Q/Ctrl-C exits.
 - `r` queues the selected worktree, `R` all. Existing native event sources and
   separate cheap/expensive queues update cached rows without blocking input.
 - Open chords: `oa` agent, `ot` ticket, `os` spec, `of` folder; `og` reserved.

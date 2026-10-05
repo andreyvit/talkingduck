@@ -53,7 +53,7 @@ func (s *tuiState) replace(model table.Table) {
 	}
 }
 func (s *tuiState) key(e *tcell.EventKey) bool {
-	if e.Key() == tcell.KeyCtrlC {
+	if e.Key() == tcell.KeyCtrlC || (e.Key() == tcell.KeyRune && e.Rune() == 'Q') {
 		return true
 	}
 	if e.Key() == tcell.KeyEscape {
@@ -96,8 +96,6 @@ func (s *tuiState) key(e *tcell.EventKey) bool {
 	r := e.Rune()
 	if s.chord == "" {
 		switch r {
-		case 'q':
-			return true
 		case 'r':
 			if len(s.model.Rows) > 0 {
 				s.refresh(s.model.Rows[s.selected].Group)
@@ -169,7 +167,7 @@ func (s *tuiState) draw(screen tcell.Screen) {
 	screen.SetStyle(base)
 	screen.Clear()
 	if w < 24 || h < 7 {
-		put(screen, 0, 0, w, "Enlarge terminal · q quit", base)
+		put(screen, 0, 0, w, "Enlarge terminal · Q quit", base)
 		screen.Show()
 		return
 	}
@@ -251,7 +249,7 @@ func (s *tuiState) draw(screen tcell.Screen) {
 		message = s.chord + "…  a agent  t ticket  s spec  f folder  g git (soon) · Esc cancel"
 	}
 	put(screen, 1, h-2, w-1, message, base.Foreground(tuiColor("cyan")))
-	put(screen, 1, h-1, w-1, "↑↓ select  ←→ scroll  r refresh  R all  o open  c copy  q quit", bar)
+	put(screen, 1, h-1, w-1, "↑↓ select  ←→ scroll  r refresh  R all  o open  c copy  Q quit", bar)
 	if len(s.choices) > 0 {
 		y := max(2, (h-len(s.choices)-2)/2)
 		put(screen, 3, y, w-3, "Choose item · ↑↓ Enter · Esc cancel", bar)

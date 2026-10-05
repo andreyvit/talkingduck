@@ -26,7 +26,7 @@ It does not fetch remotes. `r` queues the selected worktree; `R` queues all.
 Arrow keys select/scroll; `o`/`c` start open/copy chords. Suffixes: `a` agent,
 `t` ticket, `s` spec, `f` folder. Copy supports ticket numbers, spec titles, and
 full folder paths. Multiple tickets get an Up/Down/Enter chooser. `g` is reserved
-for future Git opening. Esc cancels; `q`/Ctrl-C exits.
+for future Git opening. Esc cancels; Shift-Q/Ctrl-C exits.
 
 Defaults to `backend`, then `back2` through `back10`, scanned sequentially.
 Paths are configuration, not product identities. Separate worktrees stay separate.
