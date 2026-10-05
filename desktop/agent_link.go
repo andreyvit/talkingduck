@@ -4,9 +4,9 @@ package main
 
 import (
 	"fmt"
-	"os/exec"
 	"slices"
-	"strings"
+	"talkingduck/actions"
+	"talkingduck/table"
 )
 
 func (v *inventoryView) openAgent(link string) error {
@@ -16,9 +16,5 @@ func (v *inventoryView) openAgent(link string) error {
 	if !known {
 		return fmt.Errorf("chat is no longer in the inventory; refresh and try again")
 	}
-	output, err := exec.Command("/usr/bin/open", link).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("cannot open chat: %s (%w)", strings.TrimSpace(string(output)), err)
-	}
-	return nil
+	return actions.Open(table.Action{Kind: "agent", Target: link})
 }

@@ -14,15 +14,21 @@ import (
 type Options struct {
 	Inventory               inventory.Options
 	AI, Details, AgentsOnly bool
+	Status, TUI, GUI        bool
+	MCPPort                 int
 	Home, Color             string
 	Width                   int
 }
 
 // RegisterFlags registers on the caller's FlagSet without parsing it. A desktop
-// entry point can add --gui, parse once, then dispatch to Run or its GUI startup.
+// entry points parse once, select their default mode, then dispatch.
 func RegisterFlags(fs *flag.FlagSet) *Options {
 	home, _ := os.UserHomeDir()
 	o := &Options{}
+	fs.BoolVar(&o.Status, "status", false, "print one aligned status table")
+	fs.BoolVar(&o.TUI, "tui", false, "run the terminal UI")
+	fs.BoolVar(&o.GUI, "gui", false, "run the macOS GUI")
+	fs.IntVar(&o.MCPPort, "mcp-port", 42389, "loopback MCP HTTP port (GUI only)")
 	fs.StringVar(&o.Inventory.HistoryPath, "state-file", inventory.DefaultHistoryPath(), "persistent task history; empty disables retention")
 	fs.StringVar(&o.Inventory.Root, "root", filepath.Join(home, "Developer", "prairie"), "parent of backend and back2 through back10")
 	fs.BoolVar(&o.Inventory.NoAgents, "no-agents", false, "skip local agent session collection")

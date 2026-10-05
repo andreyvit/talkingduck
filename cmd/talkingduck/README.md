@@ -1,10 +1,11 @@
 # Local work inventory
 
-One-shot Go collector; reads projects and keeps its own bounded task history. Uses modernc SQLite without cgo.
+Terminal UI and one-shot Go collector; reads projects and keeps its own bounded task history. Uses modernc SQLite without cgo.
 No Python runtime or service.
 
 ```sh
-go run ./cmd/talkingduck
+go run ./cmd/talkingduck          # default: TUI
+go run ./cmd/talkingduck -status  # one-shot table
 # Token-efficient plain text for agents, including primary session IDs:
 go run ./cmd/talkingduck -ai
 # Override the default ~/Developer/prairie parent:
@@ -12,6 +13,20 @@ go run ./cmd/talkingduck -root /path/to/checkouts
 # Or supply any checkout paths explicitly:
 go run ./cmd/talkingduck /path/to/one /path/to/two
 ```
+
+Modes are shared with the desktop executable: `-tui`, `-gui`, `-status`, `-ai`.
+Only their defaults differ (TUI here, GUI there); explicit modes are mutually
+exclusive. `-details` and `-agents-only` remain one-shot modes. `-width` and
+`-color` control one-shot output; the TUI follows the terminal size and palette.
+`-mcp-port` applies only to GUI mode.
+
+The TUI keeps a cached inventory, watches native events, and runs independent
+cheap/full queues with the same cooldown and throttle policies as the desktop.
+It does not fetch remotes. `r` queues the selected worktree; `R` queues all.
+Arrow keys select/scroll; `o`/`c` start open/copy chords. Suffixes: `a` agent,
+`t` ticket, `s` spec, `f` folder. Copy supports ticket numbers, spec titles, and
+full folder paths. Multiple tickets get an Up/Down/Enter chooser. `g` is reserved
+for future Git opening. Esc cancels; `q`/Ctrl-C exits.
 
 Defaults to `backend`, then `back2` through `back10`, scanned sequentially.
 Paths are configuration, not product identities. Separate worktrees stay separate.

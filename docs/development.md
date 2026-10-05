@@ -66,8 +66,8 @@ For inventory changes, follow [its collection rules](../cmd/talkingduck/README.m
 and run:
 
 ```sh
-CGO_ENABLED=0 go test ./inventory ./cli ./cmd/talkingduck
-go vet ./inventory ./cli ./cmd/talkingduck
+CGO_ENABLED=0 go test ./inventory ./cli ./table ./actions ./cmd/talkingduck
+go vet ./inventory ./cli ./table ./actions ./cmd/talkingduck
 # For cache/concurrency changes:
 go test -race ./inventory ./monitor
 CGO_ENABLED=0 go build -o /tmp/talkingduck ./cmd/talkingduck

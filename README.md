@@ -24,11 +24,19 @@ See [desktop details and validation](desktop/README.md).
 
 ## CLI
 
-The CLI inventories local specs, Git work, and Codex/Claude/Grok sessions:
+The CLI opens the terminal UI by default. Both binaries accept the same mode flags:
 
 ```sh
-go run ./cmd/talkingduck
+go run ./cmd/talkingduck          # TUI (default)
+go run ./cmd/talkingduck -status  # one-shot aligned table
+go run ./cmd/talkingduck -ai      # compact text for agents
+go run ./cmd/talkingduck -gui     # installed Mac app
 ```
+
+In the TUI: ↑/↓ selects, `r` refreshes the selected worktree, `R` refreshes all.
+Use `oa` agent, `ot` ticket, `os` spec, `of` folder; `ct` ticket number, `cs` spec
+title, `cf` folder path. Multiple tickets open a chooser. `og` is reserved.
+Esc cancels a chord/chooser; `q` or Ctrl-C quits. ←/→ scroll wide tables.
 
 See [inventory usage and limits](cmd/talkingduck/README.md), including compact `-ai` output,
 and [agent collection research](docs/agent-collection-research.md).

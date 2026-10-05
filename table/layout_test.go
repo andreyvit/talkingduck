@@ -27,3 +27,11 @@ func TestItemsActionsAndMutedHistory(t *testing.T) {
 		}
 	}
 }
+
+func TestPrefixAndGraphemeFormatting(t *testing.T) {
+	model := Table{Columns: []Column{{Align: "right", MinWidth: 2, Prefix: "±"}, {Flex: true, MinWidth: 2}}, Rows: []Row{{Cells: []Cell{text("0"), text("👩‍💻é")}}}}
+	got := Plain(Format(model, 6, true))
+	if got != "± 0 👩‍💻\n    é" {
+		t.Fatalf("%q", got)
+	}
+}

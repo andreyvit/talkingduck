@@ -1,9 +1,8 @@
 package table
 
 import (
-	"golang.org/x/text/width"
+	"github.com/rivo/uniseg"
 	"strings"
-	"unicode"
 )
 
 type Span struct {
@@ -20,21 +19,7 @@ type Layout struct {
 	Lines  []VisualLine
 }
 
-func Width(s string) int {
-	n := 0
-	for _, r := range s {
-		if unicode.Is(unicode.Mn, r) || r == '\ufe0e' || r == '\ufe0f' {
-			continue
-		}
-		k := width.LookupRune(r).Kind()
-		if k == width.EastAsianWide || k == width.EastAsianFullwidth {
-			n += 2
-		} else {
-			n++
-		}
-	}
-	return n
-}
+func Width(s string) int { return uniseg.StringWidth(s) }
 
 // Format preserves semantic spans while wrapping flexible columns. All cells are
 // top aligned. Fixed columns may overflow a narrow viewport; renderers clip/scroll.
@@ -42,6 +27,9 @@ func Format(t Table, width int, prefixes bool) Layout {
 	result := Layout{Widths: make([]int, len(t.Columns))}
 	for j, c := range t.Columns {
 		result.Widths[j] = c.MinWidth
+		if prefixes {
+			result.Widths[j] += Width(c.Prefix)
+		}
 		if c.Flex {
 			continue
 		}
@@ -83,15 +71,21 @@ func Format(t Table, width int, prefixes bool) Layout {
 				spans := []Span{}
 				x := 0
 				if prefixes && col.Prefix != "" && line.Text() != "" {
-					spans = append(spans, Span{Text: col.Prefix, Color: "dim"})
+					color := "dim"
+					if row.State == "pushed" {
+						color = "muted"
+					}
+					spans = append(spans, Span{Text: col.Prefix, Color: color})
 					x = Width(col.Prefix)
 				}
 				for _, item := range line.Items {
 					if item.Hidden {
 						continue
 					}
-					for _, r := range item.Text {
-						w := Width(string(r))
+					graphemes := uniseg.NewGraphemes(item.Text)
+					for graphemes.Next() {
+						text := graphemes.Str()
+						w := Width(text)
 						if col.Flex && x+w > result.Widths[ci] && x > 0 {
 							cells[ci] = append(cells[ci], spans)
 							spans = nil
@@ -102,9 +96,9 @@ func Format(t Table, width int, prefixes bool) Layout {
 							color = "muted"
 						}
 						if n := len(spans); n > 0 && spans[n-1].Color == color && spans[n-1].Bold == item.Bold && spans[n-1].X+Width(spans[n-1].Text) == x {
-							spans[n-1].Text += string(r)
+							spans[n-1].Text += text
 						} else {
-							spans = append(spans, Span{X: x, Text: string(r), Color: color, Bold: item.Bold})
+							spans = append(spans, Span{X: x, Text: text, Color: color, Bold: item.Bold})
 						}
 						x += w
 					}
@@ -116,7 +110,9 @@ func Format(t Table, width int, prefixes bool) Layout {
 					offset = max(0, (result.Widths[ci]-x)/2)
 				}
 				for k := range spans {
-					spans[k].X += offset
+					if !(prefixes && col.Prefix != "" && k == 0) {
+						spans[k].X += offset
+					}
 				}
 				cells[ci] = append(cells[ci], spans)
 			}

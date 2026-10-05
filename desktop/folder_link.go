@@ -5,10 +5,10 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"slices"
-	"strings"
+	"talkingduck/actions"
+	"talkingduck/table"
 )
 
 func folderTarget(path string, known []string) (string, error) {
@@ -29,9 +29,5 @@ func (v *inventoryView) openFolder(path string) error {
 	if err != nil {
 		return err
 	}
-	output, err := exec.Command("/usr/bin/open", "-a", "Finder", target).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("cannot open folder in Finder: %s (%w)", strings.TrimSpace(string(output)), err)
-	}
-	return nil
+	return actions.Open(table.Action{Kind: "folder", Target: target})
 }

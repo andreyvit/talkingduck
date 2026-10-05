@@ -20,9 +20,10 @@ notarize or register autostart. It installs into `~/Applications/TalkingDuck.app
 temporary build output under `.tasks/desktop` is removed when the script exits.
 Quit the app before rebuilding, then run the launch command again. Finder and
 Spotlight can also launch the installed app.
-The bundle's `LSEnvironment` sets `TALKINGDUCK_GUI=1`; direct execution requires
-`--gui`. Without GUI mode the desktop executable calls the shared `cli.Run`, just like
-`cmd/talkingduck`. The standalone CLI remains cgo-free. The GUI creates one in-memory cache and
+The desktop executable defaults to GUI mode, including direct execution. Both
+binaries share `-gui`, `-tui`, `-status`, and `-ai`; the command-line binary defaults
+to TUI. Explicit modes override the default and cannot be combined. Use the
+executable path above with `-tui` to open its TUI in a terminal. The standalone CLI remains cgo-free. The GUI creates one in-memory cache and
 updates folders through independent cheap and expensive queues, even while hidden.
 Native filesystem events, changed process statuses (checked every 30 seconds),
 and ten-minute recovery feed those queues. Cheap cooldown is 1–5 seconds with a

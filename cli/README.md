@@ -5,7 +5,7 @@ It calls `inventory.Build`; it never exits the process or initializes a GUI.
 
 ```go
 opts := cli.RegisterFlags(flag.CommandLine)
-// A desktop entry point can register --gui here, then parse once.
+// Both entry points register these same flags, then select their default mode.
 flag.Parse()
 code := cli.Run(opts, flag.Args())
 // The entry point decides when to os.Exit(code).
@@ -25,11 +25,16 @@ prototype can dispatch to the same CLI when GUI mode is not requested.
 
 See [command usage](../cmd/talkingduck/README.md) for all flags and output meanings.
 
-`BuildTable(overview)` returns the same unwrapped 15-column task rows used by
-the terminal renderer, plus diagnostics and row-aligned absolute spec and worktree paths for links.
-Only the first row per worktree shows its folder label; every row retains its absolute path. The desktop window consumes these cells
-directly; multiline tickets remain within one task row. It adds no collection
-logic or state inference.
+`BuildTable(overview)` returns a UI-independent `Model` with columns, rows, cells,
+lines, and actionable inline items, plus legacy string rows and diagnostics.
+Only the first row per worktree shows its folder label; every row retains its path
+and folder actions. Desktop, TUI, and status output consume the model.
+See [the model contract](../docs/table-model.md).
 
 `FormatAI(overview)` renders the same compact text as `-ai` without collection,
 for the local MCP server and other callers.
+
+Both entry points register the same flags. `Options.Mode` selects explicit
+`-ai`/`-status`/`-tui`/`-gui`, or the caller default. `RunTUI` uses tcell v2
+without a widget framework. Input/drawing stay on one goroutine; inventory queues
+and open/copy actions run in the background. Tests use tcell simulation screens.

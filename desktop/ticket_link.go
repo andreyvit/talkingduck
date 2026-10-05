@@ -4,9 +4,10 @@ package main
 
 import (
 	"fmt"
-	"os/exec"
 	"regexp"
 	"strings"
+	"talkingduck/actions"
+	"talkingduck/table"
 )
 
 // Workspace selection will move to preferences; see docs/future-settings.md.
@@ -22,7 +23,7 @@ func ticketURL(ticket string) (string, error) {
 }
 
 func (v *inventoryView) openTicket(ticket string) error {
-	url, err := ticketURL(ticket)
+	_, err := ticketURL(ticket)
 	if err != nil {
 		return err
 	}
@@ -41,9 +42,5 @@ func (v *inventoryView) openTicket(ticket string) error {
 	if !known {
 		return fmt.Errorf("ticket is no longer in the inventory; refresh and try again")
 	}
-	output, err := exec.Command("/usr/bin/open", url).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("cannot open Linear ticket: %s (%w)", strings.TrimSpace(string(output)), err)
-	}
-	return nil
+	return actions.Open(table.Action{Kind: "ticket", Target: ticket})
 }

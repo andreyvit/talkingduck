@@ -16,7 +16,7 @@ func TestSharedFlagsAndExitCodes(t *testing.T) {
 	fs := flag.NewFlagSet("desktop", flag.ContinueOnError)
 	opts := RegisterFlags(fs)
 	opts.Inventory.HistoryPath = filepath.Join(t.TempDir(), "state.json")
-	gui := fs.Bool("gui", false, "GUI")
+	gui := &opts.GUI
 	missing := filepath.Join(t.TempDir(), "missing")
 	if err := fs.Parse([]string{"--gui", "-no-agents", "-ai", "-color", "always", missing}); err != nil {
 		t.Fatal(err)

@@ -39,16 +39,22 @@ func icon(cells []menubarimage.Cell, mode menubarimage.Mode) ([]byte, error) {
 func main() {
 	log.SetFlags(0)
 	opts := cli.RegisterFlags(flag.CommandLine)
-	gui := flag.Bool("gui", os.Getenv("TALKINGDUCK_GUI") == "1", "show the menu bar app")
-	mcpPort := flag.Int("mcp-port", mcpserver.DefaultPort, "loopback MCP HTTP port (GUI only)")
 	flag.Parse()
-	if !*gui {
+	mode, err := opts.Mode("gui")
+	if err != nil {
+		log.Print(err)
+		os.Exit(2)
+	}
+	if mode == "tui" {
+		os.Exit(cli.RunTUI(opts, flag.Args()))
+	}
+	if mode != "gui" {
 		os.Exit(cli.Run(opts, flag.Args()))
 	}
 	if len(flag.Args()) > 0 {
 		opts.Inventory.Paths = flag.Args()
 	}
-	if err := run(opts, *mcpPort); err != nil {
+	if err := run(opts, opts.MCPPort); err != nil {
 		log.Fatal(err)
 	}
 }
