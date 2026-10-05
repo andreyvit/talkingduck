@@ -142,7 +142,15 @@ func (l *liveState) update(s Object, now time.Time) {
 		return
 	}
 	if reset || state.state.pending == nil {
+		firstRead := state.state.pending == nil
 		state.state = transcriptState{pending: map[string]Object{}}
+		if engine == "claude" && firstRead {
+			// The full scan can see launches older than the cheap bounded tail.
+			state.state.background = Object{}
+			for id, at := range obj(s["claude_background_tasks"]) {
+				state.state.background[id] = at
+			}
+		}
 	}
 	if len(rows) == 0 && engine != "grok" && engine != "claude" {
 		return

@@ -15,6 +15,7 @@ import (
 type transcriptState struct {
 	streamRole, streamText string
 	pending                map[string]Object
+	background             Object
 	tools                  map[string]bool
 	lifecycle              string
 	latest, end            any
@@ -87,8 +88,12 @@ func claudeTranscript(s Object, rows []Object, previous ...transcriptState) tran
 	if len(previous) > 0 {
 		st = previous[0]
 	}
+	if st.background == nil {
+		st.background = Object{}
+	}
 	for _, r := range rows {
 		typ, at := str(r["type"]), r["timestamp"]
+		claudeBackground(&st, r)
 		if truth(at) {
 			st.latest = at
 		}

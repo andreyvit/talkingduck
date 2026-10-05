@@ -265,3 +265,12 @@ and an open transcript turn with verified process identity survive silent tool
 and subagent waits. Incremental updates reread the native registry, rejecting a
 changed PID/start identity until the next full probe. Native input/approval waits,
 newer transcript completion, and process exit retain their separate states.
+
+Claude background Bash (`toolUseResult.backgroundTaskId`) and Agent
+(`status=async_launched`, `agentId`) tasks keep the parent running after
+`end_turn`. Completion/failure/stop notifications clear task IDs, including
+`queue-operation` records absorbed mid-turn without a user message. Only launches
+within the verified parent process lifetime count; native input waits still win.
+Full scans seed incremental tracking when launches precede its smaller tail.
+This remains inferred: missing launch/completion records can undercount or retain
+tasks. Observed on Claude Code 2.1.284; no hooks or extra polling required.

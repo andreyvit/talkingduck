@@ -114,7 +114,9 @@ status: implemented prototype; correlation and workflow states are heuristic
   process registry. Validate PID, executable, and process start time. Full and
   incremental updates preserve native busy/open turns during quiet subagent/tool
   waits, but respect input waits, completion, and process exit. Registry identity
-  changes invalidate the cached probe until a full scan verifies them.
+  changes invalidate the cached probe until a full scan verifies them. Background
+  Bash/Agent launches outlive parent turn completion; task notifications in chat
+  or the queue journal clear them. Only the verified process lifetime counts.
 - Grok Build: summaries, message/update/event logs, active-session registry.
   Validate process identity; distinguish event time from fork replay time. Explicit
   open turns with a verified live process remain running through output silence.
