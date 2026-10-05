@@ -6,7 +6,25 @@ Start with a Go collector for Codex, Claude, and Grok work folders. The final sh
 is open: an assistant tool, a Mac view, or later Mac/iPhone apps. Use each stage to
 guide the next one.
 
-The first experiment inventories local specs, Git work, and Codex/Claude/Grok sessions:
+## Mac app
+
+Requires Go and Xcode Command Line Tools. From the repository root:
+
+```sh
+./desktop/build.sh
+open "$HOME/Applications/TalkingDuck.app"
+```
+
+The build installs an ad-hoc-signed app into `~/Applications`. Launch it from
+Finder, Spotlight, or the command above. Click its menu-bar icon or press Ctrl-T
+to toggle the inventory while it runs. Quit before rebuilding, then launch again.
+No login-item setup or notarization is included.
+
+See [desktop details and validation](desktop/README.md).
+
+## CLI
+
+The CLI inventories local specs, Git work, and Codex/Claude/Grok sessions:
 
 ```sh
 go run ./cmd/talkingduck

@@ -9,14 +9,17 @@ From the repository root:
 
 ```sh
 ./desktop/build.sh
-open .tasks/desktop/TalkingDuck.app
+open "$HOME/Applications/TalkingDuck.app"
 # Or launch the built executable directly:
-.tasks/desktop/TalkingDuck.app/Contents/MacOS/talkingduck-desktop --gui
+"$HOME/Applications/TalkingDuck.app/Contents/MacOS/talkingduck-desktop" --gui
 ```
 
 Requires Xcode Command Line Tools. The build script compiles with cgo, targets
 macOS 13+, packages the app, and signs it ad hoc for local use. It does not
-notarize, install, or register autostart. Generated output stays under `.tasks/`.
+notarize or register autostart. It installs into `~/Applications/TalkingDuck.app`;
+temporary build output under `.tasks/desktop` is removed when the script exits.
+Quit the app before rebuilding, then run the launch command again. Finder and
+Spotlight can also launch the installed app.
 The bundle's `LSEnvironment` sets `TALKINGDUCK_GUI=1`; direct execution requires
 `--gui`. Without GUI mode the desktop executable calls the shared `cli.Run`, just like
 `cmd/talkingduck`. The standalone CLI remains cgo-free. The GUI creates one in-memory cache and

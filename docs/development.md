@@ -43,7 +43,7 @@ experiment, but product actions require a separate concrete design.
 
 Use the local `commit` skill for commits. Review staged content, keep changes
 coherent, and describe the purpose. Push only when requested. `desktop/build.sh`
-creates an ad-hoc-signed local app;
+builds and installs an ad-hoc-signed app into `~/Applications/TalkingDuck.app`;
 no distribution release or deployment commands are defined.
 
 ## Validation
