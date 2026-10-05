@@ -23,7 +23,7 @@ func Open(a table.Action) error {
 	}
 	switch a.Kind {
 	case "ticket":
-		target = "https://linear.app/bubblehouse/issue/" + target
+		target = TicketURL(target)
 	case "agent", "spec", "folder":
 	default:
 		return fmt.Errorf("%s opening is not available yet", a.Kind)
@@ -67,3 +67,6 @@ func Copy(text string) error {
 	}
 	return nil
 }
+
+// TicketURL is shared by open and terminal URL-copy actions.
+func TicketURL(id string) string { return "https://linear.app/bubblehouse/issue/" + id }

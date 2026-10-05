@@ -48,7 +48,7 @@ func (s *tuiState) replace(model table.Table) {
 		s.choices = nil
 		s.chord = ""
 	} else if len(s.choices) > 0 {
-		current := model.Rows[s.selected].Matches(s.verb, s.choices[0].Chord)
+		current := tuiMatches(model.Rows[s.selected], s.verb, s.choices[0].Chord)
 		if !reflect.DeepEqual(current, s.choices) {
 			s.choices = nil
 			s.chord = ""
@@ -134,7 +134,7 @@ func (s *tuiState) activate(verb, key string) bool {
 	if len(s.model.Rows) == 0 {
 		return false
 	}
-	items := s.model.Rows[s.selected].Matches(verb, key)
+	items := tuiMatches(s.model.Rows[s.selected], verb, key)
 	if len(items) == 0 {
 		if verb != "o" {
 			return false
@@ -269,7 +269,7 @@ func (s *tuiState) draw(screen tcell.Screen) {
 		message = s.model.Rows[s.selected].Group + " · " + message
 	}
 	if s.chord != "" {
-		message = s.chord + "…  t ticket  s spec  f folder · Esc cancel"
+		message = s.chord + "…  t ticket  T ticket URL  s spec  f folder · Esc cancel"
 	}
 	put(screen, 1, h-2, w-1, message, base.Foreground(tuiColor("cyan")))
 	put(screen, 1, h-1, w-1, "↑↓ select  r refresh  R all  a agent  t ticket  s spec  f folder  c copy  Q quit", bar)
@@ -455,4 +455,21 @@ func RunTUI(opts *Options, paths []string) int {
 			return 0
 		}
 	}
+}
+
+// tuiMatches adds terminal-only copy shortcuts without exposing extra GUI controls.
+func tuiMatches(row table.Row, verb, key string) []table.Item {
+	if verb != "c" || key != "T" {
+		return row.Matches(verb, key)
+	}
+	var result []table.Item
+	for _, item := range row.Matches("o", "t") {
+		if item.Link.Kind != "ticket" {
+			continue
+		}
+		item.Chord = "T"
+		item.Copy = pointer(actions.TicketURL(item.Link.Target))
+		result = append(result, item)
+	}
+	return result
 }

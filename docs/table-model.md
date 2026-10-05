@@ -52,3 +52,6 @@ still only selects the row. Lines with multiple items keep individual hover targ
 
 GUI and TUI share column order: Folder, Agent, Ticket, Stage, Uber, Run, Ask,
 Rev, Tasks, Q, Mod, New, .md, Behind, Ahead, Title. Uber/Run/Ask labels stay blank.
+
+TUI-only: `cT` copies the ticket URL; `ct` copies its number. Multiple tickets
+use the same chooser. No additional GUI control.

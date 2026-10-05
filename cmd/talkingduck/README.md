@@ -234,3 +234,6 @@ go vet ./inventory ./cli ./cmd/talkingduck
 CGO_ENABLED=0 go build -o /tmp/talkingduck ./cmd/talkingduck
 git diff --check
 ```
+
+TUI-only: `cT` copies the ticket URL; `ct` copies its number. Multiple tickets
+use the same chooser. No additional GUI control.

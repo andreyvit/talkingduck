@@ -239,3 +239,36 @@ func TestQuestionZeroPresentation(t *testing.T) {
 		}
 	}
 }
+
+func TestCopyTicketURL(t *testing.T) {
+	s := tuiState{model: tuiFixture()}
+	copied := ""
+	s.perform = func(verb string, item table.Item) {
+		if verb != "c" {
+			t.Fatal(verb)
+		}
+		copied = *item.Copy
+	}
+	for _, r := range "cT" {
+		s.key(tcell.NewEventKey(tcell.KeyRune, r, tcell.ModNone))
+	}
+	if len(s.choices) != 2 {
+		t.Fatal("missing URL chooser", s.choices)
+	}
+	s.replace(tuiFixture())
+	if len(s.choices) != 2 {
+		t.Fatal("refresh discarded unchanged URL chooser")
+	}
+	s.key(tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone))
+	s.key(tcell.NewEventKey(tcell.KeyEnter, 0, tcell.ModNone))
+	if copied != "https://linear.app/bubblehouse/issue/DEV-2" {
+		t.Fatal(copied)
+	}
+	for _, r := range "ct" {
+		s.key(tcell.NewEventKey(tcell.KeyRune, r, tcell.ModNone))
+	}
+	s.key(tcell.NewEventKey(tcell.KeyEnter, 0, tcell.ModNone))
+	if copied != "DEV-1" {
+		t.Fatal("ct changed", copied)
+	}
+}
