@@ -40,3 +40,6 @@ selection; arrow-key selection reveals the selected row again.
 Before the first scan completes, a worktree shows its folder and `SCANNING` in
 Stage; other cells stay empty. Pending collection is not an error. Failed scans
 still display their error.
+
+TUI headers use colored bold text on the normal background; numeric labels use
+their column colors. Uber and progress have blank labels and one-cell minimums.

@@ -206,7 +206,11 @@ func (s *tuiState) draw(screen tcell.Screen) {
 		if table.Width(label) > layout.Widths[n] {
 			label = string([]rune(label)[:min(len([]rune(label)), layout.Widths[n])])
 		}
-		put(screen, x, 1, w-1, label, bar)
+		color := map[string]string{"revision": "purple", "questions": "yellow", "tracked": "yellow", "untracked": "green", "markdown": "blue", "behind": "red", "ahead": "cyan"}[c.ID]
+		if color == "" && c.ID != "title" {
+			color = "cyan"
+		}
+		put(screen, x, 1, w-1, label, base.Foreground(tuiColor(color)).Bold(true))
 		x += layout.Widths[n] + 1
 	}
 	viewport := h - 5
