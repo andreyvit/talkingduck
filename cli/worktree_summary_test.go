@@ -15,14 +15,14 @@ func TestTasklessUnpushedWorkStaysVisible(t *testing.T) {
 		t.Fatal(err)
 	}
 	row := table.Rows[0]
-	if got := row[len(row)-1]; got != "CLEAN; 2 unpushed commits; spec unknown" {
+	if got := row[len(row)-1]; got != "2 unpushed commits; spec unknown" {
 		t.Fatal(got)
 	}
 	ai, err := FormatAI(data)
 	if err != nil || !strings.Contains(ai, "2 unpushed commits; spec unknown") {
 		t.Fatal(ai, err)
 	}
-	if got := worktreeSummary(worktreeView{Git: gitView{Cleanliness: "CLEAN"}}); got != "CLEAN" {
+	if got := worktreeSummary(worktreeView{Git: gitView{Cleanliness: "CLEAN"}}); got != "" {
 		t.Fatal(got)
 	}
 }

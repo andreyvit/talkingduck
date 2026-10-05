@@ -76,7 +76,7 @@ func tableRows(report tableReport) [][]string {
 		behind, ahead := "⇣"+numeric(g.Behind), "⇡"+numeric(g.Ahead)
 		specs := repo.Specs
 		if needsCurrentSummary(repo) {
-			rows = append(rows, []string{name, "--", "--", " 0", "--", " 0/ 0", "", "", " 0/ 0", tracked, untracked, info, behind, ahead, worktreeSummary(repo)})
+			rows = append(rows, []string{name, "--", "--", " 0", g.Cleanliness, " 0/ 0", "", "", " 0/ 0", tracked, untracked, info, behind, ahead, worktreeSummary(repo)})
 			name = ""
 		}
 		for _, s := range specs {

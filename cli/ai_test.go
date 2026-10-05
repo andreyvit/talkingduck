@@ -19,7 +19,7 @@ func TestAIOutput(t *testing.T) {
 		t.Fatal(got)
 	}
 	want := "/work/back2 Grok DEV-1234,DEV-5678 1 HL 0/0 ✓ - 0/2 ±229 ?5 ℹ︎4 ⇣27 ⇡0 Long title stays on one line spec=.spec/example.md session=session-example"
-	if lines[0] != want || !strings.HasSuffix(lines[1], "CLEAN") {
+	if lines[0] != want || strings.Fields(lines[1])[4] != "CLEAN" {
 		t.Fatal(got)
 	}
 	if strings.Contains(got, "\x1b[") || strings.Contains(got, "  ") {

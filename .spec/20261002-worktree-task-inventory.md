@@ -62,7 +62,8 @@ status: implemented prototype; correlation and workflow states are heuristic
   local selection and its file still exists. Sort last-seen time, then activity.
   Retained rows do not renew their last-seen time; there is no time expiry.
 - Historical rows are additional: when no current task remains, show a current
-  worktree summary (CLEAN/MARKDN/DIRTY) first, then the retained historical row.
+  worktree summary first, then the retained historical row. Put CLEAN/MARKDN/DIRTY
+  in Stage, retaining its normal white text; reserve Title for extra details.
 - Show `PUSHED`, with no progress/input attention. Reopened tasks return to normal
   local selection. Missing files leave history. Pulling alone never adds history.
 - This is inferred completion, not proof of a push: discarding local work can look

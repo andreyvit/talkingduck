@@ -7,6 +7,9 @@ import (
 
 func TestHistoryAddsToCurrentRows(t *testing.T) {
 	for _, state := range []string{"CLEAN", "DIRTY", "MARKDN"} {
+		if colorCell(state, 4) != paint(state, 15) {
+			t.Fatal("worktree status color changed")
+		}
 		t.Run(state, func(t *testing.T) {
 			historical := map[string]any{"path": ".spec/old.md", "display_title": "Old task", "workflow": map[string]any{"stage": "PUSHED"}, "primary_session": map[string]any{"engine": "claude", "id": "old-chat"}}
 			repo := map[string]any{"path": "/example/repo", "git": map[string]any{"cleanliness": state}, "specs": []any{historical}}
@@ -15,7 +18,7 @@ func TestHistoryAddsToCurrentRows(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if len(view.Rows) != 2 || view.Rows[0][len(view.Rows[0])-1] != state || view.Rows[0][0] != "repo" || view.Rows[1][0] != "" || view.Rows[1][4] != "PUSHED" {
+			if len(view.Rows) != 2 || view.Rows[0][4] != state || view.Rows[0][len(view.Rows[0])-1] != "" || view.Rows[0][0] != "repo" || view.Rows[1][0] != "" || view.Rows[1][4] != "PUSHED" {
 				t.Fatal(view.Rows)
 			}
 			if len(view.WorktreePaths) != 2 || view.WorktreePaths[1] != "/example/repo" || len(view.SpecPaths) != 2 || view.SpecPaths[0] != "" || view.SpecPaths[1] != "/example/repo/.spec/old.md" || len(view.AgentLinks) != 2 || view.AgentLinks[0] != "" {

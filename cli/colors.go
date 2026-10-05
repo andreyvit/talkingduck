@@ -60,6 +60,9 @@ func colorCell(text string, column int) string {
 		return paint(text, color)
 	}
 	if column == 4 {
+		if value == "CLEAN" || value == "DIRTY" || value == "MARKDN" {
+			return paint(text, 15)
+		}
 		color := map[string]int{"INV": 75, "HL": 75, "LL": 141, "EX": 81, "FIN": 114, "SQ": 212, "PUSH": 221, "PUSHED": 245, "REBA": 209}[value]
 		if color == 0 {
 			color = gray

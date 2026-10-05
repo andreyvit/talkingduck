@@ -26,6 +26,7 @@ function color(value,column){
  const text=value.trim();
  if(!text||text==='?'||text==='--')return 'dim';
  if(column===1)return {Codex:'cyan',Claude:'orange',Grok:'purple'}[text.replace(/!$/,'')]||'dim';
+ if(column===4&&['CLEAN','DIRTY','MARKDN'].includes(text))return '';
  if(column===4)return {HL:'blue',LL:'purple',EX:'cyan',FIN:'green',SQ:'purple',PUSH:'yellow',REBA:'orange'}[text]||'dim';
  if(column===6||column===7)return {'▶':'cyan','✓':'green','!':'yellow'}[text]||'dim';
  if(column>=9&&column<=13){if(['0','?'].includes(text.replace(/^[±?ℹ︎⇣⇡]+/u,'').trim()))return 'dim';return ['yellow','green','blue','red','cyan'][column-9]}
