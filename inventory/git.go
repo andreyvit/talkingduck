@@ -447,8 +447,9 @@ func scan(dir string, now time.Time) (r Repo) {
 			}
 		}
 	}
-	// A pushed spec can still describe current local code edits. Require a unique
-	// path match, and prefer already-selected specs before searching historical ones.
+	// An unfinished pushed spec can still describe current local code edits.
+	// Completed specs need explicit local spec/commit evidence to reopen; source
+	// files and directories are routinely reused by unrelated tasks.
 	for _, p := range dirty {
 		if specPath(p) || auxiliary(p) {
 			continue
@@ -464,6 +465,9 @@ func scan(dir string, now time.Time) (r Repo) {
 		}
 		matches := []*Spec{}
 		for _, s := range all {
+			if s.Stage == "done" {
+				continue
+			}
 			if len(overlap(s, []string{p})) > 0 {
 				matches = append(matches, s)
 			}
@@ -596,6 +600,11 @@ func scan(dir string, now time.Time) (r Repo) {
 		}
 	}
 	for _, s := range active {
+		// Discovery candidates may lose ownership when stronger or conflicting
+		// evidence is considered. They are not local tasks without actual work.
+		if !s.Dirty && len(s.Commits) == 0 && len(s.DirtyFiles) == 0 {
+			continue
+		}
 		switch {
 		case s.Stage == "done":
 			s.rank = 4

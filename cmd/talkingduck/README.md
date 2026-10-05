@@ -116,7 +116,9 @@ for selection, status rules, evidence limits, and the complete output contract.
 - Branch, HEAD, unpushed commits, staged/unstaged/untracked paths.
 - Specs changed by those commits or local changes, including deleted specs.
 - An unchanged spec when an unpushed commit explicitly names it or uniquely
-  matches its ticket; a pushed spec when dirty code uniquely matches its paths.
+  matches its ticket; an unfinished pushed spec when dirty code uniquely matches
+  its paths. Completed specs need explicit local spec/commit evidence to reopen.
+  Candidates with no owned local changes are discarded.
 - Raw frontmatter `status`, a conservative stage label, likely task tickets,
   request-section ticket mentions, and timestamp evidence.
 - Unassigned commits/files and auxiliary changes. Mistakes logs, proposals, and
