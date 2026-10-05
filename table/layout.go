@@ -129,12 +129,7 @@ func FormatWithOptions(t Table, width int, options FormatOptions) Layout {
 						}
 					}
 				}
-				offset := 0
-				if col.Align == "right" {
-					offset = max(0, result.Widths[ci]-x)
-				} else if col.Align == "center" {
-					offset = max(0, (result.Widths[ci]-x)/2)
-				}
+				offset := AlignmentOffset(col.Align, result.Widths[ci], x)
 				for k := range spans {
 					if !(prefixes && col.Prefix != "" && k == 0) {
 						spans[k].X += offset
@@ -193,4 +188,16 @@ func Plain(l Layout) string {
 		lines = append(lines, strings.TrimRight(b.String(), " "))
 	}
 	return strings.Join(lines, "\n")
+}
+
+// AlignmentOffset positions content within a column in terminal cells.
+func AlignmentOffset(align string, width, contentWidth int) int {
+	switch align {
+	case "right":
+		return max(0, width-contentWidth)
+	case "center":
+		return max(0, (width-contentWidth)/2)
+	default:
+		return 0
+	}
 }

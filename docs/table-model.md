@@ -42,7 +42,9 @@ Stage; other cells stay empty. Pending collection is not an error. Failed scans
 still display their error.
 
 TUI headers use colored bold text on the normal background; numeric labels use
-their column colors. Uber and progress have blank labels and one-cell minimums.
+their column colors. Uber, progress, and input have blank labels and one-cell minimums.
+Headers use the same alignment as values. Q displays zero as a dim `-`;
+other numeric columns retain zero.
 
 Copy controls touch item text with no added space. A cell line with one visible
 item extends hover across its full width, including whitespace; blank space

@@ -210,7 +210,8 @@ func (s *tuiState) draw(screen tcell.Screen) {
 		if color == "" && c.ID != "title" {
 			color = "cyan"
 		}
-		put(screen, x, 1, w-1, label, base.Foreground(tuiColor(color)).Bold(true))
+		offset := table.AlignmentOffset(c.Align, layout.Widths[n], table.Width(label))
+		put(screen, x+offset, 1, w-1, label, base.Foreground(tuiColor(color)).Bold(true))
 		x += layout.Widths[n] + 1
 	}
 	viewport := h - 5

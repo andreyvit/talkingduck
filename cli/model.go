@@ -14,7 +14,7 @@ func modelTable(view TableView) table.Table {
 	columns := []table.Column{
 		{ID: "folder", Label: "Folder", MinWidth: 6}, {ID: "agent", Label: "Agent", MinWidth: 6}, {ID: "ticket", Label: "Ticket", MinWidth: 8},
 		{ID: "revision", Label: "Rev", Align: "right", MinWidth: 2}, {ID: "stage", Label: "Stage", MinWidth: 4}, {ID: "uber", Label: "", MinWidth: 1},
-		{ID: "tasks", Label: "Tasks", Align: "right", MinWidth: 5}, {ID: "progress", Label: "", MinWidth: 1}, {ID: "input", Label: "Ask", MinWidth: 1},
+		{ID: "tasks", Label: "Tasks", Align: "right", MinWidth: 5}, {ID: "progress", Label: "", MinWidth: 1}, {ID: "input", Label: "", MinWidth: 1},
 		{ID: "questions", Label: "Q", Align: "right", MinWidth: 2}, {ID: "tracked", Label: "Mod", Align: "right", MinWidth: 2, Prefix: "±"},
 		{ID: "untracked", Label: "New", Align: "right", MinWidth: 2, Prefix: "?"}, {ID: "markdown", Label: ".md", Align: "right", MinWidth: 2, Prefix: "ℹ︎"},
 		{ID: "behind", Label: "↓", Align: "right", MinWidth: 2, Prefix: "⇣"}, {ID: "ahead", Label: "↑", Align: "right", MinWidth: 2, Prefix: "⇡"}, {ID: "title", Label: "Title", Flex: true, MinWidth: 8},
@@ -36,6 +36,10 @@ func modelTable(view TableView) table.Table {
 				}
 				item := table.Item{Text: text, Color: itemColor(col.ID, text)}
 				switch col.ID {
+				case "questions":
+					if text == "0" {
+						item.Text = "-"
+					}
 				case "folder":
 					item.Text = filepath.Base(row.Group)
 					item.Hidden = text == ""

@@ -188,3 +188,54 @@ func TestDirectOpenKeys(t *testing.T) {
 		t.Fatal("t did not open ticket chooser")
 	}
 }
+
+func TestTUIHeaderAlignment(t *testing.T) {
+	screen := tcell.NewSimulationScreen("UTF-8")
+	if err := screen.Init(); err != nil {
+		t.Fatal(err)
+	}
+	defer screen.Fini()
+	screen.SetSize(56, 12)
+	s := tuiState{model: table.Table{
+		Columns: []table.Column{{ID: "questions", Label: "Q", Align: "right", MinWidth: 3}, {ID: "center", Label: "C", Align: "center", MinWidth: 5}},
+		Rows: []table.Row{{Cells: []table.Cell{
+			{Lines: []table.Line{{Items: []table.Item{{Text: "-"}}}}},
+			{Lines: []table.Line{{Items: []table.Item{{Text: "x"}}}}},
+		}}},
+	}}
+	s.draw(screen)
+	for _, test := range []struct {
+		x             int
+		header, value rune
+	}{{3, 'Q', '-'}, {7, 'C', 'x'}} {
+		header, _, style, _ := screen.GetContent(test.x, 1)
+		value, _, _, _ := screen.GetContent(test.x, 2)
+		_, bg, _ := style.Decompose()
+		if header != test.header || value != test.value || bg != tcell.GetColor("#191e29") {
+			t.Fatal(test, header, value, bg)
+		}
+	}
+}
+
+func TestQuestionZeroPresentation(t *testing.T) {
+	row := make([]string, 16)
+	row[0], row[9], row[10] = "example", "0", "±0"
+	model := modelTable(TableView{Rows: [][]string{row}, WorktreePaths: []string{"/example"}, SpecPaths: []string{""}, AgentLinks: []string{""}})
+	for n, col := range model.Columns {
+		item := model.Rows[0].Cells[n].Lines[0].Items[0]
+		switch col.ID {
+		case "questions":
+			if item.Text != "-" || item.Color != "dim" {
+				t.Fatal(item)
+			}
+		case "tracked":
+			if item.Text != "0" || item.Color != "dim" {
+				t.Fatal(item)
+			}
+		case "input":
+			if col.Label != "" {
+				t.Fatal(col)
+			}
+		}
+	}
+}
