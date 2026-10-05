@@ -90,8 +90,10 @@ func (c *Inventory) UpdateLive(path string) (bool, error) {
 	if e != nil {
 		return false, e
 	}
+	c.mu.RLock()
 	entry := c.entries[path]
-	if entry == nil {
+	c.mu.RUnlock()
+	if entry == nil || !c.IsMonitored(path) {
 		return false, fmt.Errorf("worktree is not configured: %s", path)
 	}
 	entry.liveMu.Lock()

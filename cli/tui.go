@@ -6,9 +6,10 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
+	"slices"
 	"strings"
 	"syscall"
-	"time"
+	"talkingduck/settings"
 
 	"github.com/gdamore/tcell/v2"
 	"talkingduck/actions"
@@ -302,9 +303,10 @@ func RunTUI(opts *Options, paths []string) int {
 		fmt.Fprintln(os.Stderr, "-agent-limit must be nonnegative")
 		return 2
 	}
-	config := opts.Inventory
-	if len(paths) > 0 {
-		config.Paths = paths
+	config, err := opts.CollectionOptions(paths)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
 	}
 	cache, err := inventory.New(config)
 	if err != nil {
@@ -341,7 +343,8 @@ func RunTUI(opts *Options, paths []string) int {
 		}
 	}
 	cheap, full := monitor.NewQueue(monitor.Cheap), monitor.NewQueue(monitor.Expensive)
-	probe := inventory.NewChangeProbe(cache.Paths(), "", !config.NoAgents)
+	probePaths := cache.Paths()
+	probe := inventory.NewChangeProbe(probePaths, "", !config.NoAgents)
 	var emit func(inventory.ChangeEvent)
 	emit = func(e inventory.ChangeEvent) {
 		if e.Reconcile {
@@ -366,6 +369,11 @@ func RunTUI(opts *Options, paths []string) int {
 	}
 	go cheap.Run(ctx, func(ctx context.Context, path string) error {
 		if path == "@providers" {
+			next := cache.Paths()
+			if !slices.Equal(next, probePaths) {
+				probePaths = next
+				probe = inventory.NewChangeProbe(next, "", !config.NoAgents)
+			}
 			changed, warnings := probe.Poll()
 			for _, w := range warnings {
 				tell(w)
@@ -374,6 +382,9 @@ func RunTUI(opts *Options, paths []string) int {
 				emit(inventory.ChangeEvent{Path: p, Cheap: true, Expensive: true})
 			}
 		} else {
+			if !cache.IsMonitored(path) {
+				return nil
+			}
 			_, err := cache.UpdateLive(path)
 			publish()
 			return err
@@ -381,6 +392,9 @@ func RunTUI(opts *Options, paths []string) int {
 		return nil
 	})
 	go full.Run(ctx, func(ctx context.Context, path string) error {
+		if !cache.IsMonitored(path) {
+			return nil
+		}
 		tell("Refreshing " + path)
 		err := cache.Update(path)
 		if err != nil {
@@ -391,10 +405,20 @@ func RunTUI(opts *Options, paths []string) int {
 		publish()
 		return err
 	})
-	go inventory.WatchChanges(ctx, cache.Paths(), "", !config.NoAgents, 10*time.Minute, emit, func(err error) { tell(err.Error()) })
-	if !config.NoAgents {
-		go inventory.NewProcessChanges(cache.Paths(), "").Run(ctx, emit)
+	go inventory.WatchConfigured(ctx, cache.Paths, !config.NoAgents, emit, func(err error) { tell(err.Error()) })
+	if len(paths) == 0 && len(opts.Inventory.Paths) == 0 {
+		store := &settings.Store{Path: opts.SettingsPath}
+		if store.Path == "" {
+			store.Path = settings.DefaultPath()
+		}
+		go store.Watch(ctx, func(data settings.Data) {
+			if !slices.Equal(cache.Paths(), data.Paths()) {
+				_ = cache.SetPaths(data.Paths())
+				publish()
+			}
+		}, func(err error) { tell(err.Error()) })
 	}
+
 	state := tuiState{notice: "Collecting inventory…"}
 	state.refresh = func(path string) {
 		if path == "" {

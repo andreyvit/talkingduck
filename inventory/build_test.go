@@ -42,12 +42,9 @@ func TestBuildReturnsCorrelatedPartialSnapshot(t *testing.T) {
 
 func TestBuildDefaultPathsAndValidation(t *testing.T) {
 	root := t.TempDir()
-	snapshot, err := Build(Options{Root: root, NoAgents: true})
-	if err != nil || len(snapshot.Details.Repositories) != 10 {
+	snapshot, err := Build(Options{NoAgents: true})
+	if err != nil || len(snapshot.Details.Repositories) != 0 {
 		t.Fatal(snapshot, err)
-	}
-	if snapshot.Details.Repositories[0].Path != filepath.Join(root, "backend") || snapshot.Details.Repositories[9].Path != filepath.Join(root, "back10") {
-		t.Fatal(snapshot)
 	}
 	if _, err = Build(Options{AgentLimit: -1}); err == nil {
 		t.Fatal("negative limit accepted")

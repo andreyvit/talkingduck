@@ -12,6 +12,7 @@ import (
 	"talkingduck/cli"
 	"talkingduck/inventory"
 	"talkingduck/monitor"
+	"talkingduck/settings"
 )
 
 type inventoryState struct {
@@ -29,21 +30,26 @@ type inventoryCache interface {
 }
 
 type inventoryView struct {
-	publicationMu sync.Mutex
-	generation    float64
-	fetchSlots    chan struct{}
-	fetchMu       sync.Mutex
-	fetch         func(context.Context, string) error
-	lastFetch     map[string]time.Time
-	fetchErrors   map[string]string
-	scanMu        sync.Mutex
-	mu            sync.Mutex
-	cache         inventoryCache
-	state         inventoryState
-	cheap         *monitor.Queue
-	expensive     *monitor.Queue
-	emit          func(inventoryState)
-	updateTray    func(*inventory.Snapshot)
+	folderOverride  bool
+	folderMu        sync.Mutex
+	settings        *settings.Store
+	settingsChanged func()
+	settingsError   func(error)
+	publicationMu   sync.Mutex
+	generation      float64
+	fetchSlots      chan struct{}
+	fetchMu         sync.Mutex
+	fetch           func(context.Context, string) error
+	lastFetch       map[string]time.Time
+	fetchErrors     map[string]string
+	scanMu          sync.Mutex
+	mu              sync.Mutex
+	cache           inventoryCache
+	state           inventoryState
+	cheap           *monitor.Queue
+	expensive       *monitor.Queue
+	emit            func(inventoryState)
+	updateTray      func(*inventory.Snapshot)
 }
 
 func (v *inventoryView) publish() {

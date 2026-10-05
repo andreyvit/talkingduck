@@ -105,3 +105,19 @@ func TestAgentPreservesRightBorder(t *testing.T) {
 		}
 	}
 }
+
+func TestShortcutGlyphCoverage(t *testing.T) {
+	for _, r := range "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" {
+		if len(standardGlyphs[r]) != 7 || len(compactGlyphs[r]) != 6 {
+			t.Fatalf("missing glyph %c", r)
+		}
+	}
+	for _, label := range []string{"A", "a", "0", "10", "11", "19"} {
+		for _, mode := range []Mode{Standard, Compact} {
+			im := RenderAgents([]Cell{{Shortcut: label, Stage: "H", State: "running"}}, color.NRGBA{A: 255}, mode)
+			if im.Bounds().Dx() == 0 {
+				t.Fatal(label, mode)
+			}
+		}
+	}
+}

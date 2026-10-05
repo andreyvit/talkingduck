@@ -9,12 +9,11 @@ import (
 	"time"
 )
 
-// Options controls collection. Empty Paths uses backend and back2–back10 under Root.
-// Empty Root uses ~/Developer/prairie. AgentLimit zero includes all local sessions.
+// Options controls collection. Empty Paths scans nothing.
+// AgentLimit zero includes all local sessions.
 type Options struct {
 	HistoryPath string // Empty disables persistent recently-pushed history.
 	Paths       []string
-	Root        string
 	NoAgents    bool
 	AgentLimit  int
 }
@@ -55,7 +54,7 @@ func Build(opts Options) (*Snapshot, error) {
 			report.Repositories[i].Warnings = append(report.Repositories[i].Warnings, "Task history: "+err.Error())
 		}
 	}
-	if !opts.NoAgents {
+	if !opts.NoAgents && len(paths) > 0 {
 		roots := []string{}
 		for _, r := range report.Repositories {
 			roots = append(roots, r.Path)
@@ -107,20 +106,7 @@ func worktreePaths(opts Options) ([]string, error) {
 		return nil, fmt.Errorf("agent limit must be nonnegative")
 	}
 	paths := append([]string(nil), opts.Paths...)
-	if len(paths) == 0 {
-		root := opts.Root
-		if root == "" {
-			home, err := os.UserHomeDir()
-			if err != nil {
-				return nil, err
-			}
-			root = filepath.Join(home, "Developer", "prairie")
-		}
-		paths = append(paths, filepath.Join(root, "backend"))
-		for i := 2; i <= 10; i++ {
-			paths = append(paths, filepath.Join(root, fmt.Sprintf("back%d", i)))
-		}
-	}
+
 	for i, p := range paths {
 		absolute, err := filepath.Abs(p)
 		if err != nil {

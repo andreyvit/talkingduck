@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"log"
+	"slices"
 	"time"
 
 	"talkingduck/cli"
@@ -20,9 +21,15 @@ const providerQueueKey = "@providers"
 func (v *inventoryView) startQueues(ctx context.Context, agents bool) {
 	v.cheap = monitor.NewQueue(monitor.Cheap)
 	v.expensive = monitor.NewQueue(monitor.Expensive)
-	probe := inventory.NewChangeProbe(v.cache.Paths(), "", agents)
+	probePaths := v.cache.Paths()
+	probe := inventory.NewChangeProbe(probePaths, "", agents)
 	go v.cheap.Run(ctx, func(ctx context.Context, path string) error {
 		if path == providerQueueKey {
+			next := v.cache.Paths()
+			if !slices.Equal(next, probePaths) {
+				probePaths = next
+				probe = inventory.NewChangeProbe(next, "", agents)
+			}
 			changed, warnings := probe.Poll()
 			for _, warning := range warnings {
 				log.Printf("inventory change signals: %s", warning)
@@ -36,6 +43,9 @@ func (v *inventoryView) startQueues(ctx context.Context, agents bool) {
 		return nil
 	})
 	go v.expensive.Run(ctx, func(ctx context.Context, path string) error {
+		if !slices.Contains(v.cache.Paths(), path) {
+			return nil
+		}
 		v.render(path, false)
 		started := time.Now()
 		err := v.scanFolder(ctx, path)
@@ -77,12 +87,8 @@ func (v *inventoryView) event(e inventory.ChangeEvent) {
 }
 
 func (v *inventoryView) watchChanges(ctx context.Context, agents bool) {
-	if agents {
-		go inventory.NewProcessChanges(v.cache.Paths(), "").Run(ctx, v.event)
-	}
-	// Fetch is a separate periodic producer. Its writes arrive via native events.
 	go v.fetchPeriodically(ctx)
-	inventory.WatchChanges(ctx, v.cache.Paths(), "", agents, 10*time.Minute, v.event, func(err error) { log.Printf("inventory events: %v", err) })
+	inventory.WatchConfigured(ctx, v.cache.Paths, agents, v.event, func(err error) { log.Printf("inventory events: %v", err) })
 }
 
 func (v *inventoryView) fetchPeriodically(ctx context.Context) {
@@ -105,7 +111,7 @@ func (v *inventoryView) fetchPeriodically(ctx context.Context) {
 
 // No scanMu: full collection must never block this path.
 func (v *inventoryView) refreshChanged(ctx context.Context, path string) bool {
-	if ctx.Err() != nil {
+	if ctx.Err() != nil || !slices.Contains(v.cache.Paths(), path) {
 		return false
 	}
 	cache, ok := v.cache.(interface{ UpdateLive(string) (bool, error) })

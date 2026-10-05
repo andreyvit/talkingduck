@@ -18,8 +18,10 @@ if err != nil {
 // snapshot.Failed(): at least one checkout failed; other rows remain available.
 ```
 
-Empty `Paths` selects `backend`, then `back2`–`back10` under `Root`, defaulting to
-`~/Developer/prairie`. `AgentLimit: 0` includes all discovered top-level sessions.
+Empty `Paths` scans nothing. Applications load visible paths from shared
+[settings](../docs/settings.md). `SetPaths` changes membership without losing cached
+observations or per-folder scan locks; hidden folders cannot be refreshed.
+`AgentLimit: 0` includes all discovered top-level sessions.
 `CollectSessions(home, paths, limit)` supplies raw provider observations without
 Git or spec correlation; an empty home uses the current user's home directory.
 Provider environment overrides still apply.

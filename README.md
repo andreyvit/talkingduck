@@ -20,6 +20,11 @@ Finder, Spotlight, or the command above. Click its menu-bar icon or press Ctrl-T
 to toggle the inventory while it runs. Quit before rebuilding, then launch again.
 No login-item setup or notarization is included.
 
+Add folders in Settings. There are no built-in monitored paths. Discovered folders
+start hidden; select Show to monitor them. Menu Bar Shortcut controls their tray
+labels separately. GUI, TUI, and MCP share
+[`~/.config/zoo/talkingduck-settings.json`](docs/settings.md) (honors `XDG_CONFIG_HOME`).
+
 See [desktop details and validation](desktop/README.md).
 
 ## CLI

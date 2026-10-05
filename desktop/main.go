@@ -7,6 +7,7 @@ import (
 	"context"
 	"embed"
 	"flag"
+	"image"
 	"image/color"
 	"image/png"
 	"io/fs"
@@ -20,13 +21,14 @@ import (
 	"talkingduck/inventory"
 	"talkingduck/mcpserver"
 	"talkingduck/menubarimage"
+	"talkingduck/settings"
 )
 
 //go:embed frontend/*
 var frontend embed.FS
 
 func icon(cells []menubarimage.Cell, mode menubarimage.Mode) ([]byte, error) {
-	im := menubarimage.RenderAgents(cells, color.NRGBA{A: 255}, mode)
+	im := trayImage(cells, mode)
 	// Agent motifs use four backing pixels per logical point.
 	var b bytes.Buffer
 	// The tray adapter sets the logical image size explicitly.
@@ -64,7 +66,15 @@ func run(opts *cli.Options, mcpPort int) error {
 	if err != nil {
 		return err
 	}
-	cache, err := inventory.New(opts.Inventory)
+	store := &settings.Store{Path: opts.SettingsPath}
+	if store.Path == "" {
+		store.Path = settings.DefaultPath()
+	}
+	config, err := opts.CollectionOptions(nil)
+	if err != nil {
+		return err
+	}
+	cache, err := inventory.New(config)
 	if err != nil {
 		return err
 	}
@@ -83,21 +93,86 @@ func run(opts *cli.Options, mcpPort int) error {
 	})
 	window.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) { e.Cancel(); window.Hide() })
 	settingsWindow = app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title: "TalkingDuck — Settings", Width: 520, Height: 250, URL: "/settings.html", Hidden: true,
+		Title: "TalkingDuck — Settings", Width: 880, Height: 620, MinWidth: 740, MinHeight: 540, URL: "/settings.html", Hidden: true,
 	})
 	settingsWindow.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) { e.Cancel(); settingsWindow.Hide() })
+	var view *inventoryView
 	var settingsMu sync.Mutex
 	mcpAddress, mcpError := "", "Starting server…"
 	publishSettings := func() {
 		settingsMu.Lock()
 		defer settingsMu.Unlock()
-		app.Event.Emit("settings:snapshot", map[string]string{"address": mcpAddress, "error": mcpError})
+		folders, err := view.ListFolders()
+		settingsError := ""
+		if err != nil {
+			settingsError = err.Error()
+		}
+		app.Event.Emit("settings:snapshot", map[string]any{"address": mcpAddress, "error": mcpError, "folders": folders, "settingsError": settingsError, "path": store.Path})
 	}
 	app.Event.On("settings:ready", func(*application.CustomEvent) { publishSettings() })
 	app.Event.On("settings:open", func(*application.CustomEvent) { showSettings() })
-	view := &inventoryView{cache: cache, fetch: fetchRemote, emit: func(state inventoryState) { app.Event.Emit("inventory:snapshot", state) }}
+	view = &inventoryView{folderOverride: len(opts.Inventory.Paths) > 0, settings: store, settingsChanged: publishSettings, settingsError: func(err error) { app.Event.Emit("settings:error", err.Error()) }, cache: cache, fetch: fetchRemote, emit: func(state inventoryState) { app.Event.Emit("inventory:snapshot", state) }}
+
+	app.Event.On("settings:visibility", func(event *application.CustomEvent) {
+		data, ok := event.Data.(map[string]any)
+		if !ok {
+			return
+		}
+		path, _ := data["path"].(string)
+		visible, ok := data["visible"].(bool)
+		if !ok {
+			return
+		}
+		go func() {
+			var err error
+			if visible {
+				err = view.AddMonitoredFolder(path)
+			} else {
+				err = view.RemoveMonitoredFolder(path)
+			}
+			if err != nil {
+				view.settingsError(err)
+				publishSettings()
+			}
+		}()
+	})
+	app.Event.On("settings:shortcut", func(event *application.CustomEvent) {
+		data, ok := event.Data.(map[string]any)
+		if !ok {
+			return
+		}
+		path, _ := data["path"].(string)
+		shortcut, ok := data["shortcut"].(string)
+		if !ok {
+			return
+		}
+		go func() {
+			if err := view.UpdateFolderMenubarItemShortcut(path, shortcut); err != nil {
+				view.settingsError(err)
+				publishSettings()
+			}
+		}()
+	})
+	app.Event.On("settings:add-folder", func(*application.CustomEvent) {
+		go func() {
+			path, err := app.Dialog.OpenFile().CanChooseFiles(false).CanChooseDirectories(true).PromptForSingleSelection()
+			if err == nil && path != "" {
+				err = view.AddMonitoredFolder(path)
+			}
+			if err != nil {
+				view.settingsError(err)
+			}
+		}()
+	})
 	view.startQueues(ctx, !opts.Inventory.NoAgents)
-	cells := inventoryCells(cache.Snapshot())
+	trayCells := func(snapshot *inventory.Snapshot) []menubarimage.Cell {
+		data, err := store.Load()
+		if err != nil {
+			return nil
+		}
+		return inventoryCells(snapshot, data.Folders)
+	}
+	cells := trayCells(cache.Snapshot())
 	tray := app.SystemTray.New()
 	data, err := icon(cells, menubarimage.Standard)
 	if err != nil {
@@ -125,7 +200,7 @@ func run(opts *cli.Options, mcpPort int) error {
 		mu.Lock()
 		defer mu.Unlock()
 		if snapshot != nil {
-			cells = inventoryCells(snapshot)
+			cells = trayCells(snapshot)
 		}
 		if action == "compact" {
 			compact = !compact
@@ -138,7 +213,7 @@ func run(opts *cli.Options, mcpPort int) error {
 			compactItem.SetChecked(compact)
 		}
 		data, err := icon(cells, mode)
-		bounds := menubarimage.RenderAgents(cells, color.NRGBA{A: 255}, mode).Bounds()
+		bounds := trayImage(cells, mode).Bounds()
 		if err == nil {
 			err = updateWideTray(tray, data, bounds.Dx()/4, bounds.Dy()/4, padding)
 		}
@@ -237,6 +312,11 @@ func run(opts *cli.Options, mcpPort int) error {
 	})
 
 	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
+		// Older Settings frames predate the folder list.
+		width, height := settingsWindow.Size()
+		if width < 740 || height < 540 {
+			settingsWindow.SetSize(max(width, 740), max(height, 540))
+		}
 		if err := installTrayMenu(tray); err != nil {
 			log.Printf("tray menu setup failed: %v", err)
 		}
@@ -255,6 +335,15 @@ func run(opts *cli.Options, mcpPort int) error {
 		settingsMu.Unlock()
 		publishSettings()
 		go view.watchChanges(ctx, !opts.Inventory.NoAgents)
+		go view.watchSettings(ctx, !opts.Inventory.NoAgents)
 	})
 	return app.Run()
+}
+
+// Keep Settings reachable even when no folder belongs in the menu bar.
+func trayImage(cells []menubarimage.Cell, mode menubarimage.Mode) *image.NRGBA {
+	if len(cells) == 0 {
+		return menubarimage.RenderAgents([]menubarimage.Cell{{Shortcut: "?", Stage: "", State: "idle"}}, color.NRGBA{A: 255}, mode)
+	}
+	return menubarimage.RenderAgents(cells, color.NRGBA{A: 255}, mode)
 }

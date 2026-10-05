@@ -28,7 +28,7 @@ func RenderAgents(cells []Cell, fg color.NRGBA, mode Mode) *image.NRGBA {
 	total, rowWidth := 0, 0
 	labelWidth := agentLabelWidth(10, advance)
 	for _, c := range cells {
-		labelWidth = max(labelWidth, agentLabelWidth(c.Number, advance))
+		labelWidth = max(labelWidth, shortcutLabelWidth(c.shortcut(), advance))
 	}
 	for i := range cells {
 		if i == cols {
@@ -62,9 +62,9 @@ func RenderAgents(cells []Cell, fg color.NRGBA, mode Mode) *image.NRGBA {
 				expanded.SetNRGBA(nx+x, oy+y, ink)
 			}
 		}
-		width := (len(strconv.Itoa(c.Number))+1)*advance - 1
+		width := (len(c.shortcut())+1)*advance - 1
 		tx := (oldW - width) / 2
-		number := strconv.Itoa(c.Number)
+		number := c.shortcut()
 		label := number + c.Stage
 		dest := nx + 3
 		for j, r := range label {
@@ -124,7 +124,9 @@ func RenderAgents(cells []Cell, fg color.NRGBA, mode Mode) *image.NRGBA {
 
 // Only digit 1 inside a multi-digit number gets the clock-style narrow glyph.
 func agentLabelWidth(number, advance int) int {
-	digits := strconv.Itoa(number)
+	return shortcutLabelWidth(strconv.Itoa(number), advance)
+}
+func shortcutLabelWidth(digits string, advance int) int {
 	width := (len(digits)+1)*advance - 1
 	if len(digits) > 1 {
 		for _, r := range digits {

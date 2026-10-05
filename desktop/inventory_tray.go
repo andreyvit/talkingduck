@@ -6,13 +6,15 @@ import (
 	"encoding/json"
 	"talkingduck/inventory"
 	"talkingduck/menubarimage"
+	"talkingduck/settings"
 )
 
 // Keep the first listed task per checkout, matching the original prototype.
 // Never present failed or unscanned cache entries as current activity.
-func inventoryCells(snapshot *inventory.Snapshot) []menubarimage.Cell {
+func inventoryCells(snapshot *inventory.Snapshot, folders ...[]settings.Folder) []menubarimage.Cell {
 	var data struct {
 		Repositories []struct {
+			Path  string                 `json:"path"`
 			Cache inventory.RefreshState `json:"cache"`
 			Git   struct {
 				Cleanliness string `json:"cleanliness"`
@@ -32,9 +34,23 @@ func inventoryCells(snapshot *inventory.Snapshot) []menubarimage.Cell {
 	}
 	b, _ := json.Marshal(snapshot.Overview)
 	_ = json.Unmarshal(b, &data)
-	cells := make([]menubarimage.Cell, len(data.Repositories))
+	shortcuts := map[string]string{}
+	if len(folders) > 0 {
+		for _, folder := range folders[0] {
+			if folder.Visible {
+				shortcuts[folder.Path] = folder.MenubarItemShortcut
+			}
+		}
+	}
+	cells := []menubarimage.Cell{}
 	for i, repo := range data.Repositories {
 		c := menubarimage.Cell{Number: i + 1, Stage: "?", State: "unknown"}
+		if len(folders) > 0 {
+			c.Shortcut = shortcuts[repo.Path]
+			if c.Shortcut == "" {
+				continue
+			}
+		}
 		if repo.Cache.State == "ready" && repo.Git.Error == "" {
 			if len(repo.Specs) == 0 {
 				if repo.Git.Cleanliness == "CLEAN" {
@@ -60,7 +76,7 @@ func inventoryCells(snapshot *inventory.Snapshot) []menubarimage.Cell {
 				}
 			}
 		}
-		cells[i] = c
+		cells = append(cells, c)
 	}
 	return cells
 }

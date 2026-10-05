@@ -49,8 +49,10 @@ func (c *Inventory) ArchiveRow(folder, spec string) error {
 	if err != nil {
 		return err
 	}
+	c.mu.RLock()
 	entry, ok := c.entries[folder]
-	if !ok {
+	c.mu.RUnlock()
+	if !ok || !c.IsMonitored(folder) {
 		return fmt.Errorf("worktree is not configured: %s", folder)
 	}
 	if spec != "" && !validHistorySpec(spec) {

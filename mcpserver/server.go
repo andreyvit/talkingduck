@@ -88,6 +88,9 @@ func Handler(backend Backend) http.Handler {
 		}
 		return textResult(text), nil, nil
 	})
+	if folders, ok := backend.(FolderBackend); ok {
+		addFolderTools(server, folders)
+	}
 	transport := mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server { return server }, &mcp.StreamableHTTPOptions{Stateless: true, JSONResponse: true})
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Reject browser origins and non-loopback Host values, including DNS rebinding.

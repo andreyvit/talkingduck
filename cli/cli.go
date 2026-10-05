@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"talkingduck/inventory"
+	"talkingduck/settings"
 )
 
 type Options struct {
@@ -17,6 +18,7 @@ type Options struct {
 	Status, TUI, GUI        bool
 	MCPPort                 int
 	Home, Color             string
+	SettingsPath            string
 	Width                   int
 }
 
@@ -30,7 +32,7 @@ func RegisterFlags(fs *flag.FlagSet) *Options {
 	fs.BoolVar(&o.GUI, "gui", false, "run the macOS GUI")
 	fs.IntVar(&o.MCPPort, "mcp-port", 42389, "loopback MCP HTTP port (GUI only)")
 	fs.StringVar(&o.Inventory.HistoryPath, "state-file", inventory.DefaultHistoryPath(), "persistent task history; empty disables retention")
-	fs.StringVar(&o.Inventory.Root, "root", filepath.Join(home, "Developer", "prairie"), "parent of backend and back2 through back10")
+	fs.StringVar(&o.SettingsPath, "settings-file", settings.DefaultPath(), "shared folder settings")
 	fs.BoolVar(&o.Inventory.NoAgents, "no-agents", false, "skip local agent session collection")
 	fs.IntVar(&o.Inventory.AgentLimit, "agent-limit", 0, "recent sessions per provider and folder; 0 = all")
 	fs.BoolVar(&o.AI, "ai", false, "compact plain-text inventory for agents with session IDs and a symbol key")
@@ -70,9 +72,9 @@ func RunTo(opts *Options, paths []string, out, stderr io.Writer) int {
 		}
 		return 0
 	}
-	options := opts.Inventory
-	if len(paths) > 0 {
-		options.Paths = paths
+	options, err := opts.CollectionOptions(paths)
+	if err != nil {
+		return fail(err)
 	}
 	snapshot, err := inventory.Build(options)
 	if err != nil {
@@ -121,4 +123,24 @@ func printWarnings(w io.Writer, report tableReport) {
 			fmt.Fprintf(w, "%s: %s\n", filepath.Base(r.Path), warning)
 		}
 	}
+}
+
+// Explicit command-line paths override settings without changing the saved list.
+func (o *Options) CollectionOptions(paths []string) (inventory.Options, error) {
+	config := o.Inventory
+	if len(paths) > 0 {
+		config.Paths = paths
+	}
+	if len(config.Paths) == 0 {
+		store := settings.Store{Path: o.SettingsPath}
+		if store.Path == "" {
+			store.Path = settings.DefaultPath()
+		}
+		data, err := store.Load()
+		if err != nil {
+			return config, err
+		}
+		config.Paths = data.Paths()
+	}
+	return config, nil
 }

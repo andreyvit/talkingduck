@@ -9,10 +9,11 @@ import (
 )
 
 type Cell struct {
-	Agent  string `json:"agent,omitempty"`
-	Number int    `json:"number"`
-	Stage  string `json:"stage"`
-	State  string `json:"state"` // idle, running, attention, unknown
+	Shortcut string `json:"shortcut,omitempty"`
+	Agent    string `json:"agent,omitempty"`
+	Number   int    `json:"number"`
+	Stage    string `json:"stage"`
+	State    string `json:"state"` // idle, running, attention, unknown
 }
 
 // Deliberately pixel-aligned 4x6 font: one pixel = one logical point.
@@ -118,7 +119,7 @@ func Render(cells []Cell, fg color.NRGBA, mode Mode) *image.NRGBA {
 				}
 			}
 		}
-		label := strconv.Itoa(c.Number) + c.Stage
+		label := c.shortcut() + c.Stage
 		tx := x + (cellW-(len(label)*advance-1))/2
 		for _, r := range label {
 			for yy, row := range glyphs[r] {
@@ -147,4 +148,11 @@ func Scale(im image.Image, n int) *image.NRGBA {
 		}
 	}
 	return out
+}
+
+func (c Cell) shortcut() string {
+	if c.Shortcut != "" {
+		return c.Shortcut
+	}
+	return strconv.Itoa(c.Number)
 }

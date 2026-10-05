@@ -4,6 +4,7 @@ Start here; read only what the task needs.
 
 - [product.md](product.md): purpose, user needs, boundaries, open decisions.
 - [Agent chat links](agent-chat-links.md): Codex/Claude URL routes, session IDs, and limits.
+- [Folder settings](settings.md): shared storage, visibility, discovery, menu bar labels, and MCP.
 - [Future settings](future-settings.md): hardcoded defaults and planned configuration controls.
 - [development.md](development.md): repository layout, work conventions, validation.
 - [Desktop prototype](../desktop/README.md): cached inventory window and Wails menu bar, standard/compact layouts, native width shim, build and checks.

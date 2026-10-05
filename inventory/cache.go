@@ -61,7 +61,11 @@ func New(opts Options) (*Inventory, error) {
 }
 
 // Paths returns a caller-owned copy of the configured absolute worktree paths.
-func (c *Inventory) Paths() []string { return append([]string(nil), c.paths...) }
+func (c *Inventory) Paths() []string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return append([]string(nil), c.paths...)
+}
 
 // Update scans just one configured folder and atomically publishes its result.
 // Other folders retain their previous observations. During collection Snapshot
@@ -72,12 +76,17 @@ func (c *Inventory) Update(path string) error {
 	if err != nil {
 		return err
 	}
+	c.mu.RLock()
 	entry, ok := c.entries[path]
+	c.mu.RUnlock()
 	if !ok {
 		return fmt.Errorf("worktree is not configured: %s", path)
 	}
 	entry.update.Lock()
 	defer entry.update.Unlock()
+	if !c.IsMonitored(path) {
+		return fmt.Errorf("worktree is not monitored: %s", path)
+	}
 	c.mu.Lock()
 	c.generation++
 	entry.refresh.State = "updating"
@@ -123,8 +132,8 @@ func (c *Inventory) Snapshot() *Snapshot {
 		snapshot *Snapshot
 		refresh  RefreshState
 	}
-	observations := make([]observation, 0, len(c.paths))
 	c.mu.RLock()
+	observations := make([]observation, 0, len(c.paths))
 	generation := c.generation
 	archives := make(map[string][]string, len(c.archives))
 	for path, rows := range c.archives {
@@ -189,4 +198,28 @@ func (c *Inventory) Snapshot() *Snapshot {
 	}
 	filterArchivedSnapshot(&result, archives)
 	return &result
+}
+
+// SetPaths changes visible membership without discarding cached observations or
+// per-folder scan locks. In-flight work may finish, but hidden rows stay hidden.
+func (c *Inventory) SetPaths(paths []string) error {
+	paths, err := worktreePaths(Options{Paths: paths})
+	if err != nil {
+		return err
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for _, path := range paths {
+		if c.entries[path] == nil {
+			c.entries[path] = &cachedWorktree{refresh: RefreshState{State: "pending"}}
+		}
+	}
+	c.paths = paths
+	c.generation++
+	return nil
+}
+func (c *Inventory) IsMonitored(path string) bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return contains(c.paths, path)
 }

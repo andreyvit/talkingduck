@@ -42,6 +42,20 @@ status: implemented prototype; correlation and workflow states are heuristic
 
 ## 2. Worktree and task discovery
 
+### Folder configuration
+
+- No built-in scan paths. Shared `$XDG_CONFIG_HOME/zoo/talkingduck-settings.json`,
+  default `~/.config/zoo/talkingduck-settings.json`; explicit CLI paths override per run.
+- One Settings list: saved and metadata-discovered folders, Show/Hide dropdown,
+  Add Folder picker. Discovery defaults Hide and never re-enables hidden entries.
+- Only Show folders are monitored. Live membership updates retain caches and queue
+  throttles; in-flight scans cannot restore hidden rows. Other clients reload settings.
+- Menu Bar Shortcut is a string. Dropdown: Hide (empty), 0–19, A–Z, a–z.
+  Nonempty includes a monitored folder; case is distinct. No visible shortcuts
+  leaves a neutral app icon so Settings remains reachable.
+- MCP: `list_folders`, `add_monitored_folder`, `remove_monitored_folder`,
+  `update_folder_menubar_item_shortcut`. Removal hides, never deletes files or settings.
+
 ### Unpushed boundary
 
 - Select HEAD commits absent from every local remote-tracking ref. This differs

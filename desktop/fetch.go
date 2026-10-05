@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 	"time"
 )
@@ -52,7 +53,7 @@ func (v *inventoryView) fetchIfDue(ctx context.Context, path string) {
 			return
 		}
 		defer func() { <-slots }()
-		if ctx.Err() != nil {
+		if ctx.Err() != nil || (v.cache != nil && !slices.Contains(v.cache.Paths(), path)) {
 			return
 		}
 		err := v.fetch(ctx, path)

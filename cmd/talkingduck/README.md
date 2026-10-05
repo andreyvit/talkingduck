@@ -31,7 +31,9 @@ Mouse: click rows to select, links to open, or hover and click `©` to copy.
 The wheel scrolls vertically; keyboard selection brings its row back into view.
 Titles wrap; horizontal scrolling is disabled.
 
-Defaults to `backend`, then `back2` through `back10`, scanned sequentially.
+Defaults to Show folders in shared [settings](../../docs/settings.md), scanned
+sequentially. No built-in paths. Explicit positional paths override the saved
+list for this run; `-settings-file PATH` overrides the settings file.
 Paths are configuration, not product identities. Separate worktrees stay separate.
 Requires Git and Go to run from source; a built binary needs Git.
 `-no-agents` skips session collection.

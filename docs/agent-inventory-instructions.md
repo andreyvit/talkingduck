@@ -11,8 +11,8 @@ From TalkingDuck:
 go run ./cmd/talkingduck -ai
 ```
 
-Default scope: Prairie `backend`, `back2` through `back10`. Supply explicit
-checkout paths for a different scope; `-agent-limit 5` limits recent sessions; the default scans all candidates.
+Default scope: Show folders from shared settings (no built-in paths). Supply
+explicit checkout paths for a different scope; `-agent-limit 5` limits recent sessions; the default scans all candidates.
 Use `-no-agents` for Git/spec-only output. Standalone session collection:
 
 ```sh
