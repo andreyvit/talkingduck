@@ -159,22 +159,14 @@ func (l *liveState) update(s Object, now time.Time) {
 	}
 	// Grok publishes lifecycle events independently of update chunks.
 	if engine == "grok" {
-		events, _, _ := state.events.read(filepath.Join(filepath.Dir(path), "events.jsonl"))
-		for _, event := range events {
-			at := event["ts"]
-			if timestamp(at) < timestamp(state.state.latest) {
-				continue
+		events, resetEvents, eventErr := state.events.read(filepath.Join(filepath.Dir(path), "events.jsonl"))
+		if eventErr == nil {
+			if resetEvents {
+				delete(s, "grok_phase")
+				delete(s, "grok_phase_at")
+				delete(s, "grok_outcome")
 			}
-			switch str(event["type"]) {
-			case "turn_started":
-				state.state.terminal = false
-				state.state.latest = at
-			case "turn_ended":
-				state.state.terminal = true
-				state.state.end = at
-				state.state.latest = at
-				clear(state.state.pending)
-			}
+			grokLifecycle(s, events, &state.state)
 		}
 		chat, _, _ := state.chat.read(str(s["transcript_path"]))
 		appendLiveReceipts(s, chat)
@@ -186,15 +178,19 @@ func (l *liveState) update(s Object, now time.Time) {
 	at := first(st.latest, st.end)
 	live := fresh(at, float64(now.UnixNano())/1e9)
 	value := "unknown"
-	if terminal {
+	if engine == "grok" && str(obj(s["process"])["value"]) == "stopped" {
+		value = "stopped"
+	} else if terminal {
 		value = "idle"
-	} else if live && (engine != "codex" || st.lifecycle == "inProgress") {
+	} else if (engine == "grok" && grokActiveTurn(s, st)) || (live && (engine != "codex" || st.lifecycle == "inProgress")) {
 		value = "running"
 	}
 	s["activity"] = finding(value, path, at, "inferred", "Incremental transcript evidence; process liveness retained from full scan")
 	s["updated_at"] = iso(at)
 	if terminal {
 		s["last_turn_status"] = "completed"
+	} else if engine == "grok" {
+		s["last_turn_status"] = nil
 	}
 	finishQuestion(s, st.pending, path, at, live && !terminal, terminal, !reset || st.started)
 }

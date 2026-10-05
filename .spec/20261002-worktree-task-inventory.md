@@ -106,7 +106,10 @@ status: implemented prototype; correlation and workflow states are heuristic
 - Claude Desktop Code: app chat metadata, linked Claude Code transcripts, native
   process registry. Validate PID, executable, and process start time.
 - Grok Build: summaries, message/update/event logs, active-session registry.
-  Validate process identity; distinguish event time from fork replay time.
+  Validate process identity; distinguish event time from fork replay time. Explicit
+  open turns with a verified live process remain running through output silence.
+  Only the newest registry entry sharing a PID owns that process; completion or
+  process exit ends the running inference.
 - Scan all discovered top-level candidates by default, including archived app
   metadata. `-agent-limit N` deliberately reduces coverage; registered live
   Claude/Grok sessions survive that limit. Plain-text agent-only listing is available through `-agents-only`; `-home` overrides its

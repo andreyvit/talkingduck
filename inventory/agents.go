@@ -459,6 +459,16 @@ func collectGrok(home string, roots map[string]bool, limit int, now float64, pro
 	} else if !os.IsNotExist(e) {
 		warnings = append(warnings, "Grok active-session registry unavailable")
 	}
+	// A resumed chat can leave older entries sharing the same process. Only
+	// the newest registration owns that process's current turn.
+	for sid, d := range registry {
+		for other, r := range registry {
+			if sid != other && number(d["pid"]) > 0 && number(d["pid"]) == number(r["pid"]) && timestamp(r["opened_at"]) > timestamp(d["opened_at"]) {
+				delete(registry, sid)
+				break
+			}
+		}
+	}
 	probes := map[string]Object{}
 	extra := map[string]bool{}
 	for sid, d := range registry {
@@ -527,32 +537,12 @@ func collectGrok(home string, roots map[string]bool, limit int, now float64, pro
 				s["last_message"] = last
 			}
 		}
-		phase := ""
-		var phaseAt, outcome any
 		events, tr, bad, e := tailRows(filepath.Join(folder, "events.jsonl"), tailBytes)
 		if e == nil {
 			tailWarnings(s, filepath.Join(folder, "events.jsonl"), tr, bad)
-			for _, r := range events {
-				switch str(r["type"]) {
-				case "turn_started":
-					phase, phaseAt, outcome = "running", r["ts"], nil
-				case "phase_changed":
-					phase, phaseAt = str(r["phase"]), r["ts"]
-				case "turn_ended":
-					phase, phaseAt, outcome = "ended", r["ts"], r["outcome"]
-				}
-			}
-			if phase == "ended" && (timestamp(st.latest) == 0 || timestamp(phaseAt) >= timestamp(st.latest)) {
-				st.terminal, st.end = true, phaseAt
-				clear(st.pending)
-			}
 		}
-		if phase != "ended" && timestamp(phaseAt) > timestamp(st.end) {
-			st.terminal = false
-		}
-		if timestamp(phaseAt) > timestamp(st.latest) {
-			st.latest = phaseAt
-		}
+		grokLifecycle(s, events, &st)
+		phase, phaseAt, outcome := str(s["grok_phase"]), s["grok_phase_at"], s["grok_outcome"]
 		sid := str(s["id"])
 		live := extra[sid]
 		if p := probes[sid]; p != nil {
@@ -572,7 +562,9 @@ func collectGrok(home string, roots map[string]bool, limit int, now float64, pro
 			s["activity"] = finding(value, path, st.end, "inferred", reason)
 		} else if live {
 			value, reason := "unknown", "Live process but no recent turn evidence"
-			if fresh(st.latest, now) {
+			if grokActiveTurn(s, st) {
+				value, reason = "running", "Live process with an explicit open turn; quiet tool execution does not expire"
+			} else if fresh(st.latest, now) {
 				value, reason = "running", "Live process with recent updates"
 			}
 			s["activity"] = finding(value, path, st.latest, "inferred", reason)

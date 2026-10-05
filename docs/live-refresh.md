@@ -52,6 +52,12 @@ workflow, title, tickets, questions and transcript-derived activity. Initial/res
 reads use a 256 KiB tail. Truncation/replacement resets the cursor. No Git or `ps`
 runs in the cheap queue.
 
+Grok open-turn evidence persists through quiet tools/reasoning when its current
+registered process is verified alive. Full and incremental collection share the
+same lifecycle reducer. A later turn completion or stopped process ends running;
+output age alone does not. When registry entries share a PID, only the newest
+registration can claim that live process.
+
 Expensive work discovers tasks/sessions, checks Git cleanliness and commit
 association, reassesses ownership/process evidence, and updates retained pushed
 history. New/deleted tasks and native registry status can therefore wait for the
