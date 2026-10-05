@@ -133,10 +133,7 @@ func (c *Inventory) Snapshot() *Snapshot {
 		var row Object
 		var repo Repo
 		if o.snapshot == nil {
-			why := "Not scanned yet"
-			if state.Error != "" {
-				why = state.Error
-			}
+			why := state.Error
 			repo = Repo{Path: o.path, Error: why, AgentState: "unknown", Specs: []*Spec{}}
 			row = Object{"path": o.path, "error": why, "git": Object{"error": why}, "specs": []Object{}, "unassigned_sessions": []Object{}}
 		} else {

@@ -35,3 +35,7 @@ The TUI translates viewport coordinates into layout coordinates. Clicks activate
 on release over the pressed target; inventory updates and resizes cancel pending
 clicks. Choosers own mouse input while open. Wheel scrolling is independent of
 selection; arrow-key selection reveals the selected row again.
+
+Before the first scan completes, a worktree shows its folder and `SCANNING` in
+Stage; other cells stay empty. Pending collection is not an error. Failed scans
+still display their error.

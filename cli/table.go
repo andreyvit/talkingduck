@@ -66,6 +66,12 @@ func tableRows(report tableReport) [][]string {
 	for _, repo := range report.Repositories {
 		name := filepath.Base(repo.Path)
 		g := repo.Git
+		if repo.Cache != nil && repo.Cache.ObservedAt.IsZero() && repo.Cache.Error == "" && (repo.Cache.State == "pending" || repo.Cache.State == "updating") {
+			row := make([]string, 15)
+			row[0], row[4] = name, "SCANNING"
+			rows = append(rows, row)
+			continue
+		}
 		if g.Error != "" {
 			rows = append(rows, []string{name, "--", "--", " 0", "--", "--", "?", "?", " ?/ ?", "ERROR", "", "", "⇣ ?", "⇡ ?", g.Error})
 			continue

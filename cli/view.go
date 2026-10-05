@@ -1,6 +1,9 @@
 package cli
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"talkingduck/inventory"
+)
 
 // Only fields used by terminal output belong here. Collection owns the full
 // schema and evidence; this projection never infers or changes inventory state.
@@ -15,11 +18,12 @@ type sourceView struct {
 	Warnings []string `json:"warnings"`
 }
 type worktreeView struct {
-	UnassignedCommits []string   `json:"unassigned_commits"`
-	Path              string     `json:"path"`
-	Git               gitView    `json:"git"`
-	Specs             []taskView `json:"specs"`
-	Warnings          []string   `json:"warnings"`
+	Cache             *inventory.RefreshState `json:"cache"`
+	UnassignedCommits []string                `json:"unassigned_commits"`
+	Path              string                  `json:"path"`
+	Git               gitView                 `json:"git"`
+	Specs             []taskView              `json:"specs"`
+	Warnings          []string                `json:"warnings"`
 }
 type gitView struct {
 	Tracked       any      `json:"tracked"`
