@@ -27,6 +27,8 @@ Arrow keys select/scroll; `o`/`c` start open/copy chords. Suffixes: `a` agent,
 `t` ticket, `s` spec, `f` folder. Copy supports ticket numbers, spec titles, and
 full folder paths. Multiple tickets get an Up/Down/Enter chooser. `g` is reserved
 for future Git opening. Esc cancels; Shift-Q/Ctrl-C exits.
+Mouse: click rows to select, links to open, or hover and click `©` to copy.
+The wheel scrolls; keyboard selection brings its row back into view.
 
 Defaults to `backend`, then `back2` through `back10`, scanned sequentially.
 Paths are configuration, not product identities. Separate worktrees stay separate.

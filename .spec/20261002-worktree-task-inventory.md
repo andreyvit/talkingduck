@@ -283,6 +283,9 @@ status: implemented prototype; correlation and workflow states are heuristic
   tests cover Unicode, wrapping, alignment, multiline rows, history, and actions.
 - TUI uses tcell, a dark palette, cyan selection, status highlights, and a compact
   key bar. Up/Down selects; Left/Right scrolls wide tables; Shift-Q/Ctrl-C exits.
+  Mouse clicks select rows and open links; hover reveals `©` copy controls.
+  Wheel scrolling is independent of selection. Layout retains item hit targets;
+  refresh/resize cancels pending clicks.
 - `r` queues the selected worktree, `R` all. Existing native event sources and
   separate cheap/expensive queues update cached rows without blocking input.
 - Open chords: `oa` agent, `ot` ticket, `os` spec, `of` folder; `og` reserved.

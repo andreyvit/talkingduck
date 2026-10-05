@@ -25,3 +25,13 @@ semantic names to colors suitable for their backgrounds.
 
 Tests cover Unicode alignment, multiline cells, wrapping, inline items, hidden
 folder actions, ticket copy values, and pushed-row dimming.
+
+Interactive terminal layout uses `FormatWithOptions` to reserve copy controls.
+Spans retain source item references and control roles through wrapping and
+alignment; `HitTest` maps cell coordinates back to them. Hover only changes
+visibility, never column widths. Plain output reserves no controls.
+
+The TUI translates viewport coordinates into layout coordinates. Clicks activate
+on release over the pressed target; inventory updates and resizes cancel pending
+clicks. Choosers own mouse input while open. Wheel scrolling is independent of
+selection; arrow-key selection reveals the selected row again.

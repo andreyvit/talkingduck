@@ -19,6 +19,8 @@ import (
 
 type tuiState struct {
 	model                     table.Table
+	mouseState                tuiMouse
+	freeScroll                bool
 	selected, top, horizontal int
 	chord, notice, verb       string
 	choices                   []table.Item
@@ -32,6 +34,7 @@ func (s *tuiState) replace(model table.Table) {
 	if s.selected < len(s.model.Rows) {
 		id = s.model.Rows[s.selected].ID
 	}
+	s.mouseState.pressed = nil
 	s.model = model
 	s.selected = min(s.selected, max(0, len(model.Rows)-1))
 	for n, r := range model.Rows {
@@ -76,10 +79,12 @@ func (s *tuiState) key(e *tcell.EventKey) bool {
 	}
 	switch e.Key() {
 	case tcell.KeyUp:
+		s.freeScroll = false
 		s.selected = max(0, s.selected-1)
 		s.chord = ""
 		return false
 	case tcell.KeyDown:
+		s.freeScroll = false
 		s.selected = min(max(0, len(s.model.Rows)-1), s.selected+1)
 		s.chord = ""
 		return false
@@ -163,6 +168,8 @@ func put(screen tcell.Screen, x, y, limit int, text string, style tcell.Style) {
 }
 func (s *tuiState) draw(screen tcell.Screen) {
 	w, h := screen.Size()
+	s.mouseState.width, s.mouseState.height = w, h
+	s.mouseState.layout = table.Layout{}
 	base := tcell.StyleDefault.Background(tcell.GetColor("#191e29")).Foreground(tuiColor(""))
 	screen.SetStyle(base)
 	screen.Clear()
@@ -183,7 +190,8 @@ func (s *tuiState) draw(screen tcell.Screen) {
 	for i := range display.Columns {
 		display.Columns[i].MinWidth = max(display.Columns[i].MinWidth, table.Width(display.Columns[i].Label))
 	}
-	layout := table.Format(display, w-2, false)
+	layout := table.FormatWithOptions(display, w-2, table.FormatOptions{CopyControl: "©"})
+	s.mouseState.layout = layout
 	total := max(0, len(layout.Widths)-1)
 	for _, width := range layout.Widths {
 		total += width
@@ -208,7 +216,7 @@ func (s *tuiState) draw(screen tcell.Screen) {
 			last = n
 		}
 	}
-	if first >= 0 {
+	if first >= 0 && !s.freeScroll {
 		if first < s.top {
 			s.top = first
 		}
@@ -216,7 +224,8 @@ func (s *tuiState) draw(screen tcell.Screen) {
 			s.top = max(first, last-viewport+1)
 		}
 	}
-	s.top = min(s.top, max(0, len(layout.Lines)-viewport))
+	s.top = max(0, min(s.top, max(0, len(layout.Lines)-viewport)))
+	hover, _ := s.mouseHit(s.mouseState.x, s.mouseState.y)
 	for line := s.top; line < len(layout.Lines) && line < s.top+viewport; line++ {
 		visual := layout.Lines[line]
 		row := s.model.Rows[visual.Row]
@@ -238,6 +247,9 @@ func (s *tuiState) draw(screen tcell.Screen) {
 			screen.SetContent(0, y, '▸', nil, style.Foreground(tuiColor("cyan")))
 		}
 		for _, span := range visual.Spans {
+			if span.CopyControl && (len(s.choices) > 0 || !s.mouseState.known || hover.Source == nil || span.Source == nil || *hover.Source != *span.Source) {
+				continue
+			}
 			put(screen, 1+span.X-s.horizontal, y, w-1, span.Text, style.Foreground(tuiColor(span.Color)).Bold(span.Bold))
 		}
 	}
@@ -293,6 +305,7 @@ func RunTUI(opts *Options, paths []string) int {
 		return 1
 	}
 	defer screen.Fini()
+	screen.EnableMouse()
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	events := make(chan tcell.Event, 16)
@@ -415,7 +428,10 @@ func RunTUI(opts *Options, paths []string) int {
 				if state.key(ev) {
 					return 0
 				}
+			case *tcell.EventMouse:
+				state.mouse(ev)
 			case *tcell.EventResize:
+				state.mouseState.pressed = nil
 				screen.Sync()
 			}
 		case <-updates:

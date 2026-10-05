@@ -37,6 +37,8 @@ In the TUI: ↑/↓ selects, `r` refreshes the selected worktree, `R` refreshes 
 Use `oa` agent, `ot` ticket, `os` spec, `of` folder; `ct` ticket number, `cs` spec
 title, `cf` folder path. Multiple tickets open a chooser. `og` is reserved.
 Esc cancels a chord/chooser; Shift-Q or Ctrl-C quits. ←/→ scroll wide tables.
+Mouse: click rows to select, links to open, or hover and click `©` to copy.
+The wheel scrolls; keyboard selection brings its row back into view.
 
 See [inventory usage and limits](cmd/talkingduck/README.md), including compact `-ai` output,
 and [agent collection research](docs/agent-collection-research.md).
