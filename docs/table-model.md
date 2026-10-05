@@ -49,3 +49,6 @@ other numeric columns retain zero.
 Copy controls touch item text with no added space. A cell line with one visible
 item extends hover across its full width, including whitespace; blank space
 still only selects the row. Lines with multiple items keep individual hover targets.
+
+GUI and TUI share column order: Folder, Agent, Ticket, Stage, Uber, Run, Ask,
+Rev, Tasks, Q, Mod, New, .md, Behind, Ahead, Title. Uber/Run/Ask labels stay blank.

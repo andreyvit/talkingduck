@@ -23,10 +23,23 @@ func modelTable(view TableView) table.Table {
 	if len(view.Rows) > 0 && len(view.Rows[0]) == 15 {
 		columns = append(columns[:5], columns[6:]...)
 	}
-	model := table.Table{Columns: columns, Rows: []table.Row{}}
+	// Source rows retain their legacy order; both UIs use this presentation order.
+	order := []string{"folder", "agent", "ticket", "stage", "uber", "progress", "input", "revision", "tasks", "questions", "tracked", "untracked", "markdown", "behind", "ahead", "title"}
+	indices := make([]int, 0, len(columns))
+	model := table.Table{Rows: []table.Row{}}
+	for _, id := range order {
+		for i, col := range columns {
+			if col.ID == id {
+				indices = append(indices, i)
+				model.Columns = append(model.Columns, col)
+				break
+			}
+		}
+	}
 	for n, raw := range view.Rows {
 		row := table.Row{Group: view.WorktreePaths[n], ID: view.WorktreePaths[n] + ":" + view.SpecPaths[n]}
-		for j, value := range raw {
+		for _, j := range indices {
+			value := raw[j]
 			col := columns[j]
 			cell := table.Cell{}
 			for _, text := range strings.Split(value, "\n") {
@@ -74,7 +87,7 @@ func modelTable(view TableView) table.Table {
 			row.Cells = append(row.Cells, cell)
 		}
 		get := func(id string) string {
-			for i, c := range columns {
+			for i, c := range model.Columns {
 				if c.ID == id {
 					return row.Cells[i].Text()
 				}
