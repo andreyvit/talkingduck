@@ -18,7 +18,7 @@ function notice(text) {
  clearTimeout(noticeTimer);$('notice').textContent=text;
  noticeTimer=setTimeout(()=>{$('notice').textContent='';},4000);
 }
-const hints=[['ArrowUp','↑','Up'],['ArrowDown','↓','Down'],['r','r','Refresh'],['R','R','All'],
+const hints=[[null,'↑↓','select'],['r','r','Refresh'],['R','R','All'],
  ['a','a','Agent'],['t','t','Ticket'],['s','s','Spec'],['f','f','Folder'],['c','c','Copy'],['settings','^S','Settings']];
 const copyHints=[['t','ct','Ticket'],['T','cT','Ticket URL'],['s','cs','Spec'],['f','cf','Folder path'],['Escape','Esc','Cancel']];
 function invoke(key) {
@@ -37,9 +37,10 @@ function paintState() {
   tr.setAttribute('aria-selected',String(keyboard));
  }
  $('keys').replaceChildren(...(controller.chord?copyHints:hints).map(([key,label,text])=>{
-  const button=document.createElement('button');button.className='key-hint';button.type='button';
+  const button=document.createElement(key?'button':'span');button.className='key-hint';
+  if(key)button.type='button';
   const k=document.createElement('kbd');k.textContent=label;button.append(k,' '+text);
-  button.onclick=()=>invoke(key);
+  if(key)button.onclick=()=>invoke(key);
   return button;
  }));
  renderChooser();
