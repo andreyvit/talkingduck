@@ -62,4 +62,4 @@ actions. Hover and keyboard row identities remain separate across snapshots.
 Esc hides keyboard selection; the bottom action bar targets the effective row.
 Action status is short and right-aligned. See desktop/README.md for keys and tests.
 
-The GUI shows one plain `↑↓ select` hint; selection arrows are not clickable.
+The GUI shows one plain `↑↓ Select` hint; selection arrows are not clickable.

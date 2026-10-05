@@ -18,7 +18,7 @@ function notice(text) {
  clearTimeout(noticeTimer);$('notice').textContent=text;
  noticeTimer=setTimeout(()=>{$('notice').textContent='';},4000);
 }
-const hints=[[null,'↑↓','select'],['r','r','Refresh'],['R','R','All'],
+const hints=[[null,'↑↓','Select'],['r','r','Refresh'],['R','R','All'],
  ['a','a','Agent'],['t','t','Ticket'],['s','s','Spec'],['f','f','Folder'],['c','c','Copy'],['settings','^S','Settings']];
 const copyHints=[['t','ct','Ticket'],['T','cT','Ticket URL'],['s','cs','Spec'],['f','cf','Folder path'],['Escape','Esc','Cancel']];
 function invoke(key) {
