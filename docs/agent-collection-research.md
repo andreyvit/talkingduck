@@ -51,7 +51,10 @@ The app name/path can differ from `Codex.app` used by other monitors.
 Observed: the history DB contained 82 `inProgress` turns during the initial scan,
 including old ones. The current research turn was also there. Treating every open
 turn as running would create false positives. The collector reports an open turn
-with events under two minutes old as **inferred running**, otherwise unknown.
+with events under two minutes old, or an unresolved tool call, as **inferred running**.
+Quiet tool/subagent waits persist until their result or a terminal event. Old open
+turns without either signal remain unknown; a crash without a terminal event can
+still leave an unresolved call, so this is not verified live ownership.
 Terminal history is **inferred idle**, not proof the app has the thread loaded.
 
 Structured synchronous `request_user_input` calls can be paired with their result.
@@ -256,3 +259,9 @@ worktree. A unique ticket in the chat title corroborates which referenced task
 it handles. This remains an inference, and multi-task sessions without that
 corroboration stay ambiguous. The user clarified that “stashed” meant “staged”;
 the collector now reads and counts only current checkout changes, never stashes.
+
+Claude full scans and incremental updates share status inference. Native `busy`
+and an open transcript turn with verified process identity survive silent tool
+and subagent waits. Incremental updates reread the native registry, rejecting a
+changed PID/start identity until the next full probe. Native input/approval waits,
+newer transcript completion, and process exit retain their separate states.

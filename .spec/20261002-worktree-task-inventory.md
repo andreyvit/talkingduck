@@ -103,8 +103,13 @@ status: implemented prototype; correlation and workflow states are heuristic
 
 - Codex Desktop: thread SQLite databases, rollout logs, persisted turn history.
   Shared app-server process existence cannot prove an individual turn is running.
+  An unresolved tool call preserves inferred running through silence; a result
+  or terminal event clears it. Old open turns without tool/recent evidence stay unknown.
 - Claude Desktop Code: app chat metadata, linked Claude Code transcripts, native
-  process registry. Validate PID, executable, and process start time.
+  process registry. Validate PID, executable, and process start time. Full and
+  incremental updates preserve native busy/open turns during quiet subagent/tool
+  waits, but respect input waits, completion, and process exit. Registry identity
+  changes invalidate the cached probe until a full scan verifies them.
 - Grok Build: summaries, message/update/event logs, active-session registry.
   Validate process identity; distinguish event time from fork replay time. Explicit
   open turns with a verified live process remain running through output silence.

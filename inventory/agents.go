@@ -15,6 +15,7 @@ import (
 type transcriptState struct {
 	streamRole, streamText string
 	pending                map[string]Object
+	tools                  map[string]bool
 	lifecycle              string
 	latest, end            any
 	started, terminal      bool
@@ -26,6 +27,9 @@ func codexTranscript(s Object, rows []Object, previous ...transcriptState) trans
 	if len(previous) > 0 {
 		st = previous[0]
 	}
+	if st.tools == nil {
+		st.tools = map[string]bool{}
+	}
 	for _, r := range rows {
 		p := obj(r["payload"])
 		at := r["timestamp"]
@@ -35,6 +39,7 @@ func codexTranscript(s Object, rows []Object, previous ...transcriptState) trans
 			switch typ {
 			case "task_started", "turn_started":
 				st.lifecycle, st.end, st.started = "inProgress", at, true
+				clear(st.tools)
 				clear(st.pending)
 			case "task_complete", "turn_complete", "turn_aborted":
 				st.lifecycle = "completed"
@@ -42,6 +47,7 @@ func codexTranscript(s Object, rows []Object, previous ...transcriptState) trans
 					st.lifecycle = "interrupted"
 				}
 				st.end = at
+				clear(st.tools)
 				clear(st.pending)
 			case "user_message":
 				clear(st.pending)
@@ -52,12 +58,14 @@ func codexTranscript(s Object, rows []Object, previous ...transcriptState) trans
 		case "response_item":
 			switch typ {
 			case "function_call", "custom_tool_call":
+				st.tools[str(p["call_id"])] = true
 				q := questionCall(str(p["name"]), str(p["call_id"]), first(p["arguments"], p["input"]), at)
 				if q != nil {
 					st.pending[str(q["call_id"])] = q
 				}
 			case "function_call_output", "custom_tool_call_output":
 				id := str(p["call_id"])
+				delete(st.tools, id)
 				if truth(st.pending[id]["blocking"]) {
 					delete(st.pending, id)
 				}
@@ -93,7 +101,7 @@ func claudeTranscript(s Object, rows []Object, previous ...transcriptState) tran
 			b := obj(v)
 			switch str(b["type"]) {
 			case "tool_use":
-				st.terminal = false
+				st.terminal, st.started = false, true
 				q := questionCall(str(b["name"]), str(b["id"]), b["input"], at)
 				if q != nil {
 					st.pending[str(q["call_id"])] = q
@@ -103,9 +111,9 @@ func claudeTranscript(s Object, rows []Object, previous ...transcriptState) tran
 			}
 		}
 		if typ == "assistant" && str(m["stop_reason"]) == "end_turn" {
-			st.terminal = true
+			st.terminal, st.end = true, at
 		} else if typ == "user" && strings.TrimSpace(cleanText(content)) != "" {
-			st.terminal = false
+			st.terminal, st.started = false, true
 			clear(st.pending)
 		}
 	}
@@ -317,16 +325,15 @@ func collectCodex(home string, roots map[string]bool, limit int, now float64) ([
 		s["last_turn_status"] = nullable(st.lifecycle)
 		latest := first(st.latest, st.end)
 		terminal := contains([]string{"completed", "failed", "interrupted"}, st.lifecycle)
-		recent := fresh(latest, now)
 		if terminal {
 			s["activity"] = finding("idle", path, st.end, "inferred", "Last persisted turn ended; does not prove the thread is currently loaded")
 			clear(st.pending)
-		} else if st.lifecycle == "inProgress" && recent {
-			s["activity"] = finding("running", path, latest, "inferred", "Open turn with recent events; live Desktop ownership not verified")
+		} else if codexActiveTurn(st, now) {
+			s["activity"] = finding("running", path, latest, "inferred", "Open turn, including tool/subagent waits; live Desktop ownership not verified")
 		} else {
 			s["activity"] = finding("unknown", path, latest, "unknown", "Persisted open turn or incomplete history; no recent live evidence")
 		}
-		finishQuestion(s, st.pending, path, latest, recent && st.lifecycle == "inProgress", terminal, !truncated || st.started)
+		finishQuestion(s, st.pending, path, latest, codexActiveTurn(st, now), terminal, !truncated || st.started)
 		s["process"] = unknown("Codex app-server shares many threads; process existence cannot identify a live turn")
 	}
 	return selected, warnings, len(candidates)
@@ -413,31 +420,11 @@ func collectClaude(home, app string, roots map[string]bool, limit int, now float
 		} else {
 			warn(s, "No linked local Claude Code transcript")
 		}
-		nativeWait := false
 		if r, ok := registry[sid]; ok {
 			s["process"] = probes[sid]
-			s["native_status"] = r.data["status"]
-			switch str(probes[sid]["value"]) {
-			case "alive":
-				status := map[string]string{"busy": "running", "waiting": "waiting", "idle": "idle"}[str(r.data["status"])]
-				if status == "" {
-					status = "unknown"
-				}
-				nativeWait = status == "waiting"
-				s["activity"] = finding(status, r.path, r.data["statusUpdatedAt"], "observed", "Native status with PID and process-start verification")
-			case "stopped":
-				s["activity"] = finding("stopped", r.path, now, "observed", "Registered CLI process ended; persisted state may be stale")
-			}
-		} else if st.terminal {
-			s["activity"] = finding("idle", path, st.latest, "inferred", "Latest transcript ends a turn; current process unknown")
+			s["claude_registry_path"], s["claude_registry_pid"], s["claude_registry_start"] = r.path, r.data["pid"], r.data["procStart"]
 		}
-		if st.terminal {
-			s["last_turn_status"] = "completed"
-		}
-		finishQuestion(s, st.pending, path, st.latest, nativeWait, st.terminal, !truncated)
-		if nativeWait && len(st.pending) == 0 {
-			s["question"] = finding("unknown", path, st.latest, "unknown", "Native waiting status does not distinguish question from approval")
-		}
+		claudeActivity(s, st, path, now, !truncated)
 	}
 	return selected, warnings, len(candidates)
 }

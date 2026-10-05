@@ -144,12 +144,15 @@ func (l *liveState) update(s Object, now time.Time) {
 	if reset || state.state.pending == nil {
 		state.state = transcriptState{pending: map[string]Object{}}
 	}
-	if len(rows) == 0 && engine != "grok" {
+	if len(rows) == 0 && engine != "grok" && engine != "claude" {
 		return
 	}
 	switch engine {
 	case "codex":
 		state.state = codexTranscript(s, rows, state.state)
+		if state.state.lifecycle == "" {
+			state.state.lifecycle = str(s["last_turn_status"]) // Bounded tail may omit the turn start.
+		}
 	case "claude":
 		state.state = claudeTranscript(s, rows, state.state)
 	case "grok":
@@ -174,6 +177,11 @@ func (l *liveState) update(s Object, now time.Time) {
 		appendLiveReceipts(s, rows)
 	}
 	st := state.state
+	if engine == "claude" {
+		claudeActivity(s, st, path, float64(now.UnixNano())/1e9, !reset || st.started)
+		s["updated_at"] = iso(st.latest)
+		return
+	}
 	terminal := st.terminal || contains([]string{"completed", "failed", "interrupted"}, st.lifecycle)
 	at := first(st.latest, st.end)
 	live := fresh(at, float64(now.UnixNano())/1e9)
@@ -182,7 +190,7 @@ func (l *liveState) update(s Object, now time.Time) {
 		value = "stopped"
 	} else if terminal {
 		value = "idle"
-	} else if (engine == "grok" && grokActiveTurn(s, st)) || (live && (engine != "codex" || st.lifecycle == "inProgress")) {
+	} else if (engine == "grok" && grokActiveTurn(s, st)) || (engine == "codex" && codexActiveTurn(st, float64(now.UnixNano())/1e9)) || (live && engine != "codex") {
 		value = "running"
 	}
 	s["activity"] = finding(value, path, at, "inferred", "Incremental transcript evidence; process liveness retained from full scan")
@@ -192,7 +200,7 @@ func (l *liveState) update(s Object, now time.Time) {
 	} else if engine == "grok" {
 		s["last_turn_status"] = nil
 	}
-	finishQuestion(s, st.pending, path, at, live && !terminal, terminal, !reset || st.started)
+	finishQuestion(s, st.pending, path, at, (value == "running") && !terminal, terminal, !reset || st.started)
 }
 
 func refreshLiveSnapshot(next *Snapshot, live *liveState, now time.Time) {
