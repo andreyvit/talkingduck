@@ -27,6 +27,7 @@ type tuiState struct {
 	choice              int
 	refresh             func(string)
 	perform             func(string, table.Item)
+	archive             func(table.Row)
 }
 
 func (s *tuiState) replace(model table.Table) {
@@ -99,6 +100,10 @@ func (s *tuiState) key(e *tcell.EventKey) bool {
 			if len(s.model.Rows) > 0 {
 				s.refresh(s.model.Rows[s.selected].Group)
 				s.notice = "Refresh queued"
+			}
+		case 'X':
+			if len(s.model.Rows) > 0 && s.model.Rows[s.selected].Archive != nil && s.archive != nil {
+				s.archive(s.model.Rows[s.selected])
 			}
 		case 'R':
 			s.refresh("")
@@ -272,7 +277,7 @@ func (s *tuiState) draw(screen tcell.Screen) {
 		message = s.chord + "…  t ticket  T ticket URL  s spec  f folder · Esc cancel"
 	}
 	put(screen, 1, h-2, w-1, message, base.Foreground(tuiColor("cyan")))
-	put(screen, 1, h-1, w-1, "↑↓ select  r refresh  R all  a agent  t ticket  s spec  f folder  c copy  Q quit", bar)
+	put(screen, 1, h-1, w-1, "↑↓ select  r refresh  R all  a agent  t ticket  s spec  f folder  c copy  X archive  Q quit", bar)
 	if len(s.choices) > 0 {
 		y := max(2, (h-len(s.choices)-2)/2)
 		put(screen, 3, y, w-3, "Choose item · ↑↓ Enter · Esc cancel", bar)
@@ -399,6 +404,16 @@ func RunTUI(opts *Options, paths []string) int {
 		} else {
 			full.Notify(path)
 		}
+	}
+	state.archive = func(row table.Row) {
+		go func() {
+			if err := cache.ArchiveRow(row.Group, row.Archive.Target); err != nil {
+				tell(err.Error())
+				return
+			}
+			tell("Archived")
+			publish()
+		}()
 	}
 	state.perform = func(verb string, item table.Item) {
 		go func() {

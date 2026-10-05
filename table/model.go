@@ -32,10 +32,11 @@ type Cell struct {
 	Lines []Line `json:"lines"`
 }
 type Row struct {
-	ID    string `json:"id"`
-	Group string `json:"group"`           // Full worktree path; refresh target, not display text.
-	State string `json:"state,omitempty"` // running, attention, pushed, error
-	Cells []Cell `json:"cells"`
+	Archive *Action `json:"archive,omitempty"`
+	ID      string  `json:"id"`
+	Group   string  `json:"group"`           // Full worktree path; refresh target, not display text.
+	State   string  `json:"state,omitempty"` // running, attention, pushed, error
+	Cells   []Cell  `json:"cells"`
 }
 type Table struct {
 	Columns []Column `json:"columns"`

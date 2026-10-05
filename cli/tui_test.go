@@ -272,3 +272,24 @@ func TestCopyTicketURL(t *testing.T) {
 		t.Fatal("ct changed", copied)
 	}
 }
+
+func TestArchiveKey(t *testing.T) {
+	model := tuiFixture()
+	model.Rows[0].Archive = &table.Action{Kind: "archive", Target: ".spec/work.md"}
+	s := tuiState{model: model}
+	count := 0
+	s.archive = func(row table.Row) {
+		count++
+		if row.Archive.Target != ".spec/work.md" {
+			t.Fatal(row)
+		}
+	}
+	s.key(tcell.NewEventKey(tcell.KeyRune, 'x', tcell.ModNone))
+	if count != 0 {
+		t.Fatal("lowercase x archived")
+	}
+	s.key(tcell.NewEventKey(tcell.KeyRune, 'X', tcell.ModShift))
+	if count != 1 {
+		t.Fatal("Shift-X did not archive")
+	}
+}

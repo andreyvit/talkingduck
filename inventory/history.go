@@ -17,7 +17,8 @@ type seenSpec struct {
 	Activity time.Time `json:"activity"`
 }
 type worktreeHistory struct {
-	Specs []seenSpec `json:"recent_specs"`
+	Specs        []seenSpec `json:"recent_specs"`
+	ArchivedRows []string   `json:"archived_rows,omitempty"`
 }
 type inventoryHistory struct {
 	Version   int                        `json:"version"`
@@ -38,6 +39,71 @@ func validHistorySpec(path string) bool {
 // History is eligibility evidence: a pulled-only spec has never appeared here.
 // This is a read/merge/atomic-replace transaction shared by CLI and desktop.
 func applyHistory(report *Report, path string) error {
+	return updateHistory(path, func(state *inventoryHistory) error {
+		for i := range report.Repositories {
+			r := &report.Repositories[i]
+			archived := state.Worktrees[r.Path].ArchivedRows
+			r.Specs = visibleSpecs(r.Specs, archived)
+			r.HideSummary = contains(archived, "")
+			if r.Error != "" || len(r.Warnings) > 0 {
+				continue
+			}
+			previous := state.Worktrees[r.Path]
+			active := map[string]bool{}
+			seen := map[string]seenSpec{}
+			for _, old := range previous.Specs {
+				if validHistorySpec(old.Path) {
+					if st, e := os.Stat(filepath.Join(r.Path, old.Path)); e == nil && st.Mode().IsRegular() {
+						seen[old.Path] = old
+					}
+				}
+			}
+			for _, s := range r.Specs {
+				if !validHistorySpec(s.Path) || s.Deleted {
+					continue
+				}
+				active[s.Path] = true
+				seen[s.Path] = seenSpec{s.Path, report.ObservedAt, s.LastActivity}
+			}
+			ordered := []seenSpec{}
+			for _, s := range seen {
+				ordered = append(ordered, s)
+			}
+			sort.Slice(ordered, func(i, j int) bool {
+				if !ordered[i].LastSeen.Equal(ordered[j].LastSeen) {
+					return ordered[i].LastSeen.After(ordered[j].LastSeen)
+				}
+				if !ordered[i].Activity.Equal(ordered[j].Activity) {
+					return ordered[i].Activity.After(ordered[j].Activity)
+				}
+				return ordered[i].Path < ordered[j].Path
+			})
+			if len(ordered) > 100 {
+				ordered = ordered[:100]
+			}
+			state.Worktrees[r.Path] = worktreeHistory{Specs: ordered, ArchivedRows: previous.ArchivedRows}
+			for _, old := range ordered {
+				if active[old.Path] || contains(archived, old.Path) {
+					continue
+				}
+				b, e := os.ReadFile(filepath.Join(r.Path, old.Path))
+				if e != nil {
+					continue
+				}
+				s := parseSpec(old.Path, string(b))
+				s.RecentlyPushed = true
+				s.LastActivity = old.Activity
+				s.Evidence = append(s.Evidence, Evidence{"Previously displayed local task; no longer selected by local Git evidence", old.LastSeen.Format(time.RFC3339Nano), true})
+				r.Specs = append(r.Specs, s)
+				break
+			}
+		}
+		return nil
+	})
+}
+
+// updateHistory serializes read/modify/write across app processes.
+func updateHistory(path string, update func(*inventoryHistory) error) error {
 	if path == "" {
 		return nil
 	}
@@ -76,60 +142,9 @@ func applyHistory(report *Report, path string) error {
 	} else if !os.IsNotExist(e) {
 		return e
 	}
-	for i := range report.Repositories {
-		r := &report.Repositories[i]
-		if r.Error != "" || len(r.Warnings) > 0 {
-			continue
-		}
-		previous := state.Worktrees[r.Path]
-		active := map[string]bool{}
-		seen := map[string]seenSpec{}
-		for _, old := range previous.Specs {
-			if validHistorySpec(old.Path) {
-				if st, e := os.Stat(filepath.Join(r.Path, old.Path)); e == nil && st.Mode().IsRegular() {
-					seen[old.Path] = old
-				}
-			}
-		}
-		for _, s := range r.Specs {
-			if !validHistorySpec(s.Path) || s.Deleted {
-				continue
-			}
-			active[s.Path] = true
-			seen[s.Path] = seenSpec{s.Path, report.ObservedAt, s.LastActivity}
-		}
-		ordered := []seenSpec{}
-		for _, s := range seen {
-			ordered = append(ordered, s)
-		}
-		sort.Slice(ordered, func(i, j int) bool {
-			if !ordered[i].LastSeen.Equal(ordered[j].LastSeen) {
-				return ordered[i].LastSeen.After(ordered[j].LastSeen)
-			}
-			if !ordered[i].Activity.Equal(ordered[j].Activity) {
-				return ordered[i].Activity.After(ordered[j].Activity)
-			}
-			return ordered[i].Path < ordered[j].Path
-		})
-		if len(ordered) > 100 {
-			ordered = ordered[:100]
-		}
-		state.Worktrees[r.Path] = worktreeHistory{ordered}
-		for _, old := range ordered {
-			if active[old.Path] {
-				continue
-			}
-			b, e := os.ReadFile(filepath.Join(r.Path, old.Path))
-			if e != nil {
-				continue
-			}
-			s := parseSpec(old.Path, string(b))
-			s.RecentlyPushed = true
-			s.LastActivity = old.Activity
-			s.Evidence = append(s.Evidence, Evidence{"Previously displayed local task; no longer selected by local Git evidence", old.LastSeen.Format(time.RFC3339Nano), true})
-			r.Specs = append(r.Specs, s)
-			break
-		}
+
+	if e = update(&state); e != nil {
+		return e
 	}
 	b, e = json.MarshalIndent(state, "", "  ")
 	if e != nil {

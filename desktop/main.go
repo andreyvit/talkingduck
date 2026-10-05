@@ -205,6 +205,25 @@ func run(opts *cli.Options, mcpPort int) error {
 		}()
 	})
 	app.Event.On("inventory:refresh", func(*application.CustomEvent) { view.refresh() })
+	app.Event.On("inventory:archive-row", func(event *application.CustomEvent) {
+		data, ok := event.Data.(map[string]any)
+		if !ok {
+			return
+		}
+		folder, folderOK := data["folder"].(string)
+		spec, specOK := data["spec"].(string)
+		if !folderOK || !specOK {
+			return
+		}
+		go func() {
+			if err := view.archiveRow(folder, spec); err != nil {
+				app.Event.Emit("inventory:open-error", err.Error())
+			} else {
+				app.Event.Emit("inventory:archived")
+			}
+		}()
+	})
+
 	app.Event.On("inventory:refresh-folder", func(event *application.CustomEvent) {
 		path, ok := event.Data.(string)
 		if !ok {

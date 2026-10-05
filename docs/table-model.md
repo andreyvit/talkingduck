@@ -63,3 +63,8 @@ Esc hides keyboard selection; the bottom action bar targets the effective row.
 Action status is short and right-aligned. See desktop/README.md for keys and tests.
 
 The GUI shows one plain `↑↓ Select` hint; selection arrows are not clickable.
+
+Rows carry an archive action whose target is the relative spec path (empty for
+the task-free row). Shift-X uses that action on the effective row in either UI.
+Archive state filters shared inventory, including MCP output, without changing
+Git status or the spec. The footer exposes X Archive.

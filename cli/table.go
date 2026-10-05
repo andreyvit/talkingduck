@@ -64,6 +64,9 @@ func numeric(v any) string { return fmt.Sprintf("%2s", display(v)) }
 func tableRows(report tableReport) [][]string {
 	rows := [][]string{}
 	for _, repo := range report.Repositories {
+		if repo.HideSummary && (repo.Git.Error != "" || len(repo.Specs) == 0) {
+			continue
+		}
 		name := filepath.Base(repo.Path)
 		g := repo.Git
 		if repo.Cache != nil && repo.Cache.ObservedAt.IsZero() && repo.Cache.Error == "" && (repo.Cache.State == "pending" || repo.Cache.State == "updating") {

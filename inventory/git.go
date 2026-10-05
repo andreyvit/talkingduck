@@ -87,6 +87,7 @@ type Spec struct {
 	commitOrder      int
 }
 type Repo struct {
+	HideSummary             bool                     `json:"hide_summary,omitempty"`
 	Cache                   *RefreshState            `json:"cache,omitempty"`
 	CommitAssociationIssues []CommitAssociationIssue `json:"commit_association_issues"`
 	Agents                  []json.RawMessage        `json:"agents"`

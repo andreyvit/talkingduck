@@ -239,3 +239,7 @@ git diff --check
 
 Keyboard: `cT` copies the ticket URL; `ct` copies its number. Multiple tickets
 use the same chooser.
+
+Shift-X archives the effective row permanently in the state file (GUI and TUI).
+Task rows are identified by worktree/spec; a task-free row is archived separately.
+No Git files are changed. Running tasks stay archived too.

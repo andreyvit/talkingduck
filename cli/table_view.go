@@ -28,6 +28,9 @@ func BuildTable(overview any) (TableView, error) {
 	printWarnings(&warnings, report)
 	result := TableView{Rows: tableRows(report), Warnings: []string{}}
 	for _, repo := range report.Repositories {
+		if repo.HideSummary && (repo.Git.Error != "" || len(repo.Specs) == 0) {
+			continue
+		}
 		count := len(repo.Specs)
 		if needsCurrentSummary(repo) {
 			count++

@@ -113,4 +113,12 @@ push command. Reset/discard operations can look the same. Failed or warned scans
 cannot establish this transition. Full scans detect it; cheap updates retain
 it. The file stores no session content. A separate advisory lock and atomic file
 replacement preserve concurrent CLI/desktop updates. Corrupt/unknown state files
-are preserved and reported as warnings; collection still works without retention.
+are preserved. One-shot collection reports a warning and continues without retention;
+cached inventory refuses invalid state so it cannot revive archived rows.
+
+`ArchiveRow(worktree, relativeSpec)` persists a row archive in the configured
+history state file and hides it from snapshots immediately. Empty spec archives
+the task-free row. Archives survive scans, restart, pushes, and later execution;
+they never expire with recent history. No repository files change. Archiving
+requires a state file. To restore a row, remove its entry from the worktree’s
+`archived_rows` list in that file, then restart the app.

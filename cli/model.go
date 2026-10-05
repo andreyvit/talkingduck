@@ -38,6 +38,11 @@ func modelTable(view TableView) table.Table {
 	}
 	for n, raw := range view.Rows {
 		row := table.Row{Group: view.WorktreePaths[n], ID: view.WorktreePaths[n] + ":" + view.SpecPaths[n]}
+		if view.SpecPaths[n] == "" {
+			row.Archive = &table.Action{Kind: "archive", Target: ""}
+		} else if relative, err := filepath.Rel(row.Group, view.SpecPaths[n]); err == nil {
+			row.Archive = &table.Action{Kind: "archive", Target: filepath.ToSlash(relative)}
+		}
 		for _, j := range indices {
 			value := raw[j]
 			col := columns[j]

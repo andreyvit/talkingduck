@@ -47,3 +47,11 @@ test('empty startup snapshot does not poison later updates',()=>{
  c.replace(null);assert.equal(c.rows.length,0);
  c.replace([row('a')]);c.action('ArrowDown');assert.equal(c.effectiveRow.id,'a');
 });
+test('Shift-X archives the effective row; lowercase x does not',()=>{
+ const {c,calls}=fixture();
+ for(const r of c.rows)r.archive={kind:'archive',target:'.spec/'+r.id+'.md'};
+ c.hover('c');assert.equal(c.action('x'),false);c.action('X');
+ assert.deepEqual(calls[0],{kind:'archive',value:{folder:'/repo/c',spec:'.spec/c.md'}});
+ c.action('ArrowDown');c.action('X');
+ assert.equal(calls[1].value.spec,'.spec/b.md');
+});

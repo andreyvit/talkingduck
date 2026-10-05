@@ -36,6 +36,7 @@ type Inventory struct {
 	mu         sync.RWMutex
 	paths      []string
 	entries    map[string]*cachedWorktree
+	archives   map[string][]string
 	options    Options
 	build      func(Options) (*Snapshot, error)
 }
@@ -48,7 +49,11 @@ func New(opts Options) (*Inventory, error) {
 		return nil, err
 	}
 	opts.Paths = nil
-	cache := &Inventory{paths: paths, entries: map[string]*cachedWorktree{}, options: opts, build: Build}
+	archives, err := loadArchives(opts.HistoryPath)
+	if err != nil {
+		return nil, err
+	}
+	cache := &Inventory{archives: archives, paths: paths, entries: map[string]*cachedWorktree{}, options: opts, build: Build}
 	for _, path := range paths {
 		cache.entries[path] = &cachedWorktree{refresh: RefreshState{State: "pending"}}
 	}
@@ -121,6 +126,10 @@ func (c *Inventory) Snapshot() *Snapshot {
 	observations := make([]observation, 0, len(c.paths))
 	c.mu.RLock()
 	generation := c.generation
+	archives := make(map[string][]string, len(c.archives))
+	for path, rows := range c.archives {
+		archives[path] = append([]string(nil), rows...)
+	}
 	for _, p := range c.paths {
 		entry := c.entries[p]
 		observations = append(observations, observation{p, entry.snapshot, entry.refresh})
@@ -178,5 +187,6 @@ func (c *Inventory) Snapshot() *Snapshot {
 	if err = json.Unmarshal(b, &result); err != nil {
 		panic("inventory snapshot cannot be decoded: " + err.Error())
 	}
+	filterArchivedSnapshot(&result, archives)
 	return &result
 }

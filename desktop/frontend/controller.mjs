@@ -67,6 +67,10 @@ export class InventoryController {
    key='c'+key;this.chord='';this.chordRow=null;
   }
   if(key==='R') {this.perform({kind:'refresh',value:''});return true;}
+  if(key==='X') {
+   if(target?.archive)this.perform({kind:'archive',value:{folder:target.group,spec:target.archive.target}});
+   return true;
+  }
   if(key==='r') {if(target)this.perform({kind:'refresh',value:target.group});return true;}
   if(!['a','t','s','f','ct','cT','cs','cf'].includes(key))return false;
   const matches=this.matches(target,key);
