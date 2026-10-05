@@ -75,9 +75,9 @@ func tableRows(report tableReport) [][]string {
 		info := "ℹ︎" + numeric(g.Informational)
 		behind, ahead := "⇣"+numeric(g.Behind), "⇡"+numeric(g.Ahead)
 		specs := repo.Specs
-		if len(specs) == 0 {
+		if needsCurrentSummary(repo) {
 			rows = append(rows, []string{name, "--", "--", " 0", "--", " 0/ 0", "", "", " 0/ 0", tracked, untracked, info, behind, ahead, worktreeSummary(repo)})
-			continue
+			name = ""
 		}
 		for _, s := range specs {
 			w, p := s.Workflow, s.PrimarySession

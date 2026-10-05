@@ -61,6 +61,8 @@ status: implemented prototype; correlation and workflow states are heuristic
 - Append one most-recent eligible historical task after active rows when it leaves
   local selection and its file still exists. Sort last-seen time, then activity.
   Retained rows do not renew their last-seen time; there is no time expiry.
+- Historical rows are additional: when no current task remains, show a current
+  worktree summary (CLEAN/MARKDN/DIRTY) first, then the retained historical row.
 - Show `PUSHED`, with no progress/input attention. Reopened tasks return to normal
   local selection. Missing files leave history. Pulling alone never adds history.
 - This is inferred completion, not proof of a push: discarding local work can look

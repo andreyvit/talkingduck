@@ -29,8 +29,12 @@ func renderAI(report tableReport) string {
 				}
 				row[i] = value
 			}
-			if repo.Git.Error == "" && len(repo.Specs) > 0 {
-				task := repo.Specs[index]
+			taskIndex := index
+			if needsCurrentSummary(repo) {
+				taskIndex--
+			}
+			if repo.Git.Error == "" && taskIndex >= 0 && taskIndex < len(repo.Specs) {
+				task := repo.Specs[taskIndex]
 				if task.Path != "" {
 					row = append(row, "spec="+clean(task.Path))
 				}

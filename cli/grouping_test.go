@@ -28,7 +28,7 @@ func TestWorktreeGroupingRetainsPathsAndAIIdentity(t *testing.T) {
 }
 func TestPushedRowUsesOneColor(t *testing.T) {
 	report := tableReport{Repositories: []worktreeView{{Path: "/repo", Specs: []taskView{{DisplayTitle: "Historical title", Workflow: workflowView{Stage: "PUSHED"}}}}}}
-	out := render(report, 200, true)
+	out := strings.Split(render(report, 200, true), "\n")[1]
 	if !strings.Contains(out, paint("Historical title", 245)) {
 		t.Fatalf("title not dimmed: %q", out)
 	}

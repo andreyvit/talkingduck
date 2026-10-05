@@ -27,16 +27,21 @@ func BuildTable(overview any) (TableView, error) {
 	result := TableView{Rows: tableRows(report), Warnings: []string{}}
 	for _, repo := range report.Repositories {
 		count := len(repo.Specs)
-		if repo.Git.Error != "" || count == 0 {
+		if needsCurrentSummary(repo) {
+			count++
+		}
+		if repo.Git.Error != "" {
 			count = 1
 		}
 		for range count {
 			result.WorktreePaths = append(result.WorktreePaths, repo.Path)
 		}
-		if repo.Git.Error != "" || len(repo.Specs) == 0 {
+		if repo.Git.Error != "" || needsCurrentSummary(repo) {
 			result.SpecPaths = append(result.SpecPaths, "")
 			result.AgentLinks = append(result.AgentLinks, "")
-			continue
+			if repo.Git.Error != "" {
+				continue
+			}
 		}
 		for _, spec := range repo.Specs {
 			path := spec.Path
