@@ -232,6 +232,8 @@ status: implemented prototype; correlation and workflow states are heuristic
 - `⇣N ⇡N`: commits behind/ahead of the configured upstream using local refs.
   Missing/unreadable upstream produces `⇣? ⇡?`. Never fetch automatically.
 - Repeat worktree counters on every task row; they are not task-specific totals.
+  Show the folder label only on the first row per worktree; AI output keeps every full path.
+  In the desktop app, the folder opens in Finder; its copy icon copies the full path.
 - For a worktree without selected tasks, show `CLEAN` when all changes are
   informational Markdown; `MARKDN` when all changes are other Markdown;
   otherwise `DIRTY`. No changes also means `CLEAN`. Classify current checkout
@@ -260,6 +262,8 @@ status: implemented prototype; correlation and workflow states are heuristic
   overrides detection; auto honors `NO_COLOR` and `TERM=dumb`. AI output stays plain.
   Zero counts and unknowns are gray; agents, stages, and nonzero counter columns
   have distinct colors. Attention is yellow, conflicts/errors red, titles white.
+  Dim every column of historical `PUSHED` rows with the same muted foreground.
+  Desktop running rows have a cyan background; input attention takes priority.
   Apply ANSI escapes after layout so colors cannot change alignment or wrapping.
 
 ### Cached inventory

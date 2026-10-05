@@ -97,6 +97,7 @@ func tableRows(report tableReport) [][]string {
 				ticket = "--"
 			}
 			rows = append(rows, []string{name, agent, ticket, numeric(w.Round), w.Stage, numeric(w.SubtasksDone) + "/" + numeric(w.SubtasksTotal), w.Progress, w.Interaction, numeric(w.Questions) + "/" + numeric(w.Suggestions), tracked, untracked, info, behind, ahead, s.DisplayTitle})
+			name = "" // Show the worktree once; AI output restores its full path.
 		}
 	}
 	return rows
@@ -144,7 +145,11 @@ func render(report tableReport, size int, colors bool) string {
 					value += strings.Repeat(" ", max(0, widths[i]-cellWidth(value)))
 				}
 				if colors {
-					value = colorCell(value, i)
+					if row[4] == "PUSHED" {
+						value = paint(value, 245)
+					} else {
+						value = colorCell(value, i)
+					}
 				}
 				values = append(values, value)
 			}

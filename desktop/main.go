@@ -159,6 +159,17 @@ func run(opts *cli.Options, mcpPort int) error {
 			}
 		}()
 	})
+	app.Event.On("inventory:open-folder", func(event *application.CustomEvent) {
+		path, ok := event.Data.(string)
+		if !ok {
+			return
+		}
+		go func() {
+			if err := view.openFolder(path); err != nil {
+				app.Event.Emit("inventory:open-error", err.Error())
+			}
+		}()
+	})
 	app.Event.On("inventory:open-spec", func(event *application.CustomEvent) {
 		path, ok := event.Data.(string)
 		if !ok {

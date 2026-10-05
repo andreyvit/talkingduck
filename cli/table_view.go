@@ -9,10 +9,11 @@ import (
 // TableView is the CLI's unwrapped table, also used by the desktop overview.
 // Each row is one task (or empty/error checkout); newlines stay within cells.
 type TableView struct {
-	Rows       [][]string `json:"rows"`
-	SpecPaths  []string   `json:"specPaths"` // One absolute path per row; empty for non-task rows.
-	AgentLinks []string   `json:"agentLinks"`
-	Warnings   []string   `json:"warnings"`
+	WorktreePaths []string   `json:"worktreePaths"` // Absolute worktree path for every row, even when its label is blank.
+	Rows          [][]string `json:"rows"`
+	SpecPaths     []string   `json:"specPaths"` // One absolute path per row; empty for non-task rows.
+	AgentLinks    []string   `json:"agentLinks"`
+	Warnings      []string   `json:"warnings"`
 }
 
 // BuildTable uses the same projection and row builder as terminal output.
@@ -25,6 +26,13 @@ func BuildTable(overview any) (TableView, error) {
 	printWarnings(&warnings, report)
 	result := TableView{Rows: tableRows(report), Warnings: []string{}}
 	for _, repo := range report.Repositories {
+		count := len(repo.Specs)
+		if repo.Git.Error != "" || count == 0 {
+			count = 1
+		}
+		for range count {
+			result.WorktreePaths = append(result.WorktreePaths, repo.Path)
+		}
 		if repo.Git.Error != "" || len(repo.Specs) == 0 {
 			result.SpecPaths = append(result.SpecPaths, "")
 			result.AgentLinks = append(result.AgentLinks, "")

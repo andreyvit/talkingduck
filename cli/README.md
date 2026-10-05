@@ -26,7 +26,8 @@ prototype can dispatch to the same CLI when GUI mode is not requested.
 See [command usage](../cmd/talkingduck/README.md) for all flags and output meanings.
 
 `BuildTable(overview)` returns the same unwrapped 15-column task rows used by
-the terminal renderer, plus diagnostics and row-aligned absolute spec paths for preview links. The desktop window consumes these cells
+the terminal renderer, plus diagnostics and row-aligned absolute spec and worktree paths for links.
+Only the first row per worktree shows its folder label; every row retains its absolute path. The desktop window consumes these cells
 directly; multiline tickets remain within one task row. It adds no collection
 logic or state inference.
 
