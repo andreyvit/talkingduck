@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TalkingDuck Settings</title>
+<style>
+:root{color-scheme:light dark;font:13px -apple-system,BlinkMacSystemFont,sans-serif;color:light-dark(#292a30,#e7e8ec);background:light-dark(#fafafa,#202126)}
+body{margin:28px}h1{font-size:18px;margin:0 0 26px}label{display:block;font-weight:600;margin-bottom:10px}input{box-sizing:border-box;width:100%;padding:10px;border:1px solid #8884;border-radius:6px;background:light-dark(#fff,#303238);color:inherit;font:13px ui-monospace,SFMono-Regular,Menlo,monospace}p{color:light-dark(#737780,#979da8);font-size:12px;line-height:1.5}#error{color:light-dark(#b13b3b,#f18a8a)}
+</style>
+<h1>Settings</h1>
+<label for="address">MCP server address</label>
+<input id="address" readonly aria-describedby="help" placeholder="Starting server…">
+<p id="help">Use this address to connect an MCP client. Available on this Mac while TalkingDuck is running.</p>
+<p id="error" role="status"></p>
+<script type="module">
+import {Events} from '/wails/runtime.js';
+Events.On('settings:snapshot',({data})=>{
+ document.querySelector('#address').value=data.address;
+ document.querySelector('#address').placeholder=data.error?'Unavailable':'';
+ document.querySelector('#error').textContent=data.error;
+});
+document.querySelector('#address').onclick=event=>event.target.select();
+Events.Emit('settings:ready');
+</script></html>

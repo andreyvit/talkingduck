@@ -53,5 +53,11 @@ still only selects the row. Lines with multiple items keep individual hover targ
 GUI and TUI share column order: Folder, Agent, Ticket, Stage, Uber, Run, Ask,
 Rev, Tasks, Q, Mod, New, .md, Behind, Ahead, Title. Uber/Run/Ask labels stay blank.
 
-TUI-only: `cT` copies the ticket URL; `ct` copies its number. Multiple tickets
-use the same chooser. No additional GUI control.
+Keyboard: `cT` copies the ticket URL; `ct` copies its number. Multiple tickets
+use the same chooser. GUI also accepts `CT`.
+
+
+The GUI uses a DOM-independent controller for mouse/keyboard selection and
+actions. Hover and keyboard row identities remain separate across snapshots.
+Esc hides keyboard selection; the bottom action bar targets the effective row.
+Action status is short and right-aligned. See desktop/README.md for keys and tests.

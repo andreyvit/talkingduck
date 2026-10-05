@@ -70,8 +70,11 @@ func run(opts *cli.Options, mcpPort int) error {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	var settingsWindow *application.WebviewWindow
+	showSettings := func() { settingsWindow.Show(); settingsWindow.Focus() }
 	app := application.New(application.Options{
-		Name: "TalkingDuck", Description: "Checkout inventory", OnShutdown: cancel,
+		KeyBindings: map[string]func(application.Window){"CmdOrCtrl+,": func(application.Window) { showSettings() }},
+		Name:        "TalkingDuck", Description: "Checkout inventory", OnShutdown: cancel,
 		Mac:    application.MacOptions{ActivationPolicy: application.ActivationPolicyAccessory},
 		Assets: application.AssetOptions{Handler: application.AssetFileServerFS(assets)},
 	})
@@ -79,6 +82,19 @@ func run(opts *cli.Options, mcpPort int) error {
 		Title: "TalkingDuck — Inventory", Width: 1280, Height: 720, URL: "/", Hidden: true,
 	})
 	window.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) { e.Cancel(); window.Hide() })
+	settingsWindow = app.Window.NewWithOptions(application.WebviewWindowOptions{
+		Title: "TalkingDuck — Settings", Width: 520, Height: 250, URL: "/settings.html", Hidden: true,
+	})
+	settingsWindow.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) { e.Cancel(); settingsWindow.Hide() })
+	var settingsMu sync.Mutex
+	mcpAddress, mcpError := "", "Starting server…"
+	publishSettings := func() {
+		settingsMu.Lock()
+		defer settingsMu.Unlock()
+		app.Event.Emit("settings:snapshot", map[string]string{"address": mcpAddress, "error": mcpError})
+	}
+	app.Event.On("settings:ready", func(*application.CustomEvent) { publishSettings() })
+	app.Event.On("settings:open", func(*application.CustomEvent) { showSettings() })
 	view := &inventoryView{cache: cache, fetch: fetchRemote, emit: func(state inventoryState) { app.Event.Emit("inventory:snapshot", state) }}
 	view.startQueues(ctx, !opts.Inventory.NoAgents)
 	cells := inventoryCells(cache.Snapshot())
@@ -139,6 +155,7 @@ func run(opts *cli.Options, mcpPort int) error {
 	menu.Add("Open overview").OnClick(func(*application.Context) { window.Show(); window.Focus() })
 	compactItem = menu.AddCheckbox("Compact menu bar", false).OnClick(func(*application.Context) { update("compact", nil) })
 	menu.Add("Refresh inventory").OnClick(func(*application.Context) { view.refresh() })
+	menu.Add("Settings…").SetAccelerator("CmdOrCtrl+,").OnClick(func(*application.Context) { showSettings() })
 	menu.AddSeparator()
 	menu.Add("Quit TalkingDuck").OnClick(func(*application.Context) { app.Quit() })
 	tray.SetMenu(menu)
@@ -188,19 +205,36 @@ func run(opts *cli.Options, mcpPort int) error {
 		}()
 	})
 	app.Event.On("inventory:refresh", func(*application.CustomEvent) { view.refresh() })
+	app.Event.On("inventory:refresh-folder", func(event *application.CustomEvent) {
+		path, ok := event.Data.(string)
+		if !ok {
+			return
+		}
+		go func() {
+			if err := view.RefreshFolder(ctx, path); err != nil {
+				app.Event.Emit("inventory:open-error", err.Error())
+			}
+		}()
+	})
+
 	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
 		if err := installTrayMenu(tray); err != nil {
 			log.Printf("tray menu setup failed: %v", err)
 		}
 		update("", nil)
 		server, addr, err := mcpserver.Start(mcpPort, view)
+		settingsMu.Lock()
 		if err != nil {
+			mcpError = "Server unavailable: " + err.Error()
 			log.Printf("MCP server failed: %v", err)
 			app.Event.Emit("mock:error", "MCP server failed: "+err.Error())
 		} else {
+			mcpAddress, mcpError = "http://"+addr.String()+"/mcp", ""
 			log.Printf("MCP listening at http://%s/mcp", addr)
 			go func() { <-ctx.Done(); _ = server.Close() }()
 		}
+		settingsMu.Unlock()
+		publishSettings()
 		go view.watchChanges(ctx, !opts.Inventory.NoAgents)
 	})
 	return app.Run()

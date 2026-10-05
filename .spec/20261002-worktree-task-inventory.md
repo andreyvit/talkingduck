@@ -289,8 +289,14 @@ status: implemented prototype; correlation and workflow states are heuristic
 - `r` queues the selected worktree, `R` all. Existing native event sources and
   separate cheap/expensive queues update cached rows without blocking input.
 - Direct open keys: `a` agent, `t` ticket, `s` spec, `f` folder; `g` reserved.
-  Copy: `ct` ticket number, `cs` spec title, `cf` full folder path. Multiple tickets
+  Copy: `ct` ticket number, `cT` ticket URL, `cs` spec title, `cf` full folder path. Multiple tickets
   use an Up/Down/Enter chooser. Esc cancels. String keys allow longer future copy chords.
+- GUI rows extend edge to edge; no top toolbar. Bottom key hints are clickable,
+  with short action status at the right and Ctrl-S Settings. Mouse mode starts
+  active; hover chooses the action row. Up/Down uses a separate remembered row
+  and shows its highlight/arrow. Esc hides that selection without clearing it.
+  GUI shares refresh/open/copy keys (also CT), excluding quit. Snapshots preserve
+  row identities; stale chooser targets are canceled.
 - Both binaries accept `-ai`, `-status`, `-tui`, `-gui`; explicit modes conflict.
   Defaults: command binary TUI, desktop binary GUI. The command binary launches
   the installed app for GUI mode; no GUI framework is linked into it.

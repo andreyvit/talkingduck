@@ -59,5 +59,5 @@ To refresh the standard skills from the sibling Zoo checkout:
 
 Project customization lives in `.zoo/`. The `commit` skill is repo-specific.
 
-TUI-only: `cT` copies the ticket URL; `ct` copies its number. Multiple tickets
-use the same chooser. No additional GUI control.
+Keyboard: `cT` copies the ticket URL; `ct` copies its number. Multiple tickets
+use the same chooser. GUI also accepts `CT`.

@@ -3,50 +3,40 @@
 <title>TalkingDuck</title>
 <style>
 :root{color-scheme:light dark;font-family:-apple-system,BlinkMacSystemFont,sans-serif;--bg:light-dark(#fafafa,#202126);--fg:light-dark(#292a30,#e7e8ec);--muted:light-dark(#737780,#979da8);--stripe:light-dark(#00000005,#ffffff05);--hover:light-dark(#0000000c,#ffffff0d)}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg)}
-header{display:flex;align-items:center;gap:16px;padding:16px 20px}h1{font-size:17px;margin:0}#status{font-size:12px;color:var(--muted);flex:1}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 button{font:inherit;font-size:12px;padding:6px 11px;border:1px solid #8884;border-radius:6px;cursor:pointer;background:light-dark(#fff,#303238);color:inherit}button:disabled{opacity:.45;cursor:default}
-main{overflow:auto;padding:0 12px 12px}table{border-collapse:collapse;width:100%;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}th{font:10px -apple-system,BlinkMacSystemFont,sans-serif;text-align:left;color:var(--muted);padding:5px 7px 9px;font-weight:500}td{white-space:pre;vertical-align:top;padding:5px 7px;border:0}tbody tr:nth-child(even){background:var(--stripe)}tbody tr:hover{background:var(--hover)}td:last-child{white-space:pre-wrap;overflow-wrap:anywhere;min-width:200px;width:100%}td:nth-child(1){font-weight:550}td:nth-child(3){color:light-dark(#526681,#b8c7dc)}
-tbody tr.attention{background:light-dark(#fff1d6,#363126)}tbody tr.attention:nth-child(even){background:light-dark(#faebce,#3b3428)}tbody tr.attention:hover{background:light-dark(#f5e3bc,#463c2b)}
-tbody tr.running{background:light-dark(#e0f5fa,#20363e)}tbody tr.running:nth-child(even){background:light-dark(#d8eff5,#243d46)}tbody tr.running:hover{background:light-dark(#cce9f1,#2b4852)}
+main{overflow:auto;flex:1;min-height:0}table{border-collapse:collapse;width:100%;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}th{font:10px -apple-system,BlinkMacSystemFont,sans-serif;text-align:left;color:var(--muted);padding:5px 7px 9px;font-weight:500}td{white-space:pre;vertical-align:top;padding:5px 7px;border:0}tbody tr:nth-child(even){background:var(--stripe)}tbody tr.mouse-selected{background:var(--hover)}td:last-child{white-space:pre-wrap;overflow-wrap:anywhere;min-width:200px;width:100%}td:nth-child(1){font-weight:550}td:nth-child(3){color:light-dark(#526681,#b8c7dc)}
+tbody tr.attention{background:light-dark(#fff1d6,#363126)}tbody tr.attention:nth-child(even){background:light-dark(#faebce,#3b3428)}tbody tr.attention.mouse-selected{background:light-dark(#f5e3bc,#463c2b)}
+tbody tr.running{background:light-dark(#e0f5fa,#20363e)}tbody tr.running:nth-child(even){background:light-dark(#d8eff5,#243d46)}tbody tr.running.mouse-selected{background:light-dark(#cce9f1,#2b4852)}
 tbody tr.pushed td,tbody tr.pushed td *{color:var(--muted)}
 .inventory-link{color:inherit;text-decoration:none}.inventory-link:hover{text-decoration:underline}.inventory-link:focus-visible{outline:1px solid var(--muted);outline-offset:3px}
 .dim,.muted{color:var(--muted)}.cyan{color:light-dark(#087b99,#62cce9)}.orange{color:light-dark(#a64f25,#f4a172)}.purple{color:light-dark(#8052a6,#ba96df)}.green{color:light-dark(#44783c,#9cce85)}.yellow{color:light-dark(#927014,#e5c66b)}.blue{color:light-dark(#3979b3,#77b8ec)}.red{color:light-dark(#bc4141,#f18181)}
-#empty{padding:45px 20px;color:var(--muted);font-size:13px}#warnings{white-space:pre-wrap;font-size:12px;color:light-dark(#956024,#d3b07c);margin:12px 20px}#error{color:light-dark(#b13b3b,#f18a8a);font-size:12px;margin:12px 20px}
-</style>
-<header><h1>TalkingDuck</h1><span id="status" role="status">Loading inventory…</span><button id="refresh">Refresh</button></header>
-<main><table aria-label="Work inventory"><thead><tr id="headers"></tr></thead><tbody id="rows"></tbody></table><div id="empty">Collecting worktrees and agent sessions…</div></main>
-<div id="error" role="alert"></div><div id="warnings"></div>
+#empty{padding:45px 20px;color:var(--muted);font-size:13px}#warnings{white-space:pre-wrap;font-size:12px;color:light-dark(#956024,#d3b07c);margin:0}#error{color:light-dark(#b13b3b,#f18a8a);font-size:12px;margin:0}
 
+thead{position:sticky;top:0;background:var(--bg);z-index:1}th{font-weight:600;color:light-dark(#087b99,#62cce9)}
+th[data-column=revision]{color:light-dark(#8052a6,#ba96df)}th[data-column=questions],th[data-column=tracked]{color:light-dark(#927014,#e5c66b)}th[data-column=untracked]{color:light-dark(#44783c,#9cce85)}th[data-column=markdown]{color:light-dark(#3979b3,#77b8ec)}th[data-column=behind]{color:light-dark(#bc4141,#f18181)}th[data-column=title]{color:var(--fg)}
+td:first-child{position:relative;padding-left:16px}th:first-child{padding-left:16px}
+tbody tr.keyboard-selected:nth-child(n){background:light-dark(#d2eaf3,#254862)}
+tbody tr.keyboard-selected td:first-child::before{content:"▸";position:absolute;left:2px;color:light-dark(#087b99,#62cce9)}
+.cell-line{min-height:1.6em}.single-item:hover .copy-button{visibility:visible}
+footer{flex:none;border-top:1px solid #8884;padding:5px 8px;background:var(--bg)}
+#keys{display:flex;gap:2px 8px;flex-wrap:wrap;flex:1}.statusbar{display:flex;align-items:center;gap:12px}.status-messages{min-width:0;max-width:40%;text-align:right}.status-messages>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.key-hint{border:0;background:none;padding:2px 0;border-radius:0;color:var(--muted)}
+.key-hint:hover{color:var(--fg);text-decoration:underline}
+kbd{font:inherit;color:light-dark(#087b99,#62cce9);font-weight:600}
+#status,#notice{font:12px/1.6 ui-monospace,monospace;color:var(--muted)}
+#notice:empty,#status:empty,#error:empty,#warnings:empty{display:none}
+#error,#warnings{max-height:6em;overflow:auto}
+dialog{background:var(--bg);color:var(--fg);border:1px solid #8886;border-radius:6px;padding:14px;max-width:80vw}
+dialog::backdrop{background:#0006}#choices{display:flex;flex-direction:column;gap:3px;margin:10px 0;max-height:60vh;overflow:auto}
+#choices button{text-align:left;background:none}#choices button.chosen{background:light-dark(#d2eaf3,#254862)}
+</style>
+<main><table aria-label="Work inventory"><thead><tr id="headers"></tr></thead><tbody id="rows"></tbody></table><div id="empty">Collecting worktrees and agent sessions…</div></main>
+<footer>
+<div class="statusbar"><nav id="keys" aria-label="Inventory actions"></nav><div class="status-messages"><div id="notice" role="status"></div><div id="status" role="status"></div></div></div>
+<div id="error" role="alert"></div><div id="warnings"></div>
+</footer>
+<dialog id="chooser" aria-label="Choose item"><strong>Choose item</strong><div id="choices"></div><button id="cancel-choice">Esc Cancel</button></dialog>
 <script type="module">
-import {Events} from '/wails/runtime.js';
-import {copyable} from './copy.js';
-Events.On('inventory:snapshot',event=>{
- const data=event.data,model=data.table||{columns:[],rows:[]},rows=model.rows;
- document.querySelector('#headers').replaceChildren(...model.columns.map(col=>{const th=document.createElement('th');th.textContent=col.label;th.style.textAlign=col.align||'left';return th}));
- document.querySelector('#refresh').disabled=data.loading;
- document.querySelector('#status').textContent=data.loading?`Refreshing ${data.refreshingPath||'inventory'}… · cached rows remain visible`:(data.updatedAt?`Pass finished ${new Date(data.updatedAt).toLocaleTimeString()} · ${rows.length} rows`:'Inventory unavailable');
- document.querySelector('#error').textContent=data.error||'';
- document.querySelector('#warnings').textContent=(data.warnings||[]).join('\n');
- document.querySelector('#empty').hidden=rows.length>0;
- document.querySelector('#empty').textContent=data.loading?'Collecting worktrees and agent sessions…':data.error?'Refresh failed. Try again.':'No worktrees to display.';
- document.querySelector('#rows').replaceChildren(...rows.map(row=>{
-  const tr=document.createElement('tr');tr.className=row.state||'';tr.dataset.rowId=row.id;
-  row.cells.forEach((cell,column)=>{
-   const td=document.createElement('td');td.style.textAlign=model.columns[column].align||'left';
-   cell.lines.forEach((line,n)=>{
-    if(n)td.append(document.createElement('br'));
-    line.items.filter(item=>!item.hidden).forEach(item=>{
-     const el=document.createElement(item.link?'a':'span');el.textContent=item.text;el.className=item.color||'';if(item.bold)el.style.fontWeight='550';el.title=item.tooltip||'';
-     if(item.link){el.classList.add('inventory-link');el.href='#';el.onclick=event=>{event.preventDefault();Events.Emit('inventory:open-'+item.link.kind,item.link.target)}}
-     td.append(item.copy!==undefined?copyable(el,item.copy):el);
-    });
-   });tr.append(td);
-  });return tr;
- }));
-});
-Events.On('inventory:open-error',e=>document.querySelector('#error').textContent=e.data);
-Events.On('mock:error',e=>document.querySelector('#error').textContent=e.data);
-document.querySelector('#refresh').onclick=()=>Events.Emit('inventory:refresh');
-Events.Emit('inventory:ready');
+import("./inventory.js").catch(error=>{document.getElementById("error").textContent="Could not load inventory: "+error.message;});
 </script></html>

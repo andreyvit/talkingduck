@@ -32,8 +32,7 @@ completion throttle. Manual/MCP refreshes join the expensive queue. See
 [event-driven refresh](../docs/live-refresh.md). Collection flags and paths apply.
 Previous rows remain visible during refresh; failed folders retain their last
 successful data and show a warning. Unscanned folders show explicit placeholders.
-The status names the current folder and the latest completed refresh, not a shared
-observation time for every row. Quit stops scheduling; an in-flight collector
+The bottom bar shows short refresh/action status at the right. Quit stops scheduling; an in-flight collector
 call has its own timeouts and cannot be cancelled midway.
 `--gui=false` overrides the bundle environment when needed.
 
@@ -59,11 +58,11 @@ call has its own timeouts and cannot be cancelled midway.
 - Click a spec title to preview its file in Marked. Titles underline on hover;
   non-task rows stay plain text. Missing files or app launch errors appear in the window.
 - Closing the window hides it.
-- The inventory window displays the same 15 cells and row ordering as the CLI,
+- The inventory window uses the shared table model and row ordering,
   including multiline tickets and partial errors. Monospace text, whitespace,
   and subtle alternating task-row backgrounds separate columns; no gridlines.
-  The window contains only the table, status/warnings, and Refresh. Appearance
-  controls stay in the tray menu; debug style/image actions are removed.
+  Rows extend to both window edges. No top heading or toolbar; the bottom bar
+  carries clickable key hints and right-aligned action status.
 - Tray numbers follow configured checkout order. The first listed task supplies
   the stage, preserving the prototype's selection rule. Explicit questions or
   completed turns need attention; running turns get an outline. Failed/pending
@@ -72,6 +71,10 @@ call has its own timeouts and cannot be cancelled midway.
   remains a future decision.
 
 ## Local MCP
+
+Settings (bottom-bar hint, Ctrl-S, tray menu, or ⌘,) shows the actual MCP address,
+including a custom port, in a selectable field. Startup failures appear there too.
+Closing Settings hides it for reuse.
 
 While the app runs, its shared cache is available at `http://127.0.0.1:42389/mcp`.
 `list_zoo_tasks` returns compact CLI `-ai` text; `refresh_folder` updates one
@@ -108,6 +111,7 @@ this dependency.
 ## Validation
 
 ```sh
+node --test desktop/tests/*.test.mjs
 CGO_ENABLED=0 go test ./menubarimage ./cli
 CGO_ENABLED=0 go vet ./cmd/scratch-imagegen ./menubarimage
 CGO_ENABLED=0 go build -o .tasks/desktop/talkingduck-cli ./cmd/talkingduck
@@ -159,3 +163,21 @@ in the overview. The CLI collector itself does not fetch.
 A `cannot lock ref` fetch failure gets up to three retries, 250 ms apart,
 within the same concurrency slot and one-minute timeout. Persistent ref-lock
 errors are ignored; independent fetch errors still produce warnings.
+
+
+## Inventory controls
+
+Startup uses mouse mode. Hovering a row chooses it for actions; its identity stays
+available when moving to the bottom bar. Up/Down enters keyboard mode and moves
+the separately remembered keyboard row. Only keyboard mode shows the cyan
+selection and arrow. Esc returns to mouse mode without clearing that row.
+Refreshes preserve both identities; missing rows cannot receive stale actions.
+
+The bottom hints invoke the same actions as keys: r refreshes the effective
+worktree, R refreshes all, a/t/s/f opens agent/ticket/spec/folder. c starts copy:
+ct number, cT (also CT) ticket URL, cs spec title, cf folder path. Multiple tickets
+use an Up/Down/Enter or clickable chooser. Ctrl-S opens Settings. Q does not quit.
+
+The controller in frontend/controller.mjs is independent of DOM and Wails.
+Its Node tests cover selection modes, stable refreshes, action targets, copy
+variants, chooser invalidation, and null startup snapshots. Node is test-only.
