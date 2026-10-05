@@ -34,9 +34,9 @@ go run ./cmd/talkingduck -gui     # installed Mac app
 ```
 
 In the TUI: ↑/↓ selects, `r` refreshes the selected worktree, `R` refreshes all.
-Use `oa` agent, `ot` ticket, `os` spec, `of` folder; `ct` ticket number, `cs` spec
-title, `cf` folder path. Multiple tickets open a chooser. `og` is reserved.
-Esc cancels a chord/chooser; Shift-Q or Ctrl-C quits. ←/→ scroll wide tables.
+Use `a` agent, `t` ticket, `s` spec, `f` folder; `ct` ticket number, `cs` spec
+title, `cf` folder path. Multiple tickets open a chooser. `g` is reserved.
+Esc cancels a chord/chooser; Shift-Q or Ctrl-C quits. Titles wrap; there is no horizontal scrolling.
 Mouse: click rows to select, links to open, or hover and click `©` to copy.
 The wheel scrolls; keyboard selection brings its row back into view.
 

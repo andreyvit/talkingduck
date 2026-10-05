@@ -70,14 +70,12 @@ func TestTUIChordsSelectionAndRefresh(t *testing.T) {
 		t.Fatal(performed)
 	}
 	key(tcell.KeyDown, 0)
-	runeKey('o')
 	runeKey('f')
 	runeKey('r')
 	runeKey('R')
 	if performed[1] != "o:/one" || len(refreshed) != 2 || refreshed[0] != "/one" || refreshed[1] != "" {
 		t.Fatal(performed, refreshed)
 	}
-	runeKey('o')
 	runeKey('g')
 	if !strings.Contains(s.notice, "not implemented") {
 		t.Fatal(s.notice)
@@ -139,7 +137,7 @@ func TestLongChordSurvivesRefresh(t *testing.T) {
 	s := tuiState{model: model}
 	calls := 0
 	s.perform = func(string, table.Item) { calls++ }
-	for _, r := range "of" {
+	for _, r := range "cf" {
 		s.key(tcell.NewEventKey(tcell.KeyRune, r, tcell.ModNone))
 	}
 	s.replace(model)
@@ -153,7 +151,7 @@ func TestQuitKeys(t *testing.T) {
 	for _, pending := range []bool{false, true} {
 		s := tuiState{model: tuiFixture()}
 		if pending {
-			s.chord = "o"
+			s.chord = "c"
 			s.choices = s.model.Rows[0].Matches("c", "t")
 		}
 		if s.key(tcell.NewEventKey(tcell.KeyRune, 'q', tcell.ModNone)) {
@@ -165,5 +163,28 @@ func TestQuitKeys(t *testing.T) {
 		if !s.key(tcell.NewEventKey(tcell.KeyCtrlC, 0, tcell.ModCtrl)) {
 			t.Fatal("Ctrl-C did not quit")
 		}
+	}
+}
+
+func TestDirectOpenKeys(t *testing.T) {
+	s := tuiState{model: tuiFixture()}
+	calls := 0
+	s.perform = func(verb string, item table.Item) {
+		if verb != "o" {
+			t.Fatal(verb)
+		}
+		calls++
+	}
+	s.key(tcell.NewEventKey(tcell.KeyRune, 'o', tcell.ModNone))
+	if s.chord != "" || calls != 0 {
+		t.Fatal("o still starts a chord")
+	}
+	s.key(tcell.NewEventKey(tcell.KeyRune, 'f', tcell.ModNone))
+	if calls != 1 {
+		t.Fatal("f did not open folder")
+	}
+	s.key(tcell.NewEventKey(tcell.KeyRune, 't', tcell.ModNone))
+	if len(s.choices) != 2 || s.verb != "o" {
+		t.Fatal("t did not open ticket chooser")
 	}
 }

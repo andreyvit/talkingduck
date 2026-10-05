@@ -12,14 +12,15 @@ Legacy string rows remain for AI output and compatibility with existing callers.
 - Items: text, semantic color, bold, tooltip, optional open action and independent
   copy text. Copying a ticket copies its number, not a URL. Spec copy preserves
   the existing title-copy behavior. Folder copy uses its full path.
-- Chord keys are strings (`a`, `t`, `s`, `f`). Multiple matching items remain
-  separate choices. Hidden repeated folder labels retain actions for their row.
+- Action keys are strings (`a`, `t`, `s`, `f`). Multiple matching items remain
+  separate choices. Open keys are direct; only copy uses a `c` prefix.
+  Hidden repeated folder labels retain actions for their row.
 - Open actions carry a typed target, never a shell command. Missing links have
   no open action; future Git actions can use `g` without inventing a target today.
 
 `table.Format` computes Unicode cell widths, alignment, multiline height, and
 flexible-column wrapping while retaining colored spans and source row indices.
-Narrow screens clip or scroll fixed columns; data is not silently discarded.
+The TUI wraps titles and clips fixed columns on narrow screens; no horizontal scrolling.
 Historical row color overrides item colors. Terminal and browser palettes map
 semantic names to colors suitable for their backgrounds.
 

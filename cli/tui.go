@@ -18,15 +18,15 @@ import (
 )
 
 type tuiState struct {
-	model                     table.Table
-	mouseState                tuiMouse
-	freeScroll                bool
-	selected, top, horizontal int
-	chord, notice, verb       string
-	choices                   []table.Item
-	choice                    int
-	refresh                   func(string)
-	perform                   func(string, table.Item)
+	model               table.Table
+	mouseState          tuiMouse
+	freeScroll          bool
+	selected, top       int
+	chord, notice, verb string
+	choices             []table.Item
+	choice              int
+	refresh             func(string)
+	perform             func(string, table.Item)
 }
 
 func (s *tuiState) replace(model table.Table) {
@@ -88,12 +88,6 @@ func (s *tuiState) key(e *tcell.EventKey) bool {
 		s.selected = min(max(0, len(s.model.Rows)-1), s.selected+1)
 		s.chord = ""
 		return false
-	case tcell.KeyLeft:
-		s.horizontal = max(0, s.horizontal-8)
-		return false
-	case tcell.KeyRight:
-		s.horizontal += 8
-		return false
 	}
 	if e.Key() != tcell.KeyRune {
 		return false
@@ -109,8 +103,10 @@ func (s *tuiState) key(e *tcell.EventKey) bool {
 		case 'R':
 			s.refresh("")
 			s.notice = "Refresh all queued"
-		case 'o', 'c':
+		case 'c':
 			s.chord = string(r)
+		case 'a', 't', 's', 'f', 'g':
+			s.activate("o", string(r))
 		}
 		return false
 	}
@@ -120,30 +116,42 @@ func (s *tuiState) key(e *tcell.EventKey) bool {
 	}
 	s.chord += string(r)
 	verb, key := s.chord[:1], s.chord[1:]
-	row := s.model.Rows[s.selected]
-	items := row.Matches(verb, key)
-	if len(items) > 0 {
-		s.chord = ""
-		if len(items) == 1 {
-			s.perform(verb, items[0])
-		} else {
-			s.choices = items
-			s.choice = 0
-			s.verb = verb
-		}
+	if s.activate(verb, key) {
 		return false
 	}
-	for _, candidate := range row.Chords(verb) {
+	for _, candidate := range s.model.Rows[s.selected].Chords(verb) {
 		if strings.HasPrefix(candidate, key) {
 			return false
 		}
 	}
 	s.notice = "Action unavailable for this row"
-	if key == "g" {
-		s.notice = "Git opening is not implemented yet"
-	}
 	s.chord = ""
 	return false
+}
+
+// activate resolves both direct open keys and copy chords through item actions.
+func (s *tuiState) activate(verb, key string) bool {
+	if len(s.model.Rows) == 0 {
+		return false
+	}
+	items := s.model.Rows[s.selected].Matches(verb, key)
+	if len(items) == 0 {
+		if verb != "o" {
+			return false
+		}
+		s.notice = "Action unavailable for this row"
+		if verb == "o" && key == "g" {
+			s.notice = "Git opening is not implemented yet"
+		}
+		return false
+	}
+	s.chord = ""
+	if len(items) == 1 {
+		s.perform(verb, items[0])
+	} else {
+		s.choices, s.choice, s.verb = items, 0, verb
+	}
+	return true
 }
 
 var tuiColors = map[string]string{"dim": "#777f90", "muted": "#81899a", "cyan": "#62cce9", "orange": "#f4a172", "purple": "#ba96df", "green": "#9cce85", "yellow": "#e5c66b", "blue": "#77b8ec", "red": "#f18181"}
@@ -192,12 +200,7 @@ func (s *tuiState) draw(screen tcell.Screen) {
 	}
 	layout := table.FormatWithOptions(display, w-2, table.FormatOptions{CopyControl: "©"})
 	s.mouseState.layout = layout
-	total := max(0, len(layout.Widths)-1)
-	for _, width := range layout.Widths {
-		total += width
-	}
-	s.horizontal = min(s.horizontal, max(0, total-(w-2)))
-	x := 1 - s.horizontal
+	x := 1
 	for n, c := range s.model.Columns {
 		label := c.Label
 		if table.Width(label) > layout.Widths[n] {
@@ -250,7 +253,7 @@ func (s *tuiState) draw(screen tcell.Screen) {
 			if span.CopyControl && (len(s.choices) > 0 || !s.mouseState.known || hover.Source == nil || span.Source == nil || *hover.Source != *span.Source) {
 				continue
 			}
-			put(screen, 1+span.X-s.horizontal, y, w-1, span.Text, style.Foreground(tuiColor(span.Color)).Bold(span.Bold))
+			put(screen, 1+span.X, y, w-1, span.Text, style.Foreground(tuiColor(span.Color)).Bold(span.Bold))
 		}
 	}
 	message := s.notice
@@ -258,10 +261,10 @@ func (s *tuiState) draw(screen tcell.Screen) {
 		message = s.model.Rows[s.selected].Group + " · " + message
 	}
 	if s.chord != "" {
-		message = s.chord + "…  a agent  t ticket  s spec  f folder  g git (soon) · Esc cancel"
+		message = s.chord + "…  t ticket  s spec  f folder · Esc cancel"
 	}
 	put(screen, 1, h-2, w-1, message, base.Foreground(tuiColor("cyan")))
-	put(screen, 1, h-1, w-1, "↑↓ select  ←→ scroll  r refresh  R all  o open  c copy  Q quit", bar)
+	put(screen, 1, h-1, w-1, "↑↓ select  r refresh  R all  a agent  t ticket  s spec  f folder  c copy  Q quit", bar)
 	if len(s.choices) > 0 {
 		y := max(2, (h-len(s.choices)-2)/2)
 		put(screen, 3, y, w-3, "Choose item · ↑↓ Enter · Esc cancel", bar)

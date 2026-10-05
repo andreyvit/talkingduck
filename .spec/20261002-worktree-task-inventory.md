@@ -282,15 +282,15 @@ status: implemented prototype; correlation and workflow states are heuristic
 - Desktop, aligned status, and TUI consume this presentation model. Formatting
   tests cover Unicode, wrapping, alignment, multiline rows, history, and actions.
 - TUI uses tcell, a dark palette, cyan selection, status highlights, and a compact
-  key bar. Up/Down selects; Left/Right scrolls wide tables; Shift-Q/Ctrl-C exits.
+  key bar. Up/Down selects; titles wrap without horizontal scrolling; Shift-Q/Ctrl-C exits.
   Mouse clicks select rows and open links; hover reveals `©` copy controls.
   Wheel scrolling is independent of selection. Layout retains item hit targets;
   refresh/resize cancels pending clicks.
 - `r` queues the selected worktree, `R` all. Existing native event sources and
   separate cheap/expensive queues update cached rows without blocking input.
-- Open chords: `oa` agent, `ot` ticket, `os` spec, `of` folder; `og` reserved.
+- Direct open keys: `a` agent, `t` ticket, `s` spec, `f` folder; `g` reserved.
   Copy: `ct` ticket number, `cs` spec title, `cf` full folder path. Multiple tickets
-  use an Up/Down/Enter chooser. Esc cancels. String keys allow longer future chords.
+  use an Up/Down/Enter chooser. Esc cancels. String keys allow longer future copy chords.
 - Both binaries accept `-ai`, `-status`, `-tui`, `-gui`; explicit modes conflict.
   Defaults: command binary TUI, desktop binary GUI. The command binary launches
   the installed app for GUI mode; no GUI framework is linked into it.

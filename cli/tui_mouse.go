@@ -25,7 +25,7 @@ func (s *tuiState) mouseHit(x, y int) (table.Hit, bool) {
 	if m.width < 24 || m.height < 7 || x < 0 || x >= m.width-1 || y < 2 || y >= m.height-3 {
 		return table.Hit{}, false
 	}
-	hit, ok := m.layout.HitTest(max(0, x-1+s.horizontal), y-2+s.top)
+	hit, ok := m.layout.HitTest(max(0, x-1), y-2+s.top)
 	if x == 0 {
 		hit.Source = nil
 		hit.CopyControl = false
@@ -69,14 +69,6 @@ func (s *tuiState) mouse(e *tcell.EventMouse) {
 			s.freeScroll = true
 			s.top = max(0, s.top+delta)
 		}
-	}
-	if buttons&tcell.WheelLeft != 0 {
-		s.horizontal = max(0, s.horizontal-8)
-		m.pressed = nil
-	}
-	if buttons&tcell.WheelRight != 0 {
-		s.horizontal += 8
-		m.pressed = nil
 	}
 	down := buttons&tcell.Button1 != 0
 	target := s.mouseTarget(m.x, m.y)
