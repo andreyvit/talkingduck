@@ -54,7 +54,7 @@ call has its own timeouts and cannot be cancelled midway.
   See [agent chat links](../docs/agent-chat-links.md) for supported IDs and limitations.
 - Click any ticket reference to open it in the configured tracker with the default URL handler.
   Each ticket on a multiline row is linked separately; links underline on hover.
-  The workspace is currently Bubblehouse; see [future settings](../docs/future-settings.md).
+  Configure the tracker and workspace in Settings; see [settings](../docs/settings.md).
 - Click a spec title to preview its file in Marked. Titles underline on hover;
   non-task rows stay plain text. Missing files or app launch errors appear in the window.
 - Closing the window hides it.

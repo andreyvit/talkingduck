@@ -9,6 +9,7 @@ import (
 	"slices"
 	"talkingduck/inventory"
 	"talkingduck/settings"
+	"talkingduck/worktree"
 	"time"
 )
 
@@ -24,6 +25,9 @@ func (v *inventoryView) ListFolders() ([]settings.FolderStatus, error) {
 	}
 	result := []settings.FolderStatus{}
 	for _, folder := range data.Folders {
+		if !worktree.IsGit(folder.Path) {
+			continue
+		}
 		row := settings.FolderStatus{Folder: folder, Status: "hidden"}
 		if folder.Visible {
 			row.Status = "pending"

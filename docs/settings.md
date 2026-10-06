@@ -8,19 +8,22 @@ ten folders were explicitly saved during setup.
 
 Settings has one list, with:
 
-- **Monitoring:** Show or Hide. Only Show folders appear in inventory and receive
-  Git/spec/session scans, process probes, or fetches. Hide retains the entry.
+- **Use:** checkbox before the path. Only checked folders appear in inventory and receive
+  Git/spec/session scans, process probes, or fetches. Unchecking retains the entry.
 - **Menu Bar Shortcut:** Hide, 0–19, A–Z, a–z. Stored as a string; empty excludes
   the folder from the menu bar. A nonempty value includes it only while monitored.
   Case is distinct; duplicate labels are allowed. Two-digit labels retain narrow
   digit-1 rendering. With all items hidden, a neutral app icon keeps Settings reachable.
-- **Add Folder…:** native folder picker, adds or re-enables the folder as Show.
+- **Add Folder…:** native folder picker, adds or re-enables a Git checkout root.
   New folders default to menu bar Hide.
 
 The GUI discovers existing folder paths from Codex databases, Claude metadata,
 and Grok metadata on startup and every minute. This reads no transcripts and runs
 no Git commands. Discovered paths join the same list as Hide. Previously hidden
-entries stay hidden. Missing saved folders remain listed with a missing status.
+entries stay hidden. Only Git checkout roots are listed or monitored. Ordinary
+repositories, linked worktrees, and submodules qualify; non-repositories, nested
+working directories, and missing paths do not. Existing excluded entries remain
+in the settings file. Validation reads Git metadata without launching Git.
 
 Changes apply live. Inventory retains cached observations and scan locks when
 membership changes. Event sources restart for the new set; queue throttles remain.
@@ -49,7 +52,7 @@ Example:
 MCP actions:
 
 - `list_folders {}`: saved paths, Show/Hide, shortcut, discovery source, and status.
-- `add_monitored_folder {"folder":"/absolute/project"}`: Show; validate directory.
+- `add_monitored_folder {"folder":"/absolute/project"}`: Show; validate Git checkout root.
 - `remove_monitored_folder {"folder":"/absolute/project"}`: Hide; keep settings.
 - `update_folder_menubar_item_shortcut {"folder":"/absolute/project","shortcut":"a"}`:
   update label; use `""` for Hide. Does not change monitoring visibility.
@@ -65,7 +68,9 @@ the pasted `url`, derived `account_slug`, and a `custom` profile when applicable
 No workspace account is built in; this installation's existing Linear workspace
 was explicitly saved. Other installations must supply their own tracker URL.
 
-Simple app choices save immediately. Custom commands and tracker forms use Apply;
+App and tracker forms autosave after 300 ms idle, at most 1.5 s of continuous
+editing, with at least 500 ms between save completion and the next save. Folder
+checkboxes and shortcut choices save immediately. No Apply button or success message;
 invalid drafts preserve the working configuration. Open/copy actions reload the
 chosen settings file, including `-settings-file`, so GUI and TUI stay in sync.
 See [launchers](launchers.md) for schemas, placeholders, and platform limits.
@@ -73,3 +78,6 @@ The current MCP tools configure folders only.
 
 Settings uses grouped forms and one scrolling document, with aligned labels and
 controls. See [macOS UI conventions](macos-settings-ui.md).
+
+Connection includes a copy button for the MCP address. Configuration File shows
+JSON format and the active settings path; Reveal selects that file in Finder.

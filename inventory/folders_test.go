@@ -46,9 +46,10 @@ func TestMetadataFolderDiscovery(t *testing.T) {
 	t.Setenv("CLAUDE_CONFIG_DIR", filepath.Join(home, ".claude"))
 	t.Setenv("GROK_HOME", filepath.Join(home, ".grok"))
 	t.Setenv("CODEX_HOME", filepath.Join(home, ".codex"))
-	folder := t.TempDir()
+	folder := repo(t)
 	writeJSON(t, filepath.Join(home, ".claude", "sessions", "1.json"), Object{"cwd": folder})
 	writeJSON(t, filepath.Join(home, ".grok", "sessions", "a", "b", "summary.json"), Object{"info": Object{"cwd": folder}})
+	writeJSON(t, filepath.Join(home, ".claude", "sessions", "2.json"), Object{"cwd": t.TempDir()})
 	paths := DiscoverFolders(home)
 	if len(paths) != 1 || paths[0] != resolved(folder) {
 		t.Fatal(paths)

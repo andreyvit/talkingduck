@@ -2,6 +2,7 @@ package cli
 
 import (
 	"flag"
+	"os/exec"
 	"path/filepath"
 	"talkingduck/settings"
 	"testing"
@@ -16,6 +17,9 @@ func TestConfiguredPathsAndExplicitOverride(t *testing.T) {
 	}
 	store := settings.Store{Path: opts.SettingsPath}
 	folder, _ := settings.NormalizePath(t.TempDir())
+	if out, err := exec.Command("git", "init", "-q", folder).CombinedOutput(); err != nil {
+		t.Fatal(string(out), err)
+	}
 	if _, err = store.SetVisible(folder, true); err != nil {
 		t.Fatal(err)
 	}

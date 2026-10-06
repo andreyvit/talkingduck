@@ -44,7 +44,7 @@ go test -race ./mcpserver ./desktop
 Folder settings tools (same settings as GUI/TUI):
 
 - `list_folders {}` returns all paths, including hidden/discovered entries, with
-  Show/Hide, menu bar shortcut, and current cache/missing status.
+  Show/Hide, menu bar shortcut, and current cache status. Non-Git and missing paths are excluded.
 - `add_monitored_folder {"folder":"/absolute/path"}` saves Show and starts monitoring.
 - `remove_monitored_folder {"folder":"/absolute/path"}` saves Hide; deletes no files
   and retains the entry so rediscovery cannot re-enable it.
@@ -52,3 +52,6 @@ Folder settings tools (same settings as GUI/TUI):
   sets the string label; `""` means Hide. Allowed values: 0–19, A–Z, a–z.
 
 See [folder settings](../docs/settings.md) for persistence and live reconfiguration.
+
+Adding a monitored folder requires a Git checkout root (ordinary repository,
+linked worktree, or submodule), matching Settings validation.

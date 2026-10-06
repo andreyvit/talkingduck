@@ -10,7 +10,7 @@ TalkingDuck design rules, not a claim that HTML controls equal AppKit controls.
   Closing it hides it; it does not quit the app. Keep normal text-editing menus.
 - Keep the title bar native. Do not draw traffic lights, fake toolbars, or a
   second large page title beneath the window title.
-- Group settings by purpose: Applications, Tickets, Folders, Connection.
+- Group settings by purpose: Applications, Tickets, Folders, Connection, Configuration File.
   Avoid a sidebar while these fit in one understandable page.
 - Scroll the entire page. No fixed-height folder list or nested scroll area.
   Native popup menus may scroll their options; that is a different control.
@@ -27,13 +27,14 @@ independently or repair alignment with spaces in labels.
 - Center labels against a single-line control's text. For multiline controls,
   align the label to the first line. Align like controls to like controls.
 - Keep related controls the same width. Path field + Choose… occupy one control
-  column together. Buttons, help, validation, and Apply begin at that column.
+  column together. Help and validation begin at that column.
 - Use shared tokens: 24 px page inset/section separation, 12 px group inset,
   16 px label/control gap, 10 px between form rows, 8 px before help. These are
   project starting values in CSS pixels, not Apple-mandated measurements.
 - Use a 156 px label column and a flexible control column. Keep the page's
   maximum width bounded; extra window width must not scatter controls.
-- Folder headers and dropdowns share fixed column boundaries. Long paths wrap
+- Folder headers and controls share fixed column boundaries. Use comes first
+  as a checkbox; the path follows, then the menu bar shortcut. Long paths wrap
   within the folder column. Dropdown positions must not depend on name length.
 - Judge optical alignment at actual size. Check text baselines, control centers,
   group edges, separator insets, label/control gaps, and clipped popup arrows.
@@ -56,9 +57,9 @@ independently or repair alignment with spaces in labels.
 
 ## Editing behavior
 
-- Apply simple dropdown choices immediately. Multi-field custom commands and
-  tracker URLs use a local Apply action so invalid drafts cannot replace working
-  settings. No global Save/Cancel ceremony for the whole Settings window.
+- Save on change with a short cooldown and throttle for text forms. No Apply,
+  Saved, or other success messages. Keep errors visible and preserve working
+  settings until a valid draft can replace them.
 - Validate before saving, preserve invalid text, explain the field to fix,
   and keep the last working configuration. Show errors beside that form.
 - Do not replace focused controls or overwrite unfinished edits when snapshots

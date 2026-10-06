@@ -13,7 +13,7 @@ func TestFoldersPersistAndDiscoveryStaysHidden(t *testing.T) {
 	if err != nil || len(d.Folders) != 0 {
 		t.Fatal(d, err)
 	}
-	folder := t.TempDir()
+	folder := gitFolder(t)
 	d, err = s.Discover([]string{folder, folder})
 	if err != nil || len(d.Folders) != 1 || d.Folders[0].Visible {
 		t.Fatal(d, err)
@@ -71,7 +71,7 @@ func TestDefaultPathUsesXDG(t *testing.T) {
 func TestConcurrentStoresPreserveEdits(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "settings.json")
 	a, b := &Store{Path: path}, &Store{Path: path}
-	one, two := t.TempDir(), t.TempDir()
+	one, two := gitFolder(t), gitFolder(t)
 	done := make(chan error, 2)
 	go func() { _, err := a.SetVisible(one, true); done <- err }()
 	go func() { _, err := b.SetVisible(two, true); done <- err }()

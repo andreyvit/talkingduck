@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"talkingduck/worktree"
 )
 
 // DiscoverFolders reads provider metadata only: no transcripts, process probes,
@@ -16,7 +17,7 @@ func DiscoverFolders(home string) []string {
 	seen := map[string]bool{}
 	add := func(value any) {
 		p := str(value)
-		if filepath.IsAbs(p) {
+		if filepath.IsAbs(p) && worktree.IsGit(p) {
 			if st, e := os.Stat(p); e == nil && st.IsDir() {
 				seen[resolved(p)] = true
 			}

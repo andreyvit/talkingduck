@@ -20,6 +20,7 @@ func applicationSettings(v *inventoryView) map[string]any {
 	return map[string]any{"values": data.Applications.Defaults(), "editors": launchers.Available(launchers.Editors, runtime.GOOS), "gitClients": launchers.Available(launchers.GitClients, runtime.GOOS), "trackers": launchers.Trackers, "error": message}
 }
 func registerApplicationSettings(app *application.App, v *inventoryView, publish func()) {
+	registerSettingsReveal(app, v)
 	var saveMu sync.Mutex
 	latest := map[string]int{}
 	app.Event.On("settings:application", func(e *application.CustomEvent) {

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"talkingduck/worktree"
 	"time"
 )
 
@@ -67,7 +68,7 @@ func ValidShortcut(s string) bool {
 func (d Data) Paths() []string {
 	r := []string{}
 	for _, f := range d.Folders {
-		if f.Visible {
+		if f.Visible && worktree.IsGit(f.Path) {
 			r = append(r, f.Path)
 		}
 	}
@@ -168,6 +169,9 @@ func (s *Store) SetVisible(path string, visible bool) (Data, error) {
 		if !st.IsDir() {
 			return Data{}, fmt.Errorf("not a folder: %s", path)
 		}
+		if !worktree.IsGit(path) {
+			return Data{}, fmt.Errorf("not a Git checkout or worktree root: %s", path)
+		}
 	}
 	return s.update(func(d *Data) error {
 		for i := range d.Folders {
@@ -209,7 +213,7 @@ func (s *Store) Discover(paths []string) (Data, error) {
 		}
 		for _, p := range paths {
 			p, e := NormalizePath(p)
-			if e != nil || seen[p] {
+			if e != nil || seen[p] || !worktree.IsGit(p) {
 				continue
 			}
 			seen[p] = true

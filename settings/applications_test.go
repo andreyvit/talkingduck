@@ -8,7 +8,7 @@ import (
 
 func TestApplicationSettingsPreserveFolders(t *testing.T) {
 	s := &Store{Path: filepath.Join(t.TempDir(), "settings.json")}
-	folder := t.TempDir()
+	folder := gitFolder(t)
 	if _, e := s.SetVisible(folder, true); e != nil {
 		t.Fatal(e)
 	}

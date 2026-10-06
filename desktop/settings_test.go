@@ -3,6 +3,7 @@
 package main
 
 import (
+	"os/exec"
 	"path/filepath"
 	"talkingduck/inventory"
 	"talkingduck/settings"
@@ -16,6 +17,9 @@ func TestFolderSettingsApplyWithoutScan(t *testing.T) {
 	}
 	v := &inventoryView{cache: c, settings: &settings.Store{Path: filepath.Join(t.TempDir(), "settings.json")}, emit: func(inventoryState) {}}
 	folder := t.TempDir()
+	if out, err := exec.Command("git", "init", "-q", folder).CombinedOutput(); err != nil {
+		t.Fatal(string(out), err)
+	}
 	if err = v.AddMonitoredFolder(folder); err != nil {
 		t.Fatal(err)
 	}

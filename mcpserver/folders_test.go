@@ -3,6 +3,7 @@ package mcpserver
 import (
 	"context"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"talkingduck/settings"
@@ -59,6 +60,9 @@ func TestFolderTools(t *testing.T) {
 		t.Fatal(tools, err)
 	}
 	folder := t.TempDir()
+	if out, err := exec.Command("git", "init", "-q", folder).CombinedOutput(); err != nil {
+		t.Fatal(string(out), err)
+	}
 	call := func(name string, args map[string]any, want string) {
 		t.Helper()
 		result, e := session.CallTool(ctx, &mcp.CallToolParams{Name: name, Arguments: args})

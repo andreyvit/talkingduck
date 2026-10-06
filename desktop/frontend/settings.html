@@ -7,8 +7,12 @@
 <p class="section-help">Open the selected project with E (editor) or G (Git client). Apps must be installed.</p></section>
 <section aria-labelledby="tickets-title"><h2 id="tickets-title">Tickets</h2><div class="group"><form id="tracker-form"></form></div></section>
 <section aria-labelledby="folders-title"><div class="section-heading"><h2 id="folders-title">Folders</h2><button id="add">Add Folder…</button></div>
-<div class="group folders"><table><colgroup><col><col class="monitoring-col"><col class="shortcut-col"></colgroup><thead><tr><th>Folder</th><th>Monitoring</th><th>Menu Bar Shortcut</th></tr></thead><tbody id="folders"></tbody></table></div>
-<p class="section-help">Only shown folders are monitored. Discovered folders start hidden. Hide leaves a folder out of the menu bar.</p><p id="error" role="status"></p></section>
-<section aria-labelledby="connection-title"><h2 id="connection-title">Connection</h2><div class="group"><div class="form-row"><label for="address">MCP server</label><input id="address" readonly placeholder="Starting server…"></div></div>
-<p id="mcp-error" class="section-help"></p><p id="path" class="section-help"></p></section>
+<div class="group folders"><table><colgroup><col class="use-col"><col><col class="shortcut-col"></colgroup><thead><tr><th class="use-cell">Use</th><th>Folder</th><th>Menu Bar Shortcut</th></tr></thead><tbody id="folders"></tbody></table></div>
+<p id="error" role="status"></p></section>
+<section aria-labelledby="connection-title"><h2 id="connection-title">Connection</h2><div class="group"><div class="form-row"><label for="address">MCP server</label><div id="address-control"></div></div></div>
+<p id="mcp-error" class="section-help"></p></section>
+<section aria-labelledby="configuration-title"><h2 id="configuration-title">Configuration File</h2><div class="group">
+<div class="form-row"><span class="form-label">Format</span><span>JSON</span></div>
+<div class="form-row"><span class="form-label">Location</span><div class="path-control"><span id="path"></span><button id="reveal">Reveal</button></div></div>
+</div></section>
 </main><script type="module" src="/settings.js"></script></html>

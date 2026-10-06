@@ -15,6 +15,7 @@ The window uses the CLI's shared table rows.
 - `docs/`: durable AI and developer context.
 - `cmd/talkingduck/`: thin cgo-free CLI entry point.
 - `cli/`: reusable flag registration, terminal output, and exit codes.
+- `worktree/`: cheap filesystem validation of Git checkout roots, including linked worktrees.
 - `launchers/`: reusable application commands and ticket URL templates; no UI or settings dependency.
 - `desktop/`: Wails app, native tray-width shim, embedded overview, and local build script; see [desktop instructions](../desktop/README.md).
 - `mcpserver/`: loopback Streamable HTTP tools using the desktop cache; see [MCP setup](../mcpserver/README.md).

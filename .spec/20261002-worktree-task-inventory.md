@@ -46,7 +46,7 @@ status: implemented prototype; correlation and workflow states are heuristic
 
 - No built-in scan paths. Shared `$XDG_CONFIG_HOME/zoo/talkingduck-settings.json`,
   default `~/.config/zoo/talkingduck-settings.json`; explicit CLI paths override per run.
-- One Settings list: saved and metadata-discovered folders, Show/Hide dropdown,
+- One Settings list: saved and metadata-discovered Git checkout roots, Use checkbox,
   Add Folder picker. Discovery defaults Hide and never re-enables hidden entries.
 - Only Show folders are monitored. Live membership updates retain caches and queue
   throttles; in-flight scans cannot restore hidden rows. Other clients reload settings.
