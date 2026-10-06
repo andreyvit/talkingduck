@@ -7,7 +7,7 @@ import (
 	"talkingduck/table"
 )
 
-var ticketID = regexp.MustCompile(`^[A-Z][A-Z0-9]*-[0-9]+$`)
+var ticketID = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]*$`)
 
 func pointer(s string) *string { return &s }
 func modelTable(view TableView) table.Table {
@@ -38,6 +38,10 @@ func modelTable(view TableView) table.Table {
 	}
 	for n, raw := range view.Rows {
 		row := table.Row{Group: view.WorktreePaths[n], ID: view.WorktreePaths[n] + ":" + view.SpecPaths[n]}
+		row.Actions = []table.Item{
+			{Text: "Editor", Chord: "e", Link: &table.Action{Kind: "editor", Target: row.Group}},
+			{Text: "Git", Chord: "g", Link: &table.Action{Kind: "git", Target: row.Group}},
+		}
 		if view.SpecPaths[n] == "" {
 			row.Archive = &table.Action{Kind: "archive", Target: ""}
 		} else if relative, err := filepath.Rel(row.Group, view.SpecPaths[n]); err == nil {
@@ -77,7 +81,7 @@ func modelTable(view TableView) table.Table {
 						item.Chord = "t"
 						item.Copy = pointer(text)
 						item.Link = &table.Action{Kind: "ticket", Target: text}
-						item.Tooltip = "Open in Linear"
+						item.Tooltip = "Open ticket"
 					}
 				case "title":
 					if view.SpecPaths[n] != "" {

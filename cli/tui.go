@@ -111,7 +111,7 @@ func (s *tuiState) key(e *tcell.EventKey) bool {
 			s.notice = "Refresh all queued"
 		case 'c':
 			s.chord = string(r)
-		case 'a', 't', 's', 'f', 'g':
+		case 'a', 't', 's', 'f', 'e', 'g':
 			s.activate("o", string(r))
 		}
 		return false
@@ -146,9 +146,6 @@ func (s *tuiState) activate(verb, key string) bool {
 			return false
 		}
 		s.notice = "Action unavailable for this row"
-		if verb == "o" && key == "g" {
-			s.notice = "Git opening is not implemented yet"
-		}
 		return false
 	}
 	s.chord = ""
@@ -278,7 +275,7 @@ func (s *tuiState) draw(screen tcell.Screen) {
 		message = s.chord + "…  t ticket  T ticket URL  s spec  f folder · Esc cancel"
 	}
 	put(screen, 1, h-2, w-1, message, base.Foreground(tuiColor("cyan")))
-	put(screen, 1, h-1, w-1, "↑↓ select  r refresh  R all  a agent  t ticket  s spec  f folder  c copy  X archive  Q quit", bar)
+	put(screen, 1, h-1, w-1, "↑↓ select  r refresh  R all  a agent  t ticket  s spec  f folder  e editor  g Git  c copy  X archive  Q quit", bar)
 	if len(s.choices) > 0 {
 		y := max(2, (h-len(s.choices)-2)/2)
 		put(screen, 3, y, w-3, "Choose item · ↑↓ Enter · Esc cancel", bar)
@@ -443,9 +440,15 @@ func RunTUI(opts *Options, paths []string) int {
 		go func() {
 			var err error
 			if verb == "o" && item.Link != nil {
-				err = actions.Open(*item.Link)
+				err = (actions.Opener{SettingsPath: opts.SettingsPath}).Open(*item.Link)
 			} else if verb == "c" && item.Copy != nil {
-				err = actions.Copy(*item.Copy)
+				value := *item.Copy
+				if item.Chord == "T" {
+					value, err = (actions.Opener{SettingsPath: opts.SettingsPath}).TicketURL(value)
+				}
+				if err == nil {
+					err = actions.Copy(value)
+				}
 			}
 			if err != nil {
 				tell(err.Error())
@@ -507,7 +510,7 @@ func tuiMatches(row table.Row, verb, key string) []table.Item {
 			continue
 		}
 		item.Chord = "T"
-		item.Copy = pointer(actions.TicketURL(item.Link.Target))
+		item.Copy = pointer(item.Link.Target)
 		result = append(result, item)
 	}
 	return result

@@ -85,3 +85,8 @@ persistent folder rows, and separate agent/Zoo states. That chat explored cctop
 as a possible base; it did not test it live or implement an integration.
 Current chat listings confirm work spread across multiple Prairie folders and
 several chats within a folder. They do not establish which task is executing now.
+
+Project actions open the selected worktree in a configurable editor or Git client.
+Ticket links use a configurable tracker. GUI and TUI share these settings and the
+same launcher package; the desktop Settings follows practical macOS conventions.
+See [launchers](launchers.md) and [Settings UI](macos-settings-ui.md).

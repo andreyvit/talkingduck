@@ -9,6 +9,7 @@ const controller=new InventoryController(async action=>{
   switch(action.kind) {
    case 'open': Events.Emit('inventory:open-'+action.value.kind,action.value.target);break;
    case 'copy': await Clipboard.SetText(action.value);notice('Copied: '+action.label);break;
+   case 'copy-ticket-url': Events.Emit('inventory:copy-ticket-url',action.value);break;
    case 'refresh': Events.Emit(action.value?'inventory:refresh-folder':'inventory:refresh',action.value);notice('Refresh queued');break;
    case 'archive': Events.Emit('inventory:archive-row',action.value);break;
    case 'settings': Events.Emit('settings:open');break;
@@ -20,7 +21,7 @@ function notice(text) {
  noticeTimer=setTimeout(()=>{$('notice').textContent='';},4000);
 }
 const hints=[[null,'↑↓','Select'],['r','r','Refresh'],['R','R','All'],
- ['a','a','Agent'],['t','t','Ticket'],['s','s','Spec'],['f','f','Folder'],['c','c','Copy'],['X','X','Archive'],['settings','^S','Settings']];
+ ['a','a','Agent'],['t','t','Ticket'],['s','s','Spec'],['f','f','Folder'],['e','e','Editor'],['g','g','Git'],['c','c','Copy'],['X','X','Archive'],['settings','^S','Settings']];
 const copyHints=[['t','ct','Ticket'],['T','cT','Ticket URL'],['s','cs','Spec'],['f','cf','Folder path'],['Escape','Esc','Cancel']];
 function invoke(key) {
  const handled=controller.action(key);
@@ -117,6 +118,7 @@ Events.On('inventory:snapshot',event=>{
 });
 Events.On('inventory:archived',()=>notice('Archived'));
 Events.On('inventory:open-error',event=>{$('error').textContent=event.data;});
+Events.On('inventory:notice',event=>notice(event.data));
 Events.On('mock:error',event=>{$('error').textContent=event.data;});
 paintState();
 Events.Emit('inventory:ready');

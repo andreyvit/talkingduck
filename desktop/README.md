@@ -52,7 +52,7 @@ call has its own timeouts and cannot be cancelled midway.
   The selection lasts for this run; preferences are not saved yet.
 - Click a linked Codex/Claude name to open that primary chat in its desktop app.
   See [agent chat links](../docs/agent-chat-links.md) for supported IDs and limitations.
-- Click any ticket reference to open its Linear issue in the default URL handler.
+- Click any ticket reference to open it in the configured tracker with the default URL handler.
   Each ticket on a multiline row is linked separately; links underline on hover.
   The workspace is currently Bubblehouse; see [future settings](../docs/future-settings.md).
 - Click a spec title to preview its file in Marked. Titles underline on hover;
@@ -176,7 +176,7 @@ Refreshes preserve both identities; missing rows cannot receive stale actions.
 The bottom hints invoke the same actions as keys: r refreshes the effective
 worktree, R refreshes all, a/t/s/f opens agent/ticket/spec/folder. c starts copy:
 ct number, cT (also CT) ticket URL, cs spec title, cf folder path. Multiple tickets
-use an Up/Down/Enter or clickable chooser. Ctrl-S opens Settings. Q does not quit.
+use an Up/Down/Enter or clickable chooser. `e` opens the project in the configured editor; `g` opens its Git client. Ctrl-S opens Settings. Q does not quit.
 
 The controller in frontend/controller.mjs is independent of DOM and Wails.
 Its Node tests cover selection modes, stable refreshes, action targets, copy

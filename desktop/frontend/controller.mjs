@@ -30,10 +30,10 @@ export class InventoryController {
   if(!row)return [];
   const copying=key.startsWith('c'),suffix=copying?key.slice(1):key;
   const chord=suffix==='T'&&copying?'t':suffix;
-  return row.cells.flatMap(cell=>cell.lines.flatMap(line=>line.items)).filter(item=>
+  return [...(row.actions||[]),...row.cells.flatMap(cell=>cell.lines.flatMap(line=>line.items))].filter(item=>
    item.chord===chord && (copying?(suffix==='T'?item.link?.kind==='ticket':item.copy!==undefined):!!item.link)
-  ).map(item=>({label:item.text,kind:copying?'copy':'open',value:copying?
-   (suffix==='T'?'https://linear.app/bubblehouse/issue/'+item.link.target:item.copy):item.link}));
+  ).map(item=>({label:item.text,kind:copying?(suffix==='T'?'copy-ticket-url':'copy'):'open',value:copying?
+   (suffix==='T'?item.link.target:item.copy):item.link}));
  }
  perform(action) {this.run(action);}
  choose(index) {
@@ -72,7 +72,7 @@ export class InventoryController {
    return true;
   }
   if(key==='r') {if(target)this.perform({kind:'refresh',value:target.group});return true;}
-  if(!['a','t','s','f','ct','cT','cs','cf'].includes(key))return false;
+  if(!['a','t','s','f','e','g','ct','cT','cs','cf'].includes(key))return false;
   const matches=this.matches(target,key);
   if(matches.length===1)this.perform(matches[0]);
   else if(matches.length>1) {

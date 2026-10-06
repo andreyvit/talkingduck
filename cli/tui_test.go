@@ -77,7 +77,7 @@ func TestTUIChordsSelectionAndRefresh(t *testing.T) {
 		t.Fatal(performed, refreshed)
 	}
 	runeKey('g')
-	if !strings.Contains(s.notice, "not implemented") {
+	if !strings.Contains(s.notice, "unavailable") {
 		t.Fatal(s.notice)
 	}
 	runeKey('c')
@@ -261,7 +261,7 @@ func TestCopyTicketURL(t *testing.T) {
 	}
 	s.key(tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone))
 	s.key(tcell.NewEventKey(tcell.KeyEnter, 0, tcell.ModNone))
-	if copied != "https://linear.app/bubblehouse/issue/DEV-2" {
+	if copied != "DEV-2" {
 		t.Fatal(copied)
 	}
 	for _, r := range "ct" {

@@ -1,4 +1,4 @@
-# Folder settings
+# Settings
 
 GUI, TUI, one-shot CLI, and MCP share `$XDG_CONFIG_HOME/zoo/talkingduck-settings.json`.
 When `XDG_CONFIG_HOME` is unset, use `~/.config/zoo/talkingduck-settings.json`.
@@ -55,3 +55,21 @@ MCP actions:
   update label; use `""` for Hide. Does not change monitoring visibility.
 
 These operate on the GUI's shared settings and update its window/tray immediately.
+
+## Applications and tickets
+
+The same file stores `applications.editor`, `applications.git_client`, and
+`applications.tracker`. Editor/Git selections contain `id`, plus `path` and `args`
+for Custom. Defaults are Zed and Sublime Merge. Tracker selections contain `id`,
+the pasted `url`, derived `account_slug`, and a `custom` profile when applicable.
+No workspace account is built in; this installation's existing Linear workspace
+was explicitly saved. Other installations must supply their own tracker URL.
+
+Simple app choices save immediately. Custom commands and tracker forms use Apply;
+invalid drafts preserve the working configuration. Open/copy actions reload the
+chosen settings file, including `-settings-file`, so GUI and TUI stay in sync.
+See [launchers](launchers.md) for schemas, placeholders, and platform limits.
+The current MCP tools configure folders only.
+
+Settings uses grouped forms and one scrolling document, with aligned labels and
+controls. See [macOS UI conventions](macos-settings-ui.md).

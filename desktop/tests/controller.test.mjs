@@ -23,7 +23,7 @@ test('open/copy commands and refresh use effective folder, uppercase copy URL su
  for(const key of ['a','s','f','t'])c.action(key);
  for(const keys of ['ct','cT','CT','cs','cf'])for(const key of keys)c.action(key);
  assert.deepEqual(calls.slice(0,4).map(a=>a.value.kind),['agent','spec','folder','ticket']);
- assert.deepEqual(calls.slice(4).map(a=>a.value),['DEV-1','https://linear.app/bubblehouse/issue/DEV-1','https://linear.app/bubblehouse/issue/DEV-1','Spec','/repo/a']);
+ assert.deepEqual(calls.slice(4).map(a=>a.value),['DEV-1','DEV-1','DEV-1','Spec','/repo/a']);
  c.action('r');c.action('R');c.action('settings');
  assert.deepEqual(calls.slice(-3),[{kind:'refresh',value:'/repo/a'},{kind:'refresh',value:''},{kind:'settings'}]);
  assert.equal(c.action('Q'),false);assert.equal(c.action('q'),false);assert.equal(c.action('o'),false);
@@ -33,7 +33,7 @@ test('chooser survives unchanged snapshots, supports keys, cancels when targets 
  assert.equal(c.choices.length,2);
  c.replace([row('a'),row('b',['DEV-2','DEV-3'])]);assert.equal(c.choices.length,2);
  c.action('ArrowDown');c.action('Enter');
- assert.equal(calls[0].value,'https://linear.app/bubblehouse/issue/DEV-3');
+ assert.equal(calls[0].value,'DEV-3');
  c.action('t');c.replace([row('b',['DEV-9'])]);assert.equal(c.choices.length,0);
 });
 test('hover changes cancel pending copy and missing rows cannot receive actions',()=>{
@@ -54,4 +54,15 @@ test('Shift-X archives the effective row; lowercase x does not',()=>{
  assert.deepEqual(calls[0],{kind:'archive',value:{folder:'/repo/c',spec:'.spec/c.md'}});
  c.action('ArrowDown');c.action('X');
  assert.equal(calls[1].value.spec,'.spec/b.md');
+});
+test('editor and Git actions use the effective worktree without adding cells',()=>{
+ const {c,calls}=fixture();
+ for(const row of c.rows)row.actions=['editor','git'].map((kind,i)=>({text:kind,chord:i?'g':'e',link:{kind,target:row.group}}));
+ c.hover('c');c.action('e');c.action('g');
+ assert.deepEqual(calls.map(a=>a.value),[{kind:'editor',target:'/repo/c'},{kind:'git',target:'/repo/c'}]);
+ c.action('ArrowDown');c.action('e');assert.equal(calls.at(-1).value.target,'/repo/b');
+});
+test('ticket URL copying resolves current preferences in Go',()=>{
+ const {c,calls}=fixture();c.hover('a');c.action('c');c.action('T');
+ assert.deepEqual(calls,[{kind:'copy-ticket-url',value:'DEV-1',label:'DEV-1'}]);
 });

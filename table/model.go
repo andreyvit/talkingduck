@@ -32,6 +32,7 @@ type Cell struct {
 	Lines []Line `json:"lines"`
 }
 type Row struct {
+	Actions []Item  `json:"actions,omitempty"` // Row-level actions without a visible cell.
 	Archive *Action `json:"archive,omitempty"`
 	ID      string  `json:"id"`
 	Group   string  `json:"group"`           // Full worktree path; refresh target, not display text.
@@ -63,6 +64,11 @@ func (c Cell) Text() string {
 // Matches returns all actionable items for a chord, including hidden group labels.
 func (r Row) Matches(verb, key string) []Item {
 	var result []Item
+	for _, i := range r.Actions {
+		if i.Chord == key && ((verb == "o" && i.Link != nil) || (verb == "c" && i.Copy != nil)) {
+			result = append(result, i)
+		}
+	}
 	for _, c := range r.Cells {
 		for _, l := range c.Lines {
 			for _, i := range l.Items {
@@ -77,6 +83,12 @@ func (r Row) Matches(verb, key string) []Item {
 func (r Row) Chords(verb string) []string {
 	seen := map[string]bool{}
 	var keys []string
+	for _, i := range r.Actions {
+		if i.Chord != "" && !seen[i.Chord] && len(r.Matches(verb, i.Chord)) > 0 {
+			seen[i.Chord] = true
+			keys = append(keys, i.Chord)
+		}
+	}
 	for _, c := range r.Cells {
 		for _, l := range c.Lines {
 			for _, i := range l.Items {

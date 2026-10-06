@@ -7,11 +7,34 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"talkingduck/launchers"
+	"talkingduck/settings"
 	"talkingduck/table"
 	"time"
 )
 
 func Open(a table.Action) error {
+	return (Opener{}).Open(a)
+}
+
+type Opener struct{ SettingsPath string }
+
+func (o Opener) preferences() (settings.Applications, error) {
+	path := o.SettingsPath
+	if path == "" {
+		path = settings.DefaultPath()
+	}
+	d, err := (&settings.Store{Path: path}).Load()
+	return d.Applications.Defaults(), err
+}
+func (o Opener) TicketURL(id string) (string, error) {
+	p, err := o.preferences()
+	if err != nil {
+		return "", err
+	}
+	return p.Tracker.TicketLink(id)
+}
+func (o Opener) Open(a table.Action) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	target := a.Target
@@ -23,7 +46,21 @@ func Open(a table.Action) error {
 	}
 	switch a.Kind {
 	case "ticket":
-		target = TicketURL(target)
+		var err error
+		target, err = o.TicketURL(target)
+		if err != nil {
+			return err
+		}
+		return launchers.OpenURL(ctx, target)
+	case "editor", "git":
+		p, err := o.preferences()
+		if err != nil {
+			return err
+		}
+		if a.Kind == "editor" {
+			return launchers.OpenProject(launchers.Editors, p.Editor, target)
+		}
+		return launchers.OpenProject(launchers.GitClients, p.GitClient, target)
 	case "agent", "spec", "folder":
 	default:
 		return fmt.Errorf("%s opening is not available yet", a.Kind)
@@ -67,6 +104,3 @@ func Copy(text string) error {
 	}
 	return nil
 }
-
-// TicketURL is shared by open and terminal URL-copy actions.
-func TicketURL(id string) string { return "https://linear.app/bubblehouse/issue/" + id }

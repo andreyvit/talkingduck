@@ -107,11 +107,13 @@ func run(opts *cli.Options, mcpPort int) error {
 		if err != nil {
 			settingsError = err.Error()
 		}
-		app.Event.Emit("settings:snapshot", map[string]any{"address": mcpAddress, "error": mcpError, "folders": folders, "settingsError": settingsError, "path": store.Path})
+		app.Event.Emit("settings:snapshot", map[string]any{"applications": applicationSettings(view), "address": mcpAddress, "error": mcpError, "folders": folders, "settingsError": settingsError, "path": store.Path})
 	}
 	app.Event.On("settings:ready", func(*application.CustomEvent) { publishSettings() })
 	app.Event.On("settings:open", func(*application.CustomEvent) { showSettings() })
 	view = &inventoryView{folderOverride: len(opts.Inventory.Paths) > 0, settings: store, settingsChanged: publishSettings, settingsError: func(err error) { app.Event.Emit("settings:error", err.Error()) }, cache: cache, fetch: fetchRemote, emit: func(state inventoryState) { app.Event.Emit("inventory:snapshot", state) }}
+
+	registerApplicationSettings(app, view, publishSettings)
 
 	app.Event.On("settings:visibility", func(event *application.CustomEvent) {
 		data, ok := event.Data.(map[string]any)

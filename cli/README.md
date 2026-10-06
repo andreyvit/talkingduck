@@ -38,3 +38,7 @@ Both entry points register the same flags. `Options.Mode` selects explicit
 `-ai`/`-status`/`-tui`/`-gui`, or the caller default. `RunTUI` uses tcell v2
 without a widget framework. Input/drawing stay on one goroutine; inventory queues
 and open/copy actions run in the background. Tests use tcell simulation screens.
+
+`e` opens the selected worktree in its configured editor; `g` opens its Git client.
+GUI and TUI use the same application and ticket settings, including custom commands.
+See [launchers](../docs/launchers.md).

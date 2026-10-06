@@ -2,18 +2,18 @@
 
 package main
 
-import "testing"
+import (
+	"talkingduck/cli"
+	"talkingduck/table"
+	"testing"
+)
 
-func TestTicketURL(t *testing.T) {
-	for _, ticket := range []string{"DEV-123", "BUB-004"} {
-		url, err := ticketURL(ticket)
-		if err != nil || url != "https://linear.app/bubblehouse/issue/"+ticket {
-			t.Fatalf("%s: %s %v", ticket, url, err)
-		}
+func TestTicketMustBelongToCurrentInventory(t *testing.T) {
+	v := &inventoryView{state: inventoryState{TableView: cli.TableView{Model: table.Table{Rows: []table.Row{{Cells: []table.Cell{{Lines: []table.Line{{Items: []table.Item{{Chord: "t", Link: &table.Action{Kind: "ticket", Target: "DEV-1"}}}}}}}}}}}}}
+	if !v.ticketKnown("DEV-1") || v.ticketKnown("DEV-2") {
+		t.Fatal("ticket membership mismatch")
 	}
-	for _, ticket := range []string{"--", "DEV-1\nBUB-2", "https://example.com", "DEV-1?x=y", "../DEV-1"} {
-		if _, err := ticketURL(ticket); err == nil {
-			t.Fatalf("accepted %q", ticket)
-		}
+	if err := v.openTicket("DEV-2"); err == nil {
+		t.Fatal("opened stale ticket")
 	}
 }

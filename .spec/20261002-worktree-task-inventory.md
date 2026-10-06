@@ -306,7 +306,9 @@ status: implemented prototype; correlation and workflow states are heuristic
   refresh/resize cancels pending clicks.
 - `r` queues the selected worktree, `R` all. Existing native event sources and
   separate cheap/expensive queues update cached rows without blocking input.
-- Direct open keys: `a` agent, `t` ticket, `s` spec, `f` folder; `g` reserved.
+- Direct open keys: `a` agent, `t` ticket, `s` spec, `f` folder, `e` editor, `g` Git client.
+  Editor/Git choices and ticket URL templates live in shared settings; see
+  `docs/launchers.md`. Row-level actions carry the worktree path independently of cells.
   Copy: `ct` ticket number, `cT` ticket URL, `cs` spec title, `cf` full folder path. Multiple tickets
   use an Up/Down/Enter chooser. Esc cancels. String keys allow longer future copy chords.
   Shift-X archives the effective row permanently, including running tasks.

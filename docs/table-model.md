@@ -68,3 +68,8 @@ Rows carry an archive action whose target is the relative spec path (empty for
 the task-free row). Shift-X uses that action on the effective row in either UI.
 Archive state filters shared inventory, including MCP output, without changing
 Git status or the spec. The footer exposes X Archive.
+
+Rows also carry `actions`: items without a visible cell. Editor (`e`) and Git
+client (`g`) actions target the row's worktree, including grouped/historical rows.
+Both clients resolve open-ticket and copy-ticket-URL through current shared
+settings. The table never embeds a personal tracker workspace URL.
