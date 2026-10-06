@@ -81,3 +81,12 @@ controls. See [macOS UI conventions](macos-settings-ui.md).
 
 Connection includes a copy button for the MCP address. Configuration File shows
 JSON format and the active settings path; Reveal selects that file in Finder.
+
+## Recently archived
+
+Shows up to 20 archived specs or task-free rows, newest first. Each compact row
+shows the spec filename, a muted relative date when known, and Unarchive. Hover
+the name for the full worktree/spec path. Legacy entries have no date and sort last.
+Unarchive removes the display tombstone and refreshes monitored worktrees; it
+does not enable hidden folders or modify repository files. Older archives remain
+stored even when outside this list.

@@ -311,10 +311,12 @@ status: implemented prototype; correlation and workflow states are heuristic
   `docs/launchers.md`. Row-level actions carry the worktree path independently of cells.
   Copy: `ct` ticket number, `cT` ticket URL, `cs` spec title, `cf` full folder path. Multiple tickets
   use an Up/Down/Enter chooser. Esc cancels. String keys allow longer future copy chords.
-  Shift-X archives the effective row permanently, including running tasks.
+  Shift-X archives the effective row until explicitly restored, including running tasks.
   Persist worktree/relative-spec tombstones in state, outside the bounded recent
   list. Empty spec identifies the task-free row; future tasks remain visible.
   Cache publication applies tombstones even to scans started before archiving.
+  Settings offers the latest 20 archives with Unarchive, spec name, and relative
+  date. New archives record timestamps; legacy undated entries sort last.
 - GUI rows extend edge to edge; no top toolbar. Bottom key hints are clickable,
   with short action status at the right and Ctrl-S Settings. Mouse mode starts
   active; hover chooses the action row. Up/Down uses a separate remembered row

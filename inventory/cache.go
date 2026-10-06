@@ -32,6 +32,7 @@ type cachedWorktree struct {
 // create it with New. It owns no timer, goroutine, disk cache, or app lifecycle.
 // Update and Snapshot may be called concurrently. Do not copy an Inventory.
 type Inventory struct {
+	archiveMu  sync.Mutex // Serialize local archive/unarchive transactions.
 	generation uint64
 	mu         sync.RWMutex
 	paths      []string

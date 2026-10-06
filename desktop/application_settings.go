@@ -21,6 +21,7 @@ func applicationSettings(v *inventoryView) map[string]any {
 }
 func registerApplicationSettings(app *application.App, v *inventoryView, publish func()) {
 	registerSettingsReveal(app, v)
+	registerArchivedSettings(app, v)
 	var saveMu sync.Mutex
 	latest := map[string]int{}
 	app.Event.On("settings:application", func(e *application.CustomEvent) {

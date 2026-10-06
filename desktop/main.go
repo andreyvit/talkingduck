@@ -107,6 +107,7 @@ func run(opts *cli.Options, mcpPort int) error {
 		if err != nil {
 			settingsError = err.Error()
 		}
+		publishArchivedSettings(app, view)
 		app.Event.Emit("settings:snapshot", map[string]any{"applications": applicationSettings(view), "address": mcpAddress, "error": mcpError, "folders": folders, "settingsError": settingsError, "path": store.Path})
 	}
 	app.Event.On("settings:ready", func(*application.CustomEvent) { publishSettings() })

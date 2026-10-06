@@ -122,5 +122,8 @@ cached inventory refuses invalid state so it cannot revive archived rows.
 history state file and hides it from snapshots immediately. Empty spec archives
 the task-free row. Archives survive scans, restart, pushes, and later execution;
 they never expire with recent history. No repository files change. Archiving
-requires a state file. To restore a row, remove its entry from the worktree’s
-`archived_rows` list in that file, then restart the app.
+requires a state file. `RecentArchives()` returns the newest 20 tombstones, dated
+entries first; legacy undated entries sort last. `UnarchiveRow` removes a tombstone;
+refresh that worktree afterwards to restore scan-filtered rows. Settings exposes
+this undo list. Archive dates live in each worktree's `archived_at` map; the
+existing `archived_rows` list remains compatible with older state files.

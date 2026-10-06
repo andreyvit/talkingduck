@@ -17,8 +17,9 @@ type seenSpec struct {
 	Activity time.Time `json:"activity"`
 }
 type worktreeHistory struct {
-	Specs        []seenSpec `json:"recent_specs"`
-	ArchivedRows []string   `json:"archived_rows,omitempty"`
+	Specs        []seenSpec           `json:"recent_specs"`
+	ArchivedRows []string             `json:"archived_rows,omitempty"`
+	ArchivedAt   map[string]time.Time `json:"archived_at,omitempty"`
 }
 type inventoryHistory struct {
 	Version   int                        `json:"version"`
@@ -81,7 +82,7 @@ func applyHistory(report *Report, path string) error {
 			if len(ordered) > 100 {
 				ordered = ordered[:100]
 			}
-			state.Worktrees[r.Path] = worktreeHistory{Specs: ordered, ArchivedRows: previous.ArchivedRows}
+			state.Worktrees[r.Path] = worktreeHistory{Specs: ordered, ArchivedRows: previous.ArchivedRows, ArchivedAt: previous.ArchivedAt}
 			for _, old := range ordered {
 				if active[old.Path] || contains(archived, old.Path) {
 					continue
