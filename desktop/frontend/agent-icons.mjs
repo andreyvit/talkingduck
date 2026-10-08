@@ -17,7 +17,7 @@ export function agentIcon(document,identity){
  }else if(identity.id==='codex'){
   for(let i=0;i<6;i++)add('path',{d:'M12 5 C8 1 3 5 4 9 L4 13 L12 17 L16 15 L16 7 Z',transform:`rotate(${i*60} 12 12)`,fill:'none',stroke:'currentColor','stroke-width':1.35,'stroke-linejoin':'round'});
  }else{
-  add('path',{d:'M18 4 A9 9 0 1 0 20 17',fill:'none',stroke:'currentColor','stroke-width':2.1,'stroke-linecap':'round'});
+  add('circle',{cx:12,cy:12,r:9,fill:'none',stroke:'currentColor','stroke-width':2.1});
   add('path',{d:'M4 22 L14 8 L24 1 L15 16 Z',fill:'currentColor'});
  }
  return svg;
