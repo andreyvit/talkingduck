@@ -277,7 +277,8 @@ status: implemented prototype; correlation and workflow states are heuristic
   - Local Git counters, remote Git counters, spec title.
 - Use one space between padded columns. Fix widths across the table, expanding
   only enough to fit observed values. Unicode symbols occupy terminal cells.
-  Give each Git counter (`±`, `?`, `ℹ︎`, `⇣`, `⇡`) its own aligned column.
+  GUI/TUI Mod combines tracked and untracked changes; other Git counters retain
+  separate aligned columns. Raw inventory and AI output retain separate counts.
   Reserve at least two digits for each number, including rounds and paired counts.
 - Last column uses remaining width and wraps. Use `-width N`, otherwise terminal
   width / `COLUMNS`, otherwise 120. Below the structural minimum the table can
@@ -291,6 +292,8 @@ status: implemented prototype; correlation and workflow states are heuristic
   Dim every column of historical `PUSHED` rows with the same muted foreground.
   Desktop running rows have a cyan background; input attention takes priority.
   Apply ANSI escapes after layout so colors cannot change alignment or wrapping.
+  GUI agents use full vector menu-bar motifs behind `USE_AGENT_ICONS`; text names
+  remain available as tooltips. Compact spacing targets 864-point laptop windows.
 
 ### Shared presentation and TUI
 

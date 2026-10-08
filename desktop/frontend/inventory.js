@@ -1,7 +1,9 @@
 import {Events,Clipboard} from '/wails/runtime.js';
+import {USE_AGENT_ICONS,agentIdentity,agentIcon} from './agent-icons.mjs';
 import {copyable} from './copy.js';
 import {InventoryController} from './controller.mjs';
 
+document.body.classList.toggle('agent-icons',USE_AGENT_ICONS);
 const $=id=>document.getElementById(id);
 let model={columns:[],rows:[]},lastPointer=null,noticeTimer,shiftHeld=false;
 const controller=new InventoryController(async action=>{
@@ -82,7 +84,7 @@ function mouseRow(event,id) {
 function render(data) {
  model={columns:data.table?.columns||[],rows:data.table?.rows||[]};controller.replace(model.rows);
  $('headers').replaceChildren(...model.columns.map(col=>{
-  const th=document.createElement('th');th.textContent=col.label;th.style.textAlign=col.align||'left';
+  const th=document.createElement('th');th.textContent=USE_AGENT_ICONS&&col.id==='agent'?'':col.label;if(col.id==='agent')th.setAttribute('aria-label','Agent');th.style.textAlign=col.align||'left';
   th.dataset.column=col.id;return th;
  }));
  $('status').textContent=data.loading?'Refreshing '+(data.refreshingPath||'inventory')+'…':'';
@@ -104,6 +106,8 @@ function render(data) {
     items.forEach(item=>{
      const el=document.createElement(item.link?'a':'span');el.textContent=item.text;el.className=item.color||'';
      if(item.bold)el.style.fontWeight='550';el.title=item.tooltip||'';
+     const agent=USE_AGENT_ICONS&&model.columns[column].id==='agent'?agentIdentity(item.text):null;
+     if(agent){el.textContent='';el.classList.add('agent-mark');el.append(agentIcon(document,agent));el.setAttribute('aria-label',item.text);el.title=agent.name+(agent.conflict?' — conflicting sessions':'')+(item.link?' — Open this chat':'');if(agent.conflict){const badge=document.createElement('span');badge.className='agent-conflict';badge.textContent='!';el.append(badge);}}
      if(item.link) {
       el.classList.add('inventory-link');el.href='#';
       el.onclick=event=>{event.preventDefault();controller.perform({kind:'open',value:item.link});};

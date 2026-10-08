@@ -219,7 +219,7 @@ func TestTUIHeaderAlignment(t *testing.T) {
 
 func TestQuestionZeroPresentation(t *testing.T) {
 	row := make([]string, 16)
-	row[0], row[9], row[10] = "example", "0", "±0"
+	row[0], row[9], row[10], row[11] = "example", "0", "±0", "?0"
 	model := modelTable(TableView{Rows: [][]string{row}, WorktreePaths: []string{"/example"}, SpecPaths: []string{""}, AgentLinks: []string{""}})
 	for n, col := range model.Columns {
 		item := model.Rows[0].Cells[n].Lines[0].Items[0]

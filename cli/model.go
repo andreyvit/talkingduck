@@ -24,7 +24,7 @@ func modelTable(view TableView) table.Table {
 		columns = append(columns[:5], columns[6:]...)
 	}
 	// Source rows retain their legacy order; both UIs use this presentation order.
-	order := []string{"folder", "agent", "ticket", "stage", "uber", "progress", "input", "revision", "tasks", "questions", "tracked", "untracked", "markdown", "behind", "ahead", "title"}
+	order := []string{"folder", "agent", "ticket", "stage", "uber", "progress", "input", "revision", "tasks", "questions", "tracked", "markdown", "behind", "ahead", "title"}
 	indices := make([]int, 0, len(columns))
 	model := table.Table{Rows: []table.Row{}}
 	for _, id := range order {
@@ -50,6 +50,9 @@ func modelTable(view TableView) table.Table {
 		for _, j := range indices {
 			value := raw[j]
 			col := columns[j]
+			if col.ID == "tracked" {
+				value = modifiedCount(value, raw[j+1])
+			}
 			cell := table.Cell{}
 			for _, text := range strings.Split(value, "\n") {
 				text = strings.TrimSpace(text)

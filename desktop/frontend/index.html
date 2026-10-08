@@ -5,7 +5,7 @@
 :root{color-scheme:light dark;font-family:-apple-system,BlinkMacSystemFont,sans-serif;--bg:light-dark(#fafafa,#202126);--fg:light-dark(#292a30,#e7e8ec);--muted:light-dark(#737780,#979da8);--stripe:light-dark(#00000005,#ffffff05);--hover:light-dark(#0000000c,#ffffff0d)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 button{font:inherit;font-size:12px;padding:6px 11px;border:1px solid #8884;border-radius:6px;cursor:pointer;background:light-dark(#fff,#303238);color:inherit}button:disabled{opacity:.45;cursor:default}
-main{overflow:auto;flex:1;min-height:0}table{border-collapse:collapse;width:100%;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}th{font:10px -apple-system,BlinkMacSystemFont,sans-serif;text-align:left;color:var(--muted);padding:5px 7px 9px;font-weight:500}td{white-space:pre;vertical-align:top;padding:5px 7px;border:0}tbody tr:nth-child(even){background:var(--stripe)}tbody tr.mouse-selected{background:var(--hover)}td:last-child{white-space:pre-wrap;overflow-wrap:anywhere;min-width:200px;width:100%}td:nth-child(1){font-weight:550}td:nth-child(3){color:light-dark(#526681,#b8c7dc)}
+main{overflow:auto;flex:1;min-height:0}table{border-collapse:collapse;width:100%;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}th{font:10px -apple-system,BlinkMacSystemFont,sans-serif;text-align:left;color:var(--muted);padding:5px 7px 9px;font-weight:500}td{white-space:pre;vertical-align:top;padding:5px 7px;border:0}tbody tr:nth-child(even){background:var(--stripe)}tbody tr.mouse-selected{background:var(--hover)}td:last-child{white-space:pre-wrap;overflow-wrap:anywhere;min-width:110px;width:100%}td:nth-child(1){font-weight:550}td:nth-child(3){color:light-dark(#526681,#b8c7dc)}
 tbody tr.attention{background:light-dark(#fff1d6,#363126)}tbody tr.attention:nth-child(even){background:light-dark(#faebce,#3b3428)}tbody tr.attention.mouse-selected{background:light-dark(#f5e3bc,#463c2b)}
 tbody tr.running{background:light-dark(#e0f5fa,#20363e)}tbody tr.running:nth-child(even){background:light-dark(#d8eff5,#243d46)}tbody tr.running.mouse-selected{background:light-dark(#cce9f1,#2b4852)}
 tbody tr.pushed td,tbody tr.pushed td *{color:var(--muted)}
@@ -30,6 +30,13 @@ kbd{font:inherit;color:light-dark(#087b99,#62cce9);font-weight:600}
 dialog{background:var(--bg);color:var(--fg);border:1px solid #8886;border-radius:6px;padding:14px;max-width:80vw}
 dialog::backdrop{background:#0006}#choices{display:flex;flex-direction:column;gap:3px;margin:10px 0;max-height:60vh;overflow:auto}
 #choices button{text-align:left;background:none}#choices button.chosen{background:light-dark(#d2eaf3,#254862)}
+/* Icons use the cell's padding area; their artwork does not shrink with the column. */
+.agent-icons [data-column=agent]{padding-left:0;padding-right:0;min-width:24px;width:24px;text-align:center!important}
+.agent-mark{display:inline-flex;position:relative;vertical-align:top;align-items:center;height:20px}
+.agent-icon{display:block;width:24px;height:24px;overflow:visible}
+.agent-conflict{position:absolute;right:-3px;top:-4px;font-size:10px;font-weight:bold}
+@media(max-width:900px){td{padding-left:4px;padding-right:4px}th{padding-left:4px;padding-right:4px}td:first-child,th:first-child{padding-left:12px}.statusbar{gap:6px}#keys{gap:2px 6px}}
+
 </style>
 <main><table aria-label="Work inventory"><thead><tr id="headers"></tr></thead><tbody id="rows"></tbody></table><div id="empty">Collecting worktrees and agent sessions…</div></main>
 <footer>
