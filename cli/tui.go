@@ -272,7 +272,7 @@ func (s *tuiState) draw(screen tcell.Screen) {
 		message = s.model.Rows[s.selected].Group + " · " + message
 	}
 	if s.chord != "" {
-		message = s.chord + "…  t ticket  T ticket URL  s spec  f folder · Esc cancel"
+		message = s.chord + "…  t ticket  T ticket URL  s spec  S spec path  f folder · Esc cancel"
 	}
 	put(screen, 1, h-2, w-1, message, base.Foreground(tuiColor("cyan")))
 	put(screen, 1, h-1, w-1, "↑↓ select  r refresh  R all  a agent  t ticket  s spec  f folder  e editor  g Git  c copy  X archive  Q quit", bar)
@@ -499,7 +499,7 @@ func RunTUI(opts *Options, paths []string) int {
 	}
 }
 
-// tuiMatches adds terminal-only copy shortcuts without exposing extra GUI controls.
+// tuiMatches resolves alternate keyboard actions without extra visible controls.
 func tuiMatches(row table.Row, verb, key string) []table.Item {
 	if verb == "o" && key == "S" {
 		items := row.Matches("o", "s")
@@ -510,15 +510,19 @@ func tuiMatches(row table.Row, verb, key string) []table.Item {
 		}
 		return items
 	}
-	if verb != "c" || key != "T" {
+	if verb != "c" || (key != "T" && key != "S") {
 		return row.Matches(verb, key)
 	}
+	chord, kind := "t", "ticket"
+	if key == "S" {
+		chord, kind = "s", "spec"
+	}
 	var result []table.Item
-	for _, item := range row.Matches("o", "t") {
-		if item.Link.Kind != "ticket" {
+	for _, item := range row.Matches("o", chord) {
+		if item.Link.Kind != kind {
 			continue
 		}
-		item.Chord = "T"
+		item.Chord = key
 		item.Copy = pointer(item.Link.Target)
 		result = append(result, item)
 	}

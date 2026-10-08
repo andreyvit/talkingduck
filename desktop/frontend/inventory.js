@@ -24,7 +24,7 @@ function notice(text) {
 }
 const hints=[[null,'↑↓','Select'],['r','r','Refresh'],['R','R','All'],
  ['a','a','Agent'],['t','t','Ticket'],['s','s','Spec'],['f','f','Folder'],['e','e','Editor'],['g','g','Git'],['c','c','Copy'],['X','X','Archive'],['settings','^S','Settings']];
-const copyHints=[['t','ct','Ticket'],['T','cT','Ticket URL'],['s','cs','Spec'],['f','cf','Folder path'],['Escape','Esc','Cancel']];
+const copyHints=[['t','ct','Ticket'],['T','cT','Ticket URL'],['s','cs','Spec'],['S','cS','Spec path'],['f','cf','Folder path'],['Escape','Esc','Cancel']];
 function invoke(key) {
  const handled=controller.action(key);
  if(!handled)return false;

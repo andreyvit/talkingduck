@@ -301,3 +301,28 @@ func TestRevealSpecShortcut(t *testing.T) {
 		t.Fatal(matches, row)
 	}
 }
+
+func TestCopySpecPath(t *testing.T) {
+	model := tuiFixture()
+	title := "Task title"
+	model.Rows[0].Cells[2].Lines[0].Items = []table.Item{{Text: title, Chord: "s", Copy: &title, Link: &table.Action{Kind: "spec", Target: "/one/.spec/task.md"}}}
+	s := tuiState{model: model}
+	copied := ""
+	s.perform = func(verb string, item table.Item) {
+		if verb != "c" {
+			t.Fatal(verb)
+		}
+		copied = *item.Copy
+	}
+	for _, tc := range []struct{ keys, want string }{{"cS", "/one/.spec/task.md"}, {"cs", title}} {
+		for _, r := range tc.keys {
+			s.key(tcell.NewEventKey(tcell.KeyRune, r, tcell.ModNone))
+		}
+		if copied != tc.want {
+			t.Fatalf("%s: %q", tc.keys, copied)
+		}
+	}
+	if len(tuiMatches(model.Rows[1], "c", "S")) != 0 {
+		t.Fatal("spec-free row has copy action")
+	}
+}

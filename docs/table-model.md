@@ -62,7 +62,8 @@ The GUI targets an 864-point window (half a 1728-point MacBook display): below
 900 points, column gaps tighten; titles wrap without reducing the text size.
 
 Keyboard: `cT` copies the ticket URL; `ct` copies its number. Multiple tickets
-use the same chooser. GUI also accepts `CT`.
+use the same chooser. GUI also accepts `CT`. `cS` copies the full spec path in both UIs; `cs`
+continues to copy its title.
 
 
 The GUI uses a DOM-independent controller for mouse/keyboard selection and

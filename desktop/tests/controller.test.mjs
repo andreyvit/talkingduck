@@ -21,9 +21,9 @@ test('mouse and keyboard keep independent rows; Esc hides rather than deselects'
 test('open/copy commands and refresh use effective folder, uppercase copy URL supported',()=>{
  const {c,calls}=fixture();c.hover('a');
  for(const key of ['a','s','f','t'])c.action(key);
- for(const keys of ['ct','cT','CT','cs','cf'])for(const key of keys)c.action(key);
+ for(const keys of ['ct','cT','CT','cs','cS','cf'])for(const key of keys)c.action(key);
  assert.deepEqual(calls.slice(0,4).map(a=>a.value.kind),['agent','spec','folder','ticket']);
- assert.deepEqual(calls.slice(4).map(a=>a.value),['DEV-1','DEV-1','DEV-1','Spec','/repo/a']);
+ assert.deepEqual(calls.slice(4).map(a=>a.value),['DEV-1','DEV-1','DEV-1','Spec','/spec/a','/repo/a']);
  c.action('r');c.action('R');c.action('settings');
  assert.deepEqual(calls.slice(-3),[{kind:'refresh',value:'/repo/a'},{kind:'refresh',value:''},{kind:'settings'}]);
  assert.equal(c.action('Q'),false);assert.equal(c.action('q'),false);assert.equal(c.action('o'),false);
