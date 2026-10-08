@@ -14,7 +14,7 @@ tbody tr.pushed td,tbody tr.pushed td *{color:var(--muted)}
 #empty{padding:45px 20px;color:var(--muted);font-size:13px}#warnings{white-space:pre-wrap;font-size:12px;color:light-dark(#956024,#d3b07c);margin:0}#error{color:light-dark(#b13b3b,#f18a8a);font-size:12px;margin:0}
 
 thead{position:sticky;top:0;background:var(--bg);z-index:1}th{font-weight:600;color:light-dark(#087b99,#62cce9)}
-th[data-column=revision]{color:light-dark(#8052a6,#ba96df)}th[data-column=questions],th[data-column=tracked]{color:light-dark(#927014,#e5c66b)}th[data-column=untracked]{color:light-dark(#44783c,#9cce85)}th[data-column=markdown]{color:light-dark(#3979b3,#77b8ec)}th[data-column=behind]{color:light-dark(#bc4141,#f18181)}th[data-column=title]{color:var(--fg)}
+th[data-column=revision]{color:light-dark(#8052a6,#ba96df)}th[data-column=tracked]{color:light-dark(#927014,#e5c66b)}th[data-column=untracked]{color:light-dark(#44783c,#9cce85)}th[data-column=markdown]{color:light-dark(#3979b3,#77b8ec)}th[data-column=behind]{color:light-dark(#bc4141,#f18181)}th[data-column=title]{color:var(--fg)}
 td:first-child{position:relative;padding-left:16px}th:first-child{padding-left:16px}
 tbody tr.keyboard-selected:nth-child(n){background:light-dark(#d2eaf3,#254862)}
 tbody tr.keyboard-selected td:first-child::before{content:"▸";position:absolute;left:2px;color:light-dark(#087b99,#62cce9)}
@@ -30,6 +30,9 @@ kbd{font:inherit;color:light-dark(#087b99,#62cce9);font-weight:600}
 dialog{background:var(--bg);color:var(--fg);border:1px solid #8886;border-radius:6px;padding:14px;max-width:80vw}
 dialog::backdrop{background:#0006}#choices{display:flex;flex-direction:column;gap:3px;margin:10px 0;max-height:60vh;overflow:auto}
 #choices button{text-align:left;background:none}#choices button.chosen{background:light-dark(#d2eaf3,#254862)}
+th[data-column=questions]{color:light-dark(#a64f25,#f4a172)}
+.count-badge{display:inline-block;min-width:2ch;padding:0 4px;border-radius:4px;background:light-dark(#a64f25,#f4a172);color:light-dark(#fff,#202126)}
+tbody tr.pushed .count-badge{background:var(--muted);color:var(--bg)}
 /* Icons use the cell's padding area; their artwork does not shrink with the column. */
 .agent-icons [data-column=agent]{padding-left:12px;padding-right:6px;min-width:44px;width:44px;text-align:center!important}
 .agent-mark{display:inline-flex;position:relative;vertical-align:top;align-items:center;height:20px}

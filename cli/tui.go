@@ -209,7 +209,7 @@ func (s *tuiState) draw(screen tcell.Screen) {
 		if table.Width(label) > layout.Widths[n] {
 			label = string([]rune(label)[:min(len([]rune(label)), layout.Widths[n])])
 		}
-		color := map[string]string{"revision": "purple", "questions": "yellow", "tracked": "yellow", "untracked": "green", "markdown": "blue", "behind": "red", "ahead": "cyan"}[c.ID]
+		color := map[string]string{"revision": "purple", "questions": "orange", "tracked": "yellow", "untracked": "green", "markdown": "blue", "behind": "red", "ahead": "cyan"}[c.ID]
 		if color == "" && c.ID != "title" {
 			color = "cyan"
 		}
@@ -264,7 +264,11 @@ func (s *tuiState) draw(screen tcell.Screen) {
 			if span.CopyControl && (len(s.choices) > 0 || !s.mouseState.known || hover.Source == nil || span.Source == nil || *hover.Source != *span.Source) {
 				continue
 			}
-			put(screen, 1+span.X, y, w-1, span.Text, style.Foreground(tuiColor(span.Color)).Bold(span.Bold))
+			itemStyle := style.Foreground(tuiColor(span.Color)).Bold(span.Bold)
+			if span.Badge {
+				itemStyle = itemStyle.Background(tuiColor(span.Color)).Foreground(tcell.GetColor("#191e29"))
+			}
+			put(screen, 1+span.X, y, w-1, span.Text, itemStyle)
 		}
 	}
 	message := s.notice

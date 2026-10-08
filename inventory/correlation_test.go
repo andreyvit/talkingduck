@@ -205,7 +205,7 @@ func TestGitCountsAndNoStashRead(t *testing.T) {
 	command(t, root, "branch", "--set-upstream-to=origin/main")
 	r := Object{"path": root, "local_changes": []Object{{"path": ".spec/x.md", "status": " M"}, {"path": "a.go", "status": "M "}, {"path": "new.go", "status": "??"}, {"path": ".proposals/p.md", "status": "??"}}}
 	g := gitState(r)
-	if number(g["tracked"]) != 2 || number(g["untracked"]) != 1 || number(g["informational"]) != 2 || g["behind"] != 0 || g["ahead"] != 0 {
+	if number(g["tracked"]) != 1 || number(g["untracked"]) != 1 || number(g["informational"]) != 2 || g["behind"] != 0 || g["ahead"] != 0 {
 		t.Fatal(g)
 	}
 	dir := t.TempDir()
@@ -262,5 +262,19 @@ func TestCurrentTaskDeclarationOverridesHistoricalReferences(t *testing.T) {
 	rows = append(rows, conversationEntry{"user", "Let's discuss .spec/other.md again", nil})
 	if activeSpecReferences(rows, []Object{current, old}) != nil {
 		t.Fatal("old focus survived later discussion of another task")
+	}
+}
+
+func TestMarkdownCountsAcrossAllDirectories(t *testing.T) {
+	root := repo(t)
+	changes := []Object{{"path": "MISTAKES.MD", "status": " M"}, {"path": "docs/guide.md", "status": "??"}, {"path": ".spec/work.md", "status": "M "}}
+	g := gitState(Object{"path": root, "local_changes": changes})
+	if g["cleanliness"] != "MARKDN" || number(g["informational"]) != 3 || number(g["tracked"]) != 0 || number(g["untracked"]) != 0 {
+		t.Fatal(g)
+	}
+	changes = append(changes, Object{"path": "main.go", "status": "MM"}, Object{"path": "new.go", "status": "??"}, Object{"path": "old.md", "status": "rename/copy source"})
+	g = gitState(Object{"path": root, "local_changes": changes})
+	if g["cleanliness"] != "DIRTY" || number(g["informational"]) != 3 || number(g["tracked"]) != 1 || number(g["untracked"]) != 1 {
+		t.Fatal(g)
 	}
 }

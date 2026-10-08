@@ -7,7 +7,7 @@ import (
 
 func TestSharedPresentationOrder(t *testing.T) {
 	source := []string{"folder", "agent", "ticket", "revision", "stage", "uber", "tasks", "progress", "input", "questions", "tracked", "untracked", "markdown", "behind", "ahead", "title"}
-	want := []string{"agent", "folder", "ticket", "stage", "uber", "progress", "input", "revision", "tasks", "questions", "tracked", "markdown", "behind", "ahead", "title"}
+	want := []string{"agent", "folder", "ticket", "stage", "uber", "progress", "input", "revision", "tasks", "questions", "tracked", "behind", "ahead", "title"}
 	for _, legacy := range []bool{false, true} {
 		raw, expected := slices.Clone(source), slices.Clone(want)
 		if legacy {
@@ -34,6 +34,25 @@ func TestMissingAgentIsBlank(t *testing.T) {
 		model := modelTable(TableView{Rows: [][]string{row}, WorktreePaths: []string{"/repo"}, SpecPaths: []string{""}, AgentLinks: []string{""}})
 		if got := model.Rows[0].Cells[0].Text(); got != tc.want {
 			t.Fatalf("%q: got %q", tc.raw, got)
+		}
+	}
+}
+
+func TestQuestionBadges(t *testing.T) {
+	for _, count := range []string{"0", "?", "2"} {
+		row := make([]string, 16)
+		row[9] = count
+		model := modelTable(TableView{Rows: [][]string{row}, WorktreePaths: []string{"/repo"}, SpecPaths: []string{""}, AgentLinks: []string{""}})
+		for i, col := range model.Columns {
+			if col.ID == "questions" {
+				item := model.Rows[0].Cells[i].Lines[0].Items[0]
+				if col.Label != "Q/S" || col.Align != "right" || item.Badge != (count == "2") {
+					t.Fatal(col, item)
+				}
+				if count == "2" && item.Color != "orange" {
+					t.Fatal(item)
+				}
+			}
 		}
 	}
 }

@@ -16,6 +16,7 @@ type Action struct {
 	Target string `json:"target"`
 }
 type Item struct {
+	Badge   bool    `json:"badge,omitempty"`
 	Text    string  `json:"text"`
 	Color   string  `json:"color,omitempty"`
 	Bold    bool    `json:"bold,omitempty"`

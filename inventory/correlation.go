@@ -13,15 +13,7 @@ import (
 )
 
 func infoFile(path string) bool {
-	if !strings.HasSuffix(strings.ToLower(path), ".md") {
-		return false
-	}
-	for _, p := range strings.Split(filepath.ToSlash(path), "/") {
-		if contains([]string{".spec", ".proposal", ".proposals", ".tasks"}, p) {
-			return true
-		}
-	}
-	return false
+	return strings.HasSuffix(strings.ToLower(path), ".md")
 }
 func gitState(repo Object) Object {
 	tracked, untracked, info := map[string]bool{}, map[string]bool{}, map[string]bool{}
@@ -33,13 +25,12 @@ func gitState(repo Object) Object {
 			continue
 		}
 		all[p] = true
-		if str(c["status"]) != "??" {
-			tracked[p] = true
-		}
 		if infoFile(p) {
 			info[p] = true
 		} else if str(c["status"]) == "??" {
 			untracked[p] = true
+		} else {
+			tracked[p] = true
 		}
 	}
 	var ahead, behind any
@@ -53,15 +44,10 @@ func gitState(repo Object) Object {
 			}
 		}
 	}
-	allInfo, allMarkdown := true, true
-	for p := range all {
-		allInfo = allInfo && infoFile(p)
-		allMarkdown = allMarkdown && strings.HasSuffix(strings.ToLower(p), ".md")
-	}
 	cleanliness := "DIRTY"
-	if allInfo {
+	if len(all) == 0 {
 		cleanliness = "CLEAN"
-	} else if allMarkdown {
+	} else if len(info) == len(all) {
 		cleanliness = "MARKDN"
 	}
 	return Object{"tracked": len(tracked), "untracked": len(untracked), "informational": len(info), "ahead": ahead, "behind": behind, "cleanliness": cleanliness, "warnings": []string{}, "scope": "Current staged, unstaged, and untracked paths only; remote counts use local upstream ref"}

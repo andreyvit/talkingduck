@@ -3,6 +3,7 @@ package cli
 import (
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"talkingduck/table"
 )
@@ -15,7 +16,7 @@ func modelTable(view TableView) table.Table {
 		{ID: "folder", Label: "Folder", MinWidth: 6}, {ID: "agent", Label: "Agent", MinWidth: 6}, {ID: "ticket", Label: "Ticket", MinWidth: 8},
 		{ID: "revision", Label: "Rev", Align: "right", MinWidth: 2}, {ID: "stage", Label: "Stage", MinWidth: 4}, {ID: "uber", Label: "", MinWidth: 1},
 		{ID: "tasks", Label: "Tasks", Align: "right", MinWidth: 5}, {ID: "progress", Label: "", MinWidth: 1}, {ID: "input", Label: "", MinWidth: 1},
-		{ID: "questions", Label: "Q", Align: "right", MinWidth: 2}, {ID: "tracked", Label: "Mod", Align: "right", MinWidth: 2, Prefix: "±"},
+		{ID: "questions", Label: "Q/S", Align: "right", MinWidth: 3}, {ID: "tracked", Label: "Mod", Align: "right", MinWidth: 2, Prefix: "±"},
 		{ID: "untracked", Label: "New", Align: "right", MinWidth: 2, Prefix: "?"}, {ID: "markdown", Label: ".md", Align: "right", MinWidth: 2, Prefix: "ℹ︎"},
 		{ID: "behind", Label: "↓", Align: "right", MinWidth: 2, Prefix: "⇣"}, {ID: "ahead", Label: "↑", Align: "right", MinWidth: 2, Prefix: "⇡"}, {ID: "title", Label: "Title", Flex: true, MinWidth: 8},
 	}
@@ -24,7 +25,7 @@ func modelTable(view TableView) table.Table {
 		columns = append(columns[:5], columns[6:]...)
 	}
 	// Source rows retain their legacy order; both UIs use this presentation order.
-	order := []string{"agent", "folder", "ticket", "stage", "uber", "progress", "input", "revision", "tasks", "questions", "tracked", "markdown", "behind", "ahead", "title"}
+	order := []string{"agent", "folder", "ticket", "stage", "uber", "progress", "input", "revision", "tasks", "questions", "tracked", "behind", "ahead", "title"}
 	indices := make([]int, 0, len(columns))
 	model := table.Table{Rows: []table.Row{}}
 	for _, id := range order {
@@ -51,7 +52,7 @@ func modelTable(view TableView) table.Table {
 			value := raw[j]
 			col := columns[j]
 			if col.ID == "tracked" {
-				value = modifiedCount(value, raw[j+1])
+				value = modifiedCount(value, raw[j+1], raw[j+2])
 			}
 			cell := table.Cell{}
 			for _, text := range strings.Split(value, "\n") {
@@ -62,6 +63,11 @@ func modelTable(view TableView) table.Table {
 				item := table.Item{Text: text, Color: itemColor(col.ID, text)}
 				switch col.ID {
 				case "questions":
+					count, _ := strconv.Atoi(text)
+					item.Badge = count > 0
+					if text == "?" {
+						item.Tooltip = "Question or suggestion count is unknown"
+					}
 					if text == "0" {
 						item.Text = "-"
 					}
@@ -140,10 +146,13 @@ func itemColor(id, text string) string {
 		if text == "0" {
 			return "dim"
 		}
+		if text == ".md" {
+			return "blue"
+		}
 		if text == "ERROR" {
 			return "red"
 		}
-		return map[string]string{"revision": "purple", "questions": "yellow", "tracked": "yellow", "untracked": "green", "markdown": "blue", "behind": "red", "ahead": "cyan"}[id]
+		return map[string]string{"revision": "purple", "questions": "orange", "tracked": "yellow", "untracked": "green", "markdown": "blue", "behind": "red", "ahead": "cyan"}[id]
 	}
 	return ""
 }

@@ -9,6 +9,7 @@ type Span struct {
 	X           int
 	Text, Color string
 	Bold        bool
+	Badge       bool
 	Source      *ItemRef
 	CopyControl bool
 }
@@ -123,7 +124,7 @@ func FormatWithOptions(t Table, width int, options FormatOptions) Layout {
 							if n := len(spans); n > 0 && spans[n-1].Source == ref && spans[n-1].CopyControl == (part == 1) && spans[n-1].Color == color && spans[n-1].Bold == item.Bold && spans[n-1].X+Width(spans[n-1].Text) == x {
 								spans[n-1].Text += text
 							} else {
-								spans = append(spans, Span{X: x, Text: text, Color: color, Bold: item.Bold, Source: ref, CopyControl: part == 1})
+								spans = append(spans, Span{X: x, Text: text, Color: color, Bold: item.Bold, Badge: item.Badge, Source: ref, CopyControl: part == 1})
 							}
 							x += w
 						}

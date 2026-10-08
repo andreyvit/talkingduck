@@ -245,11 +245,11 @@ status: implemented prototype; correlation and workflow states are heuristic
 
 ### Local counters
 
-- `±N`: unique tracked modified paths, staged/unstaged, including
-  Markdown. Rename source bookkeeping does not count as another current file.
-- `?N`: untracked paths excluding informational Markdown.
-- `ℹ︎N`: changed/untracked Markdown under `.spec`, `.proposal`, `.proposals`, or
-  `.tasks`. Tracked informational Markdown also counts under `±`, intentionally.
+- Raw `±N`: unique tracked non-Markdown paths, staged/unstaged.
+  Rename source bookkeeping does not count as another current file.
+- Raw `?N`: untracked non-Markdown paths.
+- Raw `ℹ︎N`: changed/untracked Markdown anywhere, case-insensitive `.md`.
+  These three counters are disjoint; GUI/TUI combine them into Mod.
 - Count each path once even when both staged and unstaged. Never read or count
   stashes; they are outside this inventory.
 
@@ -277,8 +277,9 @@ status: implemented prototype; correlation and workflow states are heuristic
   - Local Git counters, remote Git counters, spec title.
 - Use one space between padded columns. Fix widths across the table, expanding
   only enough to fit observed values. Unicode symbols occupy terminal cells.
-  GUI/TUI Mod combines tracked and untracked changes; other Git counters retain
-  separate aligned columns. Raw inventory and AI output retain separate counts.
+  GUI/TUI Mod shows `0`, `.md` for Markdown-only changes anywhere, or the total
+  changed-path count including Markdown. No separate Markdown column. Q/S is
+  right-aligned; known positive totals use orange filled badges. Unknown is `?`.
   Reserve at least two digits for each number, including rounds and paired counts.
 - Last column uses remaining width and wraps. Use `-width N`, otherwise terminal
   width / `COLUMNS`, otherwise 120. Below the structural minimum the table can

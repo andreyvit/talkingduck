@@ -43,7 +43,7 @@ still display their error.
 
 TUI headers use colored bold text on the normal background; numeric labels use
 their column colors. Uber, progress, and input have blank labels and one-cell minimums.
-Headers use the same alignment as values. Q displays zero as a dim `-`;
+Headers use the same alignment as values. Q/S displays zero as a dim `-`;
 other numeric columns retain zero.
 
 Copy controls touch item text with no added space. A cell line with one visible
@@ -51,9 +51,15 @@ item extends hover across its full width, including whitespace; blank space
 still only selects the row. Lines with multiple items keep individual hover targets.
 
 GUI and TUI share column order: Agent, Folder, Ticket, Stage, Uber, Run, Ask,
-Rev, Tasks, Q, Mod, .md, Behind, Ahead, Title. Uber/Run/Ask labels stay blank.
-Mod sums tracked and untracked changes; unknown components keep the sum unknown.
-Raw inventory and AI output retain separate counts.
+Rev, Tasks, Q/S, Mod, Behind, Ahead, Title. Uber/Run/Ask labels stay blank.
+Mod shows `0` for no changes, blue `.md` for Markdown-only changes anywhere in
+the worktree (case-insensitive `.md`), or a count of all changed paths when any
+non-Markdown file changed. Each path counts once across staged/unstaged changes.
+Unknown components keep the total unknown. Raw inventory and AI output retain
+three disjoint counts: tracked non-Markdown, untracked non-Markdown, all Markdown.
+Q/S is right-aligned and orange, distinct from yellow Mod. Known positive totals
+use a filled badge (rounded in GUI, inverted in TUI); zero stays a dim `-`.
+`?` means questions or suggestions could not be counted, not an open question.
 
 Absent agents display blank; unknown agents retain `?`.
 GUI agent cells use 26-point vector icons with a margin around the artwork matching the menu-bar motifs, with

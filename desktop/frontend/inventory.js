@@ -110,6 +110,7 @@ function render(data) {
     if(items.length===1)lineElement.classList.add('single-item');
     items.forEach(item=>{
      const el=document.createElement(item.link?'a':'span');el.textContent=item.text;el.className=item.color||'';
+     if(item.badge)el.classList.add('count-badge');
      if(item.bold)el.style.fontWeight='550';el.title=item.tooltip||'';
      const agent=USE_AGENT_ICONS&&model.columns[column].id==='agent'?agentIdentity(item.text):null;
      if(agent){el.textContent='';el.classList.add('agent-mark');el.append(agentIcon(document,agent));el.setAttribute('aria-label',item.text);el.title=agent.name+(agent.conflict?' — conflicting sessions':'')+(item.link?' — Open this chat':'');if(agent.conflict){const badge=document.createElement('span');badge.className='agent-conflict';badge.textContent='!';el.append(badge);}}
