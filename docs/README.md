@@ -9,6 +9,7 @@ Start here; read only what the task needs.
 - [macOS settings UI](macos-settings-ui.md): layout, alignment, controls, behavior, and practical limits.
 - [Future settings](future-settings.md): hardcoded defaults and planned configuration controls.
 - [development.md](development.md): repository layout, work conventions, validation.
+- [Window placement](window-placement.md): native frame persistence, display restoration, and fallback.
 - [Desktop prototype](../desktop/README.md): cached inventory window and Wails menu bar, standard/compact layouts, native width shim, build and checks.
 - [Inventory behavior spec](../.spec/20261002-worktree-task-inventory.md): worktree/task/session hierarchy, compact table, stages, correlation, and limits.
 - [Local work inventory](../cmd/talkingduck/README.md): one-shot Git/spec collector, ordering, and limits.

@@ -96,6 +96,16 @@ func run(opts *cli.Options, mcpPort int) error {
 		Title: "TalkingDuck — Settings", Width: 880, Height: 620, MinWidth: 740, MinHeight: 540, URL: "/settings.html", Hidden: true,
 	})
 	settingsWindow.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) { e.Cancel(); settingsWindow.Hide() })
+	for name, w := range map[string]*application.WebviewWindow{"Inventory": window, "Settings": settingsWindow} {
+		var once sync.Once
+		w.OnWindowEvent(events.Common.WindowRuntimeReady, func(*application.WindowEvent) {
+			once.Do(func() {
+				if err := rememberWindowFrame(w, name); err != nil {
+					log.Print(err)
+				}
+			})
+		})
+	}
 	var view *inventoryView
 	var settingsMu sync.Mutex
 	mcpAddress, mcpError := "", "Starting server…"
