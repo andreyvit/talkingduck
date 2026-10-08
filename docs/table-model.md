@@ -104,3 +104,7 @@ a click; outside the table or over the keyboard-selected row, selection stays.
 A row pointer-down also explicitly enters mouse mode.
 Inactive hover can update the remembered mouse row without changing the keyboard
 selection or mode. Choosers pin their originating row when a choice executes.
+
+Grok uses the two symbol paths from [its official favicon](https://grok.com/images/favicon.svg),
+with transparent negative space and the table’s agent color. The app-icon
+background and effects are omitted; the symbol geometry is unchanged.

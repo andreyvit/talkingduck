@@ -1,3 +1,4 @@
+import {grokPaths} from './grok-mark.mjs';
 // Switch off to restore agent names without changing table data or actions.
 export const USE_AGENT_ICONS = true;
 const ns='http://www.w3.org/2000/svg';
@@ -17,8 +18,7 @@ export function agentIcon(document,identity){
  }else if(identity.id==='codex'){
   for(let i=0;i<6;i++)add('path',{d:'M12 5 C8 1 3 5 4 9 L4 13 L12 17 L16 15 L16 7 Z',transform:`rotate(${i*60} 12 12)`,fill:'none',stroke:'currentColor','stroke-width':1.35,'stroke-linejoin':'round'});
  }else{
-  add('circle',{cx:12,cy:12,r:9,fill:'none',stroke:'currentColor','stroke-width':2.1});
-  add('path',{d:'M4 22 L14 8 L24 1 L15 16 Z',fill:'currentColor'});
+  for(const d of grokPaths)add('path',{d,transform:'translate(-3.36 -3.36) scale(0.06)',fill:'currentColor'});
  }
  return svg;
 }
