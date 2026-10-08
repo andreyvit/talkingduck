@@ -21,10 +21,16 @@ export class InventoryController {
   }
  }
  cancel() {this.chord='';this.chordRow=null;this.choices=[];this.choiceAction=null;}
- hover(id) {
+ hover(id,{active=true,clicked=false}={}) {
   if(this.choices.length)return;
+  if(!clicked&&(!active||(this.mode==='keyboard'&&this.rows[this.selected]?.id===id))) {
+   this.hovered=id;return;
+  }
   if(this.mode!=='mouse'||this.hovered!==id)this.cancel();
   this.mode='mouse';this.hovered=id;
+ }
+ activate(hoveredID=null) {
+  if(hoveredID!==null)this.hover(hoveredID);
  }
  matches(row,key) {
   if(!row)return [];
@@ -36,11 +42,20 @@ export class InventoryController {
   ).map(item=>({label:item.text,kind:copying?(suffix==='T'?'copy-ticket-url':'copy'):'open',value:copying?
    (suffix==='T'||pathCopy?item.link.target:item.copy):key==='S'?{...item.link,kind:'reveal-spec'}:item.link}));
  }
- perform(action) {this.run(action);}
+ selectRow(id) {
+  const index=this.rows.findIndex(row=>row.id===id);
+  if(index<0)return;
+  this.selected=index;this.mode='keyboard';
+ }
+ perform(action,rowID) {
+  if(rowID!==undefined)this.selectRow(rowID);
+  this.run(action);
+ }
  choose(index) {
   const action=this.choices[index];
   if(!action)return;
-  this.cancel();this.perform(action);
+  const rowID=this.choiceAction.row;
+  this.cancel();this.perform(action,rowID);
  }
  action(key) {
   const row=this.effectiveRow;
@@ -69,13 +84,13 @@ export class InventoryController {
   }
   if(key==='R') {this.perform({kind:'refresh',value:''});return true;}
   if(key==='X') {
-   if(target?.archive)this.perform({kind:'archive',value:{folder:target.group,spec:target.archive.target}});
+   if(target?.archive)this.perform({kind:'archive',value:{folder:target.group,spec:target.archive.target}},target.id);
    return true;
   }
-  if(key==='r') {if(target)this.perform({kind:'refresh',value:target.group});return true;}
+  if(key==='r') {if(target)this.perform({kind:'refresh',value:target.group},target.id);return true;}
   if(!['a','t','s','S','f','e','g','ct','cT','cs','cS','cf'].includes(key))return false;
   const matches=this.matches(target,key);
-  if(matches.length===1)this.perform(matches[0]);
+  if(matches.length===1)this.perform(matches[0],target.id);
   else if(matches.length>1) {
    this.choices=matches;this.choice=0;this.choiceAction={row:target.id,key};
   }

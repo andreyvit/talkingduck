@@ -7,6 +7,7 @@ document.body.classList.toggle('agent-icons',USE_AGENT_ICONS);
 const $=id=>document.getElementById(id);
 let model={columns:[],rows:[]},lastPointer=null,noticeTimer,shiftHeld=false;
 const controller=new InventoryController(async action=>{
+ paintState();
  try {
   switch(action.kind) {
    case 'open': Events.Emit('inventory:open-'+action.value.kind,action.value.target);break;
@@ -72,6 +73,10 @@ document.addEventListener('keydown',event=>{
  if(invoke(event.key))event.preventDefault();
 });
 document.addEventListener('keyup',event=>{if(event.key==='Shift'){shiftHeld=false;paintState();}});
+window.addEventListener('focus',()=>{
+ const row=document.querySelector('#rows tr:hover');
+ controller.activate(row?.dataset.rowId??null);paintState();
+});
 window.addEventListener('blur',()=>{shiftHeld=false;paintState();});
 function mouseRow(event,id) {
  // Layout updates and keyboard scrolling must not switch modes under a still pointer.
@@ -79,7 +84,7 @@ function mouseRow(event,id) {
  if(event.type==='pointermove'&&lastPointer&&point[0]===lastPointer[0]&&point[1]===lastPointer[1])return;
  lastPointer=point;
  if(controller.mode==='mouse'&&controller.hovered===id)return;
- controller.hover(id);paintState();
+ controller.hover(id,{active:document.hasFocus(),clicked:event.type==='pointerdown'});paintState();
 }
 function render(data) {
  model={columns:data.table?.columns||[],rows:data.table?.rows||[]};controller.replace(model.rows);
@@ -110,9 +115,9 @@ function render(data) {
      if(agent){el.textContent='';el.classList.add('agent-mark');el.append(agentIcon(document,agent));el.setAttribute('aria-label',item.text);el.title=agent.name+(agent.conflict?' — conflicting sessions':'')+(item.link?' — Open this chat':'');if(agent.conflict){const badge=document.createElement('span');badge.className='agent-conflict';badge.textContent='!';el.append(badge);}}
      if(item.link) {
       el.classList.add('inventory-link');el.href='#';
-      el.onclick=event=>{event.preventDefault();controller.perform({kind:'open',value:item.link});};
+      el.onclick=event=>{event.preventDefault();controller.perform({kind:'open',value:item.link},row.id);};
      }
-     lineElement.append(item.copy!==undefined?copyable(el,item.copy):el);
+     lineElement.append(item.copy!==undefined?copyable(el,item.copy,()=>{controller.selectRow(row.id);paintState();}):el);
     });
     td.append(lineElement);
    });

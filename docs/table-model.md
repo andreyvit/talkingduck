@@ -88,3 +88,13 @@ Shift-S reveals the effective row's spec in Finder (Explorer on Windows; the
 containing folder on Linux). The GUI swaps `s Spec` for `S Reveal spec` while
 Shift is held and restores it on key release or window blur. The TUI supports
 Shift-S without a dynamic modifier hint; ordinary terminals lack Shift-up events.
+
+Executing a row action (including a direct link or copy button) selects that row
+in keyboard mode before handing off focus. Returning via Ctrl-T retains it.
+Pointer movement over the selected row leaves keyboard mode intact; movement
+over another row switches to mouse mode only while the document is focused.
+Window activation follows the row currently under the pointer, without requiring
+a click; outside the table or over the keyboard-selected row, selection stays.
+A row pointer-down also explicitly enters mouse mode.
+Inactive hover can update the remembered mouse row without changing the keyboard
+selection or mode. Choosers pin their originating row when a choice executes.

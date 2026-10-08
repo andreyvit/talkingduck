@@ -11,7 +11,7 @@ function fixture(){const calls=[];const c=new InventoryController(a=>calls.push(
 test('mouse and keyboard keep independent rows; Esc hides rather than deselects',()=>{
  const {c,calls}=fixture();
  assert.equal(c.mode,'mouse');assert.equal(c.effectiveRow,undefined);
- c.hover('c');c.action('f');assert.equal(calls[0].value.target,'/repo/c');assert.equal(c.selected,0);
+ c.hover('c');assert.equal(c.selected,0);
  c.action('ArrowDown');assert.equal(c.mode,'keyboard');assert.equal(c.effectiveRow.id,'b');
  c.action('Escape');assert.equal(c.mode,'mouse');assert.equal(c.selected,1);assert.equal(c.effectiveRow.id,'c');
  c.action('ArrowDown');assert.equal(c.selected,2);
@@ -52,7 +52,7 @@ test('Shift-X archives the effective row; lowercase x does not',()=>{
  for(const r of c.rows)r.archive={kind:'archive',target:'.spec/'+r.id+'.md'};
  c.hover('c');assert.equal(c.action('x'),false);c.action('X');
  assert.deepEqual(calls[0],{kind:'archive',value:{folder:'/repo/c',spec:'.spec/c.md'}});
- c.action('ArrowDown');c.action('X');
+ c.action('ArrowUp');c.action('X');
  assert.equal(calls[1].value.spec,'.spec/b.md');
 });
 test('editor and Git actions use the effective worktree without adding cells',()=>{
@@ -60,7 +60,7 @@ test('editor and Git actions use the effective worktree without adding cells',()
  for(const row of c.rows)row.actions=['editor','git'].map((kind,i)=>({text:kind,chord:i?'g':'e',link:{kind,target:row.group}}));
  c.hover('c');c.action('e');c.action('g');
  assert.deepEqual(calls.map(a=>a.value),[{kind:'editor',target:'/repo/c'},{kind:'git',target:'/repo/c'}]);
- c.action('ArrowDown');c.action('e');assert.equal(calls.at(-1).value.target,'/repo/b');
+ c.action('ArrowUp');c.action('e');assert.equal(calls.at(-1).value.target,'/repo/b');
 });
 test('ticket URL copying resolves current preferences in Go',()=>{
  const {c,calls}=fixture();c.hover('a');c.action('c');c.action('T');
@@ -73,4 +73,33 @@ test('Shift-S reveals the effective spec without changing the regular open actio
  c.hover('one');c.action('S');c.action('s');
  assert.equal(actions[0].value.kind,'reveal-spec');assert.equal(actions[1].value.kind,'spec');
  assert.equal(actions[0].value.target,'/work/.spec/task.md');
+});
+
+test('row actions pin the hovered row before handing off focus',()=>{
+ const {c,calls}=fixture();
+ c.hover('c');c.action('t');
+ assert.equal(c.mode,'keyboard');assert.equal(c.selected,2);
+ c.hover('a',{active:false});
+ assert.equal(c.hovered,'a');assert.equal(c.mode,'keyboard');
+ c.action('s');assert.equal(calls.at(-1).value.target,'/spec/c');
+ c.hover('c');assert.equal(c.mode,'keyboard');
+ c.hover('a');assert.equal(c.mode,'mouse');assert.equal(c.selected,2);
+});
+test('mouse activation resets mode, direct actions and chooser retain their row',()=>{
+ const {c}=fixture();c.hover('c');c.action('s');
+ c.hover('c',{active:false,clicked:true});assert.equal(c.mode,'mouse');
+ c.perform({kind:'open',value:{kind:'spec',target:'/spec/a'}},'a');
+ assert.equal(c.mode,'keyboard');assert.equal(c.selected,0);
+ c.hover('b');c.action('t');assert.equal(c.mode,'mouse');
+ c.choose(1);assert.equal(c.mode,'keyboard');assert.equal(c.selected,1);
+ c.replace([row('b'),row('c')]);assert.equal(c.selected,0);
+});
+
+test('activation follows the row under the pointer, without requiring a click',()=>{
+ const {c}=fixture();c.hover('c');c.action('s');
+ c.activate();assert.equal(c.mode,'keyboard');assert.equal(c.selected,2);
+ c.activate('c');assert.equal(c.mode,'keyboard');
+ c.hover('a',{active:false});assert.equal(c.mode,'keyboard');
+ c.activate('a');assert.equal(c.mode,'mouse');assert.equal(c.effectiveRow.id,'a');
+ assert.equal(c.selected,2);
 });
