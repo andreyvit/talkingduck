@@ -111,7 +111,7 @@ func (s *tuiState) key(e *tcell.EventKey) bool {
 			s.notice = "Refresh all queued"
 		case 'c':
 			s.chord = string(r)
-		case 'a', 't', 's', 'f', 'e', 'g':
+		case 'a', 't', 's', 'S', 'f', 'e', 'g':
 			s.activate("o", string(r))
 		}
 		return false
@@ -501,6 +501,15 @@ func RunTUI(opts *Options, paths []string) int {
 
 // tuiMatches adds terminal-only copy shortcuts without exposing extra GUI controls.
 func tuiMatches(row table.Row, verb, key string) []table.Item {
+	if verb == "o" && key == "S" {
+		items := row.Matches("o", "s")
+		for i := range items {
+			a := *items[i].Link
+			a.Kind = "reveal-spec"
+			items[i].Link = &a
+		}
+		return items
+	}
 	if verb != "c" || key != "T" {
 		return row.Matches(verb, key)
 	}

@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 )
@@ -22,6 +23,7 @@ type Launch struct {
 	Args        []string
 }
 type App struct {
+	Installed *bool             `json:"installed,omitempty"`
 	ID        string            `json:"id"`
 	Name      string            `json:"name"`
 	Platforms map[string]Launch `json:"-"`
@@ -39,6 +41,7 @@ func Available(apps []App, platform string) []App {
 			result = append(result, a)
 		}
 	}
+	sort.SliceStable(result, func(i, j int) bool { return appLess(result[i], result[j]) })
 	return append(result, App{ID: "custom", Name: "Custom"})
 }
 func ValidateSelection(apps []App, s Selection) error {
@@ -137,6 +140,18 @@ func lookup(name string) (string, error) {
 	return "", fmt.Errorf("executable not found: %s", name)
 }
 func OpenProject(apps []App, s Selection, path string) error {
+	if path == "" {
+		return fmt.Errorf("project path is required")
+	}
+	if runtime.GOOS == "darwin" && s.ID != "custom" {
+		for _, app := range apps {
+			if app.ID == s.ID && app.Platforms["darwin"].BundleID != "" {
+				if installed := macAppPath(app); installed != "" {
+					return (Command{Executable: "/usr/bin/open", Args: []string{"-a", installed, path}}).Start()
+				}
+			}
+		}
+	}
 	cmd, err := Plan(apps, s, runtime.GOOS, path, lookup)
 	if err != nil {
 		return err

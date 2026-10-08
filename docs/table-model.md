@@ -73,3 +73,8 @@ Rows also carry `actions`: items without a visible cell. Editor (`e`) and Git
 client (`g`) actions target the row's worktree, including grouped/historical rows.
 Both clients resolve open-ticket and copy-ticket-URL through current shared
 settings. The table never embeds a personal tracker workspace URL.
+
+Shift-S reveals the effective row's spec in Finder (Explorer on Windows; the
+containing folder on Linux). The GUI swaps `s Spec` for `S Reveal spec` while
+Shift is held and restores it on key release or window blur. The TUI supports
+Shift-S without a dynamic modifier hint; ordinary terminals lack Shift-up events.

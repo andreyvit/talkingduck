@@ -12,6 +12,9 @@ import (
 )
 
 func (v *inventoryView) openSpec(path string) error {
+	return v.specAction(path, "spec")
+}
+func (v *inventoryView) specAction(path, kind string) error {
 	v.mu.Lock()
 	known := slices.Contains(v.state.SpecPaths, path)
 	v.mu.Unlock()
@@ -25,5 +28,5 @@ func (v *inventoryView) openSpec(path string) error {
 	if !info.Mode().IsRegular() {
 		return fmt.Errorf("spec is not a regular file: %s", path)
 	}
-	return actions.Open(table.Action{Kind: "spec", Target: path})
+	return (actions.Opener{SettingsPath: v.settings.Path}).Open(table.Action{Kind: kind, Target: path})
 }

@@ -3,7 +3,7 @@ import {copyable} from './copy.js';
 import {InventoryController} from './controller.mjs';
 
 const $=id=>document.getElementById(id);
-let model={columns:[],rows:[]},lastPointer=null,noticeTimer;
+let model={columns:[],rows:[]},lastPointer=null,noticeTimer,shiftHeld=false;
 const controller=new InventoryController(async action=>{
  try {
   switch(action.kind) {
@@ -39,6 +39,7 @@ function paintState() {
   tr.setAttribute('aria-selected',String(keyboard));
  }
  $('keys').replaceChildren(...(controller.chord?copyHints:hints).map(([key,label,text])=>{
+  if(shiftHeld&&!controller.chord&&key==='s'){key='S';label='S';text='Reveal spec';}
   const button=document.createElement(key?'button':'span');button.className='key-hint';
   if(key)button.type='button';
   const k=document.createElement('kbd');k.textContent=label;button.append(k,' '+text);
@@ -62,11 +63,14 @@ function renderChooser() {
 $('chooser').addEventListener('cancel',event=>{event.preventDefault();invoke('Escape');});
 $('cancel-choice').onclick=()=>invoke('Escape');
 document.addEventListener('keydown',event=>{
+ if(event.key==='Shift'){shiftHeld=true;paintState();return;}
  if(event.isComposing || event.target.matches('input,textarea,[contenteditable=true]'))return;
  if(event.ctrlKey&&event.key.toLowerCase()==='s') {event.preventDefault();invoke('settings');return;}
  if(event.ctrlKey||event.metaKey||event.altKey)return;
  if(invoke(event.key))event.preventDefault();
 });
+document.addEventListener('keyup',event=>{if(event.key==='Shift'){shiftHeld=false;paintState();}});
+window.addEventListener('blur',()=>{shiftHeld=false;paintState();});
 function mouseRow(event,id) {
  // Layout updates and keyboard scrolling must not switch modes under a still pointer.
  const point=[event.clientX,event.clientY];

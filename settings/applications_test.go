@@ -33,3 +33,19 @@ func TestApplicationSettingsPreserveFolders(t *testing.T) {
 		t.Fatal("invalid edit overwrote working config")
 	}
 }
+
+func TestMarkdownDefaultsAndSelection(t *testing.T) {
+	s := &Store{Path: filepath.Join(t.TempDir(), "settings.json")}
+	if (Applications{}).Defaults().Markdown.ID != "default" {
+		t.Fatal("wrong default")
+	}
+	for _, id := range []string{"default", "text-editor", "markdownreader", "macmd-viewer", "marked"} {
+		if _, err := s.SetApplication("markdown", launchers.Selection{ID: id}); err != nil {
+			t.Fatal(err)
+		}
+		data, err := s.Load()
+		if err != nil || data.Applications.Markdown.ID != id {
+			t.Fatal(data, err)
+		}
+	}
+}

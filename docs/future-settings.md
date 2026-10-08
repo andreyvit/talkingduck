@@ -8,7 +8,7 @@ or startup error. Open it from the overview, tray menu, or ⌘,.
 | --- | --- | --- |
 | Folder order | Saved insertion order; discovered folders appended hidden | Reordering |
 | Ticket tracker scope | Configurable global tracker and workspace URL; see [launchers](launchers.md) | Per-project overrides |
-| Markdown preview | Spec titles open in Marked | Installed-app picker, system default, or built-in preview |
+| Markdown preview | Configurable viewer, default association, or configured editor | Implemented; see settings and launchers docs |
 | Agent chat destination | Native Codex and Claude Code deep links when IDs are known | Per-agent app preference and future remote/cloud routing; see [chat links](agent-chat-links.md) |
 | Ticket destination | macOS opens the HTTPS URL with its default handler | Optional browser/Linear-app preference |
 | Remote fetch | Startup and every 15 minutes independently of scanning; failed attempts also throttled | Fetch interval and enable/disable |
@@ -20,7 +20,7 @@ or startup error. Open it from the overview, tray menu, or ⌘,.
 | Startup | Manual launch, no login registration | Launch at login; initial window visibility |
 
 Implementation pointers: `desktop/main.go` (startup, tray, refresh interval),
-`launchers/` and `settings/applications.go` (apps and ticket trackers), `desktop/spec_preview.go` (Marked),
+`launchers/` and `settings/applications.go` (apps and ticket trackers), `desktop/spec_preview.go` (configured Markdown viewer),
 `cli/cli.go` (collection flags), `settings/settings.go` (folder settings),
 `mcpserver/server.go` (MCP port and loopback transport).
 

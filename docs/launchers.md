@@ -82,3 +82,40 @@ implementation code. No binaries needed reverse engineering.
 
 When changing a preset, check vendor source/docs and add a command-plan or URL
 example. Never silently fall back to an unrelated application or tracker.
+
+## Markdown viewers
+
+`applications.markdown` uses the same selection/custom-command schema. `(Default)`
+opens a spec with the OS file association; `(Text editor)` uses the configured
+editor and passes the spec file instead of its folder. Custom `$PATH` is the file.
+The viewer catalog is platform-filtered: MarkDownReader, Marked, MacMD Viewer,
+MacDown (Mac); Typora and MarkText (Mac/Linux/Windows); ghostwriter (Linux/Windows).
+App names sort alphabetically after the two special choices; Custom stays last.
+Editor and Git client catalogs use the same alphabetical ordering.
+
+Settings checks standard Mac application directories (including Setapp and
+`~/Applications`) or executable paths elsewhere once per launch. Missing apps
+use native disabled styling; Custom remains available. Detection is a hint:
+portable apps, renamed bundles and nonstandard installation paths can be missed.
+No Spotlight query, recursive scan, app launch or network request is involved.
+On Mac, a detected app bundle path takes precedence over the catalog bundle ID,
+so Setapp variants work without assuming their bundle ID matches the direct app.
+
+Verified IDs and sources (2026-10-08):
+
+- MarkDownReader: `com.markdownreader.MarkDownReader`; local installed Info.plist.
+  This is distinct from similarly named MarkdownReader projects online.
+- Marked: `com.brettterpstra.marked.pro`; local installed Info.plist.
+- MacMD Viewer: `com.arthur.MarkdownViewer`, [Homebrew cask](https://github.com/Homebrew/homebrew-cask/blob/master/Casks/m/macmd-viewer.rb).
+  [Vendor integration docs](https://macmdviewer.com/docs/integrations) and
+  [Setapp listing](https://setapp.com/apps/macmd-viewer) confirm document-reader use.
+- MacDown: `com.uranusjr.macdown`, [Homebrew cask](https://github.com/Homebrew/homebrew-cask/blob/master/Casks/m/macdown.rb).
+- Typora: `abnerworks.Typora`, [Homebrew cask](https://github.com/Homebrew/homebrew-cask/blob/master/Casks/t/typora.rb);
+  [vendor CLI instructions](https://support.typora.io/Use-Typora-From-Shell-or-cmd/).
+- MarkText: `com.github.marktext.marktext`, [Homebrew cask](https://github.com/Homebrew/homebrew-cask/blob/master/Casks/m/mark-text.rb)
+  and [upstream platform support](https://github.com/marktext/marktext).
+- ghostwriter: [upstream README and command-line usage](https://github.com/KDE/ghostwriter/blob/master/README.md).
+
+The catalogs select document-oriented tools, following existing Homebrew and
+vendor listings. Linux/Windows commands are source-checked, not locally tested;
+missing command-line launchers can be supplied through Custom.

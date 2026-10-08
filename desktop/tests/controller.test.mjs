@@ -66,3 +66,11 @@ test('ticket URL copying resolves current preferences in Go',()=>{
  const {c,calls}=fixture();c.hover('a');c.action('c');c.action('T');
  assert.deepEqual(calls,[{kind:'copy-ticket-url',value:'DEV-1',label:'DEV-1'}]);
 });
+
+test('Shift-S reveals the effective spec without changing the regular open action',()=>{
+ const actions=[];const c=new InventoryController(a=>actions.push(a));
+ c.replace([{id:'one',group:'/work',cells:[{lines:[{items:[{text:'Spec',chord:'s',link:{kind:'spec',target:'/work/.spec/task.md'}}]}]}]}]);
+ c.hover('one');c.action('S');c.action('s');
+ assert.equal(actions[0].value.kind,'reveal-spec');assert.equal(actions[1].value.kind,'spec');
+ assert.equal(actions[0].value.target,'/work/.spec/task.md');
+});

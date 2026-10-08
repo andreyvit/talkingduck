@@ -293,3 +293,11 @@ func TestArchiveKey(t *testing.T) {
 		t.Fatal("Shift-X did not archive")
 	}
 }
+
+func TestRevealSpecShortcut(t *testing.T) {
+	row := table.Row{Actions: []table.Item{{Chord: "s", Link: &table.Action{Kind: "spec", Target: "/work/spec.md"}}}}
+	matches := tuiMatches(row, "o", "S")
+	if len(matches) != 1 || matches[0].Link.Kind != "reveal-spec" || row.Actions[0].Link.Kind != "spec" {
+		t.Fatal(matches, row)
+	}
+}

@@ -2,7 +2,7 @@ import {Events} from '/wails/runtime.js';
 import {PreferenceDraft,AutosaveQueue} from './settings-model.mjs';
 const forms=new Map();
 const client=crypto.randomUUID();
-function options(select,items){select.replaceChildren(...items.map(item=>{const o=document.createElement('option');o.value=item.id;o.textContent=item.name;return o}));}
+function options(select,items){select.replaceChildren(...items.map(item=>{const o=document.createElement('option');o.value=item.id;o.textContent=item.name;o.disabled=item.installed===false;return o}));}
 function row(parent,label,control){
  const wrapper=document.createElement('div');wrapper.className='form-row';
  const caption=document.createElement('label');caption.htmlFor=control.id;caption.textContent=label;
@@ -39,7 +39,7 @@ function build(kind,catalog){
  const form={kind,catalog,draft:new PreferenceDraft(),element:document.getElementById(kind+'-form'),fields:{},rows:{}};
  form.queue=new AutosaveQueue(()=>save(form));
  const select=document.createElement('select');select.id=kind+'-id';options(select,catalog);form.fields.id=select;
- row(form.element,kind==='editor'?'Editor':kind==='git_client'?'Git client':'Ticket tracker',select);
+ row(form.element,kind==='editor'?'Editor':kind==='git_client'?'Git client':kind==='markdown'?'Markdown viewer':'Ticket tracker',select);
  if(kind==='tracker'){
   input(form,'url','Workspace URL');input(form,'ticketURL','Ticket URL','https://issues.example.com/issue/$TICKET');
   input(form,'rootURL','Root URL','https://issues.example.com');input(form,'urlRegExp','URL pattern','^https://issues.example.com/([^/]+).*$');
@@ -49,7 +49,7 @@ function build(kind,catalog){
   const browse=document.createElement('button');browse.type='button';browse.textContent='Choose…';browse.onclick=()=>Events.Emit('settings:choose-application',kind);wrapper.append(browse);
   input(form,'args','Arguments','"$PATH"');
  }
- form.help=document.createElement('p');form.help.className='form-help';form.help.textContent='Use $PATH for the selected folder. Quote arguments containing spaces.';form.element.append(form.help);
+ form.help=document.createElement('p');form.help.className='form-help';form.help.textContent=(kind==='markdown'?'Use $PATH for the spec file. ':'Use $PATH for the selected folder. ')+'Quote arguments containing spaces.';form.element.append(form.help);
  form.status=document.createElement('p');form.status.className='form-status';form.status.setAttribute('role','status');form.element.append(form.status);
  form.element.oninput=()=>{edited(form);visible(form)};
  select.onchange=()=>{
@@ -69,7 +69,7 @@ function write(form,value){
 }
 export function updateApplications(data){
  if(!data)return;
- for(const [kind,catalog] of [['editor',data.editors],['git_client',data.gitClients],['tracker',data.trackers]]){
+ for(const [kind,catalog] of [['editor',data.editors],['git_client',data.gitClients],['markdown',data.markdownViewers],['tracker',data.trackers]]){
   const form=forms.get(kind)||build(kind,catalog);
   if(form.draft.sync(data.values[kind]))write(form,data.values[kind]);
  }

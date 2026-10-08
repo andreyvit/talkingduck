@@ -4,22 +4,40 @@ package main
 
 import (
 	"encoding/json"
-	"runtime"
 	"sync"
 	"talkingduck/launchers"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
+var appCatalogOnce sync.Once
+var editorChoices, gitChoices, markdownChoices []launchers.App
+
 func applicationSettings(v *inventoryView) map[string]any {
+	appCatalogOnce.Do(func() {
+		editorChoices = launchers.DetectedApps(launchers.Editors)
+		gitChoices = launchers.DetectedApps(launchers.GitClients)
+		markdownChoices = launchers.DetectedApps(launchers.MarkdownViewers)
+	})
 	data, err := v.settings.Load()
 	message := ""
 	if err != nil {
 		message = err.Error()
 	}
-	return map[string]any{"values": data.Applications.Defaults(), "editors": launchers.Available(launchers.Editors, runtime.GOOS), "gitClients": launchers.Available(launchers.GitClients, runtime.GOOS), "trackers": launchers.Trackers, "error": message}
+	return map[string]any{"values": data.Applications.Defaults(), "editors": editorChoices, "gitClients": gitChoices, "markdownViewers": markdownChoices, "trackers": launchers.Trackers, "error": message}
 }
 func registerApplicationSettings(app *application.App, v *inventoryView, publish func()) {
+	app.Event.On("inventory:open-reveal-spec", func(e *application.CustomEvent) {
+		path, ok := e.Data.(string)
+		if !ok {
+			return
+		}
+		go func() {
+			if err := v.specAction(path, "reveal-spec"); err != nil {
+				app.Event.Emit("inventory:open-error", err.Error())
+			}
+		}()
+	})
 	registerSettingsReveal(app, v)
 	registerArchivedSettings(app, v)
 	var saveMu sync.Mutex
@@ -70,7 +88,7 @@ func registerApplicationSettings(app *application.App, v *inventoryView, publish
 	})
 	app.Event.On("settings:choose-application", func(e *application.CustomEvent) {
 		kind, ok := e.Data.(string)
-		if !ok || (kind != "editor" && kind != "git_client") {
+		if !ok || (kind != "editor" && kind != "git_client" && kind != "markdown") {
 			return
 		}
 		go func() {

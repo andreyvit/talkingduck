@@ -55,7 +55,7 @@ call has its own timeouts and cannot be cancelled midway.
 - Click any ticket reference to open it in the configured tracker with the default URL handler.
   Each ticket on a multiline row is linked separately; links underline on hover.
   Configure the tracker and workspace in Settings; see [settings](../docs/settings.md).
-- Click a spec title to preview its file in Marked. Titles underline on hover;
+- Click a spec title to open its file with the configured Markdown viewer. Titles underline on hover;
   non-task rows stay plain text. Missing files or app launch errors appear in the window.
 - Closing the window hides it.
 - The inventory window uses the shared table model and row ordering,

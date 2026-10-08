@@ -61,7 +61,7 @@ These operate on the GUI's shared settings and update its window/tray immediatel
 
 ## Applications and tickets
 
-The same file stores `applications.editor`, `applications.git_client`, and
+The same file stores `applications.editor`, `applications.git_client`, `applications.markdown`, and
 `applications.tracker`. Editor/Git selections contain `id`, plus `path` and `args`
 for Custom. Defaults are Zed and Sublime Merge. Tracker selections contain `id`,
 the pasted `url`, derived `account_slug`, and a `custom` profile when applicable.
@@ -81,6 +81,11 @@ controls. See [macOS UI conventions](macos-settings-ui.md).
 
 Connection includes a copy button for the MCP address. Configuration File shows
 JSON format and the active settings path; Reveal selects that file in Finder.
+
+Markdown viewer defaults to `(Default)` (OS association). `(Text editor)` follows
+Editor. Other viewers and Custom open the spec file directly. App dropdowns are
+alphabetical, platform-filtered, and mark undetected installations with muted
+text. Quick checks are cached until restart; Custom handles undetected locations.
 
 ## Recently archived
 

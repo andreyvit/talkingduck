@@ -45,6 +45,14 @@ func (o Opener) Open(a table.Action) error {
 		return OpenGrok(strings.TrimPrefix(target, "talkingduck-grok:"))
 	}
 	switch a.Kind {
+	case "reveal-spec":
+		return launchers.Reveal(target)
+	case "spec":
+		p, err := o.preferences()
+		if err != nil {
+			return err
+		}
+		return launchers.OpenMarkdown(p.Markdown, p.Editor, target)
 	case "ticket":
 		var err error
 		target, err = o.TicketURL(target)
@@ -61,16 +69,13 @@ func (o Opener) Open(a table.Action) error {
 			return launchers.OpenProject(launchers.Editors, p.Editor, target)
 		}
 		return launchers.OpenProject(launchers.GitClients, p.GitClient, target)
-	case "agent", "spec", "folder":
+	case "agent", "folder":
 	default:
 		return fmt.Errorf("%s opening is not available yet", a.Kind)
 	}
 	var cmd *exec.Cmd
 	if runtime.GOOS == "darwin" {
 		args := []string{}
-		if a.Kind == "spec" {
-			args = append(args, "-a", "Marked")
-		}
 		if a.Kind == "folder" {
 			args = append(args, "-a", "Finder")
 		}

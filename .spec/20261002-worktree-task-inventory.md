@@ -307,8 +307,11 @@ status: implemented prototype; correlation and workflow states are heuristic
 - `r` queues the selected worktree, `R` all. Existing native event sources and
   separate cheap/expensive queues update cached rows without blocking input.
 - Direct open keys: `a` agent, `t` ticket, `s` spec, `f` folder, `e` editor, `g` Git client.
-  Editor/Git choices and ticket URL templates live in shared settings; see
+  Editor/Git/Markdown choices and ticket URL templates live in shared settings; see
   `docs/launchers.md`. Row-level actions carry the worktree path independently of cells.
+  Markdown defaults to the OS association; it can use the configured editor or
+  a platform-filtered viewer. Shift-S reveals the spec; the GUI changes its hint
+  while Shift is held. App lists sort alphabetically and gray out undetected apps.
   Copy: `ct` ticket number, `cT` ticket URL, `cs` spec title, `cf` full folder path. Multiple tickets
   use an Up/Down/Enter chooser. Esc cancels. String keys allow longer future copy chords.
   Shift-X archives the effective row until explicitly restored, including running tasks.

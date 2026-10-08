@@ -88,7 +88,7 @@ func modelTable(view TableView) table.Table {
 						item.Chord = "s"
 						item.Copy = pointer(text)
 						item.Link = &table.Action{Kind: "spec", Target: view.SpecPaths[n]}
-						item.Tooltip = "Preview in Marked"
+						item.Tooltip = "Open spec"
 					}
 				}
 				cell.Lines = append(cell.Lines, table.Line{Items: []table.Item{item}})
