@@ -89,7 +89,7 @@ func run(opts *cli.Options, mcpPort int) error {
 		Assets: application.AssetOptions{Handler: application.AssetFileServerFS(assets)},
 	})
 	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title: "TalkingDuck — Inventory", Width: 1280, Height: 720, URL: "/", Hidden: true,
+		Title: "Zoo Agents Dashboard", Width: 1280, Height: 720, URL: "/", Hidden: true,
 	})
 	window.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) { e.Cancel(); window.Hide() })
 	settingsWindow = app.Window.NewWithOptions(application.WebviewWindowOptions{
