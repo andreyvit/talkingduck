@@ -108,3 +108,6 @@ selection or mode. Choosers pin their originating row when a choice executes.
 Grok uses the two symbol paths from [its official favicon](https://grok.com/images/favicon.svg),
 with transparent negative space and the table’s agent color. The app-icon
 background and effects are omitted; the symbol geometry is unchanged.
+
+Holding Shift also replaces `r Refresh` with `R Refresh all` in the GUI footer;
+release or blur restores the ordinary hint. Both are clickable actions.

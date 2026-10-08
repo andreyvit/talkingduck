@@ -23,7 +23,7 @@ function notice(text) {
  clearTimeout(noticeTimer);$('notice').textContent=text;
  noticeTimer=setTimeout(()=>{$('notice').textContent='';},4000);
 }
-const hints=[[null,'↑↓','Select'],['r','r','Refresh'],['R','R','All'],
+const hints=[[null,'↑↓','Select'],['r','r','Refresh'],
  ['a','a','Agent'],['t','t','Ticket'],['s','s','Spec'],['f','f','Folder'],['e','e','Editor'],['g','g','Git'],['c','c','Copy'],['X','X','Archive'],['settings','^S','Settings']];
 const copyHints=[['t','ct','Ticket'],['T','cT','Ticket URL'],['s','cs','Spec'],['S','cS','Spec path'],['f','cf','Folder path'],['Escape','Esc','Cancel']];
 function invoke(key) {
@@ -42,6 +42,7 @@ function paintState() {
   tr.setAttribute('aria-selected',String(keyboard));
  }
  $('keys').replaceChildren(...(controller.chord?copyHints:hints).map(([key,label,text])=>{
+  if(shiftHeld&&!controller.chord&&key==='r'){key='R';label='R';text='Refresh all';}
   if(shiftHeld&&!controller.chord&&key==='s'){key='S';label='S';text='Reveal spec';}
   const button=document.createElement(key?'button':'span');button.className='key-hint';
   if(key)button.type='button';
