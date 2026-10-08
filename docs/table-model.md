@@ -50,12 +50,13 @@ Copy controls touch item text with no added space. A cell line with one visible
 item extends hover across its full width, including whitespace; blank space
 still only selects the row. Lines with multiple items keep individual hover targets.
 
-GUI and TUI share column order: Folder, Agent, Ticket, Stage, Uber, Run, Ask,
+GUI and TUI share column order: Agent, Folder, Ticket, Stage, Uber, Run, Ask,
 Rev, Tasks, Q, Mod, .md, Behind, Ahead, Title. Uber/Run/Ask labels stay blank.
 Mod sums tracked and untracked changes; unknown components keep the sum unknown.
 Raw inventory and AI output retain separate counts.
 
-GUI agent cells use 24-point vector icons matching the menu-bar motifs, with
+Absent agents display blank; unknown agents retain `?`.
+GUI agent cells use 26-point vector icons with a margin around the artwork matching the menu-bar motifs, with
 agent names in accessible labels and tooltips. Set `USE_AGENT_ICONS` to false in
 `desktop/frontend/agent-icons.mjs` to restore names. Terminal output keeps names.
 The GUI targets an 864-point window (half a 1728-point MacBook display): below

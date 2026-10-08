@@ -24,7 +24,7 @@ func modelTable(view TableView) table.Table {
 		columns = append(columns[:5], columns[6:]...)
 	}
 	// Source rows retain their legacy order; both UIs use this presentation order.
-	order := []string{"folder", "agent", "ticket", "stage", "uber", "progress", "input", "revision", "tasks", "questions", "tracked", "markdown", "behind", "ahead", "title"}
+	order := []string{"agent", "folder", "ticket", "stage", "uber", "progress", "input", "revision", "tasks", "questions", "tracked", "markdown", "behind", "ahead", "title"}
 	indices := make([]int, 0, len(columns))
 	model := table.Table{Rows: []table.Row{}}
 	for _, id := range order {
@@ -74,6 +74,9 @@ func modelTable(view TableView) table.Table {
 					item.Link = &table.Action{Kind: "folder", Target: row.Group}
 					item.Tooltip = "Open in Finder: " + row.Group
 				case "agent":
+					if text == "--" {
+						item.Text = ""
+					}
 					item.Chord = "a"
 					if view.AgentLinks[n] != "" {
 						item.Link = &table.Action{Kind: "agent", Target: view.AgentLinks[n]}

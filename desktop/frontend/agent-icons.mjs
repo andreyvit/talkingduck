@@ -9,7 +9,7 @@ export function agentIdentity(text){
 // Full vector counterparts of the menu-bar knot, sunburst, and slashed circle.
 export function agentIcon(document,identity){
  const svg=document.createElementNS(ns,'svg');
- svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');svg.classList.add('agent-icon');
+ svg.setAttribute('viewBox','-1 -1 26 26');svg.setAttribute('aria-hidden','true');svg.classList.add('agent-icon');
  const add=(tag,attrs)=>{const el=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,v);svg.append(el);};
  if(identity.id==='claude'){
   for(let i=0;i<12;i++){const angle=i*Math.PI/6;const radius=i%2?9:10.5;add('path',{d:`M ${12+Math.cos(angle)*3} ${12+Math.sin(angle)*3} L ${12+Math.cos(angle)*radius} ${12+Math.sin(angle)*radius}`,stroke:'currentColor','stroke-width':i%2?1.8:2.3,'stroke-linecap':'square'});}
