@@ -4,12 +4,12 @@ Inventory and Settings restore independently once their Wails window runtime is
 ready, after initial native positioning. Reloading the page does not restore again.
 Application-started is too early: Wails starts pending windows asynchronously.
 
-AppKit frame autosaving retains ordinary window geometry. A companion entry in
-macOS user defaults stores the display UUID and a frame relative to its visible
-area. Move, resize, and key-window notifications update it for visible windows;
+A macOS user-defaults entry stores the display UUID and exact frame relative to
+its visible area. AppKit frame autosaving is not registered: its saved tiling
+metadata can restore an old untiled width when the window first appears. Move, resize, and key-window notifications update it for visible windows;
 fullscreen frames are excluded. Restoring clamps size and position to the target
 screen's visible area. A missing display falls back to the current main screen.
-Old installations without a display entry use the existing AppKit saved frame.
+Old installations without a display entry migrate the existing AppKit saved frame.
 
 These are local macOS window preferences, separate from portable Zoo settings.
 

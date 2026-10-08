@@ -28,9 +28,9 @@ static int tdRememberWindowFrame(void *handle, const char *name) {
         NSString *key = [NSString stringWithUTF8String:name];
         NSString *placementKey = [@"TalkingDuck Placement " stringByAppendingString:key];
         NSDictionary *placement = [[NSUserDefaults standardUserDefaults] dictionaryForKey:placementKey];
-        // AppKit owns ordinary frame persistence and migration from older builds.
-        saved = [window setFrameAutosaveName:key];
-        [window setFrameUsingName:key force:YES];
+        // AppKit's autosaved tiling metadata can replace the exact frame with an
+        // old untiled size when the window first becomes visible. Only use it
+        // to migrate installations without our display-aware placement.
         if ([placement[@"frame"] isKindOfClass:[NSString class]]) {
             NSScreen *target = nil;
             for (NSScreen *screen in NSScreen.screens) {
@@ -47,7 +47,10 @@ static int tdRememberWindowFrame(void *handle, const char *name) {
                 frame.origin.y = visible.origin.y + MAX(0, MIN(frame.origin.y, visible.size.height-frame.size.height));
                 [window setFrame:frame display:NO];
             }
+        } else {
+            [window setFrameUsingName:key force:YES];
         }
+        saved = YES;
         for (NSString *event in @[NSWindowDidMoveNotification, NSWindowDidResizeNotification, NSWindowDidBecomeKeyNotification]) {
             // Windows live for the app lifetime; notification blocks share that lifetime.
             [[NSNotificationCenter defaultCenter] addObserverForName:event object:window queue:nil usingBlock:^(NSNotification *note) {
