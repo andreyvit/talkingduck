@@ -448,35 +448,6 @@ func scan(dir string, now time.Time) (r Repo) {
 			}
 		}
 	}
-	// An unfinished pushed spec can still describe current local code edits.
-	// Completed specs need explicit local spec/commit evidence to reopen; source
-	// files and directories are routinely reused by unrelated tasks.
-	for _, p := range dirty {
-		if specPath(p) || auxiliary(p) {
-			continue
-		}
-		existing := false
-		for _, s := range active {
-			if len(overlap(s, []string{p})) > 0 {
-				existing = true
-			}
-		}
-		if existing {
-			continue
-		}
-		matches := []*Spec{}
-		for _, s := range all {
-			if s.Stage == "done" {
-				continue
-			}
-			if len(overlap(s, []string{p})) > 0 {
-				matches = append(matches, s)
-			}
-		}
-		if len(matches) == 1 {
-			active[matches[0].Path] = matches[0]
-		}
-	}
 	// Attach each commit by strongest evidence, retaining multiple direct owners.
 	hashRefs, subjectRefs := map[string][]string{}, map[string][]string{}
 	cache, subjectCounts := map[string]string{}, map[string]int{}

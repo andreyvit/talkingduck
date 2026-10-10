@@ -196,14 +196,14 @@ func TestOrderingRecentPlanOldPlanDoneAndAuxiliary(t *testing.T) {
 		t.Fatalf("%+v", r.Specs)
 	}
 }
-func TestUnchangedPushedSpecCanOwnDirtyWork(t *testing.T) {
+func TestUnchangedPushedSpecNeedsMoreThanDirtySource(t *testing.T) {
 	d := repo(t)
 	write(t, d, ".spec/work.md", "---\nstatus: executing\n---\n`src/feature.go`\n")
 	h := commit(t, d, "plan")
 	command(t, d, "update-ref", "refs/remotes/origin/main", h)
 	write(t, d, "src/feature.go", "work")
 	r := checked(t, d)
-	if len(r.Specs) != 1 || len(r.Specs[0].DirtyFiles) != 1 {
+	if len(r.Specs) != 0 || len(r.UnassignedFiles) != 1 {
 		t.Fatalf("%+v", r)
 	}
 }

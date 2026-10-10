@@ -63,8 +63,8 @@ status: implemented prototype; correlation and workflow states are heuristic
 - Include tracked dirty and nonignored untracked specs; include specs touched or
   explicitly referenced by unpushed commits. Deleted specs retain HEAD content.
 - Include an unchanged spec when an unpushed commit uniquely matches its ticket,
-  or local dirty code uniquely matches paths in an unfinished spec. Completed
-  pushed specs require explicit local spec/commit evidence to reopen; reused
+  or explicitly names it. Dirty source-path overlap cannot discover an old spec;
+  pushed specs require explicit local spec/commit evidence to reopen. Reused
   source paths and session activity are insufficient. Discard discovery candidates
   with no owned commits, dirty spec, or associated dirty files.
 - Missing remote refs mean unknown history: show local changes and a warning.

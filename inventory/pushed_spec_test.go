@@ -49,3 +49,15 @@ func TestHistoricalCandidateWithoutOwnedChangesIsDiscarded(t *testing.T) {
 		t.Fatalf("ownerless historical candidate survived: %+v", r.Specs)
 	}
 }
+
+func TestPushedProposalCannotBecomeLocalFromSourceMentions(t *testing.T) {
+	d := repo(t)
+	write(t, d, ".spec/proposal.md", "# Old research proposal\nNot changing code yet. Inventory `src/settings.go`.\n")
+	write(t, d, "src/settings.go", "base")
+	command(t, d, "update-ref", "refs/remotes/origin/main", commit(t, d, "proposal"))
+	write(t, d, "src/settings.go", "unrelated setting change")
+	r := checked(t, d)
+	if len(r.Specs) != 0 || len(r.UnassignedFiles) != 1 {
+		t.Fatalf("source edit revived untouched proposal: %+v", r.Specs)
+	}
+}
