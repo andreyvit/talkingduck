@@ -14,13 +14,13 @@ The standalone TUI cannot create the built-in desktop window.
 | --- | --- |
 | Esc | Close preview, return to dashboard |
 | Tab | Switch to dashboard; Tab there returns to the last Markdown preview |
-| Space | Next page |
+| Space / Shift-Space | Smoothly scroll next / previous page; Shift-Space searches once text is entered |
 | Up / Down | Previous / next ToC heading |
 | Left / Right | Back / forward through opened files |
 | r | Refresh now |
 | c | Show / hide ToC |
 | h | Search recent files; arrows select, Enter opens |
-| Shift + typing | Search the ToC from the top, ignoring case |
+| Shift + typing | Search the ToC from the top, ignoring case and whitespace |
 | Shift-Up / Shift-Down | Previous / next matching heading, wrapping at either end |
 | Other Shift while holding Shift | Next match; release and tap again to repeat |
 | Shift-Esc | Clear search and restore the pre-search position |
@@ -29,7 +29,8 @@ Hold either Shift key to search. While held, the bottom bar shows
 `Type to search: <query>`, a gap, then `↑↓ Matches`, `Esc Reset`, and `⌫ Delete`. Each edit selects the first match and highlights
 matching characters in the ToC. A failed or cleared search restores both the
 document and ToC scroll offsets from before the search. Releasing Shift keeps a
-match; releasing with no match keeps the original position. Shift-Space enters a literal space in the search, including as its first character.
+match; releasing with no match keeps the original position. Before any search text, Shift-Space scrolls up a page. Once text is entered, it
+adds a space. Matching ignores whitespace, so `UICH` also finds `UI Changes`.
 
 Back/forward and recent-file selection also select the corresponding dashboard
 row in keyboard mode, without bringing the dashboard forward. Files absent from

@@ -15,13 +15,20 @@ test('edits always search from top, arrows cycle only matching headings',()=>{
  assert.equal(s.edit('code').index,1);
 });
 
-test('spaces are search characters, including the first character',()=>{
- const s=new LeapSearch(['Scope','Code overview','Code changes'],{main:123,toc:45});
- assert.equal(s.edit(' ').index,1);
- assert.equal(s.edit(' c').index,2);
+test('search ignores spaces but retains original highlight offsets and typed text',()=>{
+ const s=new LeapSearch(['Other','UI Changes','UI Check'],{main:123,toc:45});
+ assert.deepEqual(s.edit('UICH'),{index:1,start:0,length:5});
+ assert.equal(s.move(1).index,2);
+ assert.deepEqual(s.edit('UI CH'),{index:1,start:0,length:5});
+ assert.equal(s.query,'UI CH');
+ assert.equal(s.edit('UI ').index,1);assert.equal(s.query,'UI ');
  assert.equal(s.edit('missing'),null);
  assert.equal(s.edit(''),null);
  assert.deepEqual(s.origin,{main:123,toc:45});
+});
+test('space-insensitive matches preserve offsets after non-ASCII characters',()=>{
+ const s=new LeapSearch(['🙂 UI\tChanges'],{});
+ assert.deepEqual(s.edit('uich'),{index:0,start:3,length:5});
 });
 
 test('the other Shift advances once, in either order, and can be tapped again',()=>{

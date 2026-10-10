@@ -30,7 +30,7 @@ function renderLeapBar(){
 }
 function beginLeap(){
  if(leap)return;
- cancelRestore();clearTimeout(positionTimer);
+ cancelRestore();scroller.scrollTo({top:scroller.scrollTop,behavior:'instant'});clearTimeout(positionTimer);
  leap=new LeapSearch(headings.map(h=>h.textContent),{main:scroller.scrollTop,toc:$('toc').scrollTop});
  renderLeapBar();
 }
@@ -56,6 +56,7 @@ function handleLeap(e){
  if(e.metaKey||e.ctrlKey||e.altKey||$('history').open||e.target.closest('input,textarea,select,[contenteditable=true]'))return false;
  if(e.key==='Shift'){const next=heldShifts.press(e.code);beginLeap();if(next){e.preventDefault();leap.move(1);applyLeap()}return true}
  if(!e.shiftKey){finishLeap();return false;}
+ if(e.key===' '&&!leap?.query){finishLeap();return false;}
  if(e.key==='Escape'){beginLeap();e.preventDefault();leap.edit('');applyLeap();return true}
  if(e.key==='ArrowUp'||e.key==='ArrowDown'){
   beginLeap();e.preventDefault();leap.move(e.key==='ArrowUp'?-1:1);applyLeap();return true;
@@ -72,7 +73,7 @@ document.addEventListener('keyup',e=>{
 });
 const hints=[['Escape','Esc','Close'],[' ','Space','Next page'],['ArrowDown','↑↓','ToC'],['ArrowLeft','←',''],['ArrowRight','→','History'],['r','r','Refresh'],['c','c','ToC'],['h','h','History'],['Shift','Shift','Hold to search']];
 for(const [key,label,title] of hints){const button=document.createElement('button');button.className='key-hint';button.dataset.key=key;const k=document.createElement('kbd');k.textContent=label;button.append(k);if(title)button.append(' '+title);button.onclick=e=>{if(key==='Shift')return;cancelRestore();send('',{key,shift:e.shiftKey})};$('keys').append(button)}
-$('keys').querySelector('[data-key=" "]').title='Space: next page';
+$('keys').querySelector('[data-key=" "]').title='Space: next page; Shift-Space: previous page before typing a search';
 const historyHints=document.createElement('span');historyHints.className='history-hints';
 const backHint=$('keys').querySelector('[data-key="ArrowLeft"]'),forwardHint=$('keys').querySelector('[data-key="ArrowRight"]');
 backHint.before(historyHints);historyHints.append(backHint,forwardHint);
@@ -97,7 +98,7 @@ Events.On('markdown:snapshot',({data})=>{
  for(const img of article.querySelectorAll('img'))if(!img.complete){img.addEventListener('load',apply,{once:true});img.addEventListener('error',apply,{once:true})}
  document.fonts.ready.then(apply);
 });
-Events.On('markdown:effect',({data})=>{cancelRestore();switch(data.action){case 'heading':jump(data.id);break;case 'toc':{const p=position();$('toc').hidden=data.hidden;restore(p);break}case 'page-up':scroller.scrollTop-=scroller.clientHeight*.9;break;case 'page-down':scroller.scrollTop+=scroller.clientHeight*.9;break}});
+Events.On('markdown:effect',({data})=>{cancelRestore();switch(data.action){case 'heading':jump(data.id);break;case 'toc':{const p=position();$('toc').hidden=data.hidden;restore(p);break}case 'page-up':scroller.scrollBy({top:-scroller.clientHeight*.9,behavior:'smooth'});break;case 'page-down':scroller.scrollBy({top:scroller.clientHeight*.9,behavior:'smooth'});break}});
 Events.On('markdown:error',({data})=>{$('error').textContent=data});
 Events.Emit('markdown:ready');
 let recent=[],filtered=[],historyIndex=0;
