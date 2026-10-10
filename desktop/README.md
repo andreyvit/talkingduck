@@ -192,3 +192,13 @@ CLI/MCP AI output uses `-` when disabled.
 
 Q/S combines questions and suggestions; an unknown component keeps the total
 unknown. CLI and MCP compact output use the same combined count.
+
+Inventory and Settings restore position and size independently using a display
+UUID and screen-relative frame in macOS user defaults. AppKit frame autosaving
+is used only to migrate older settings; see [window placement](../docs/window-placement.md).
+
+The GUI has one Mod column: `0` when clean, `.md` for Markdown-only changes,
+and the total changed-file count otherwise. There are no separate New or .md
+columns. Known positive Q/S totals use a filled badge; zero is a muted dash.
+Ready (`✓`) and input-blocked (`!`) rows have a soft amber background; running
+rows use cyan and pushed rows use muted text. See [table model](../docs/table-model.md).
