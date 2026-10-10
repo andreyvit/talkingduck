@@ -11,7 +11,7 @@ export class PreferenceDraft {
 
 // One in-flight save per form. Continuous typing cannot postpone a save forever.
 export class AutosaveQueue {
- constructor(save,{now=Date.now,setTimer=setTimeout,clearTimer=clearTimeout,quiet=300,maxWait=1500,throttle=500}={}){
+ constructor(save,{now=Date.now,setTimer=(fn,delay)=>setTimeout(fn,delay),clearTimer=id=>clearTimeout(id),quiet=300,maxWait=1500,throttle=500}={}){
   Object.assign(this,{save,now,setTimer,clearTimer,quiet,maxWait,throttle});
   this.first=null;this.last=0;this.lastFinished=-Infinity;this.running=false;this.timer=null;
  }

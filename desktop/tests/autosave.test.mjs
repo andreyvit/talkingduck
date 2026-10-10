@@ -18,3 +18,13 @@ test('continuous editing has a maximum cooldown',()=>{
  for(let t=0;t<1500;t+=200){c.advance(t);q.changed();}
  c.advance(1500);assert.deepEqual(runs,[1500]);
 });
+test('browser timers are called without a queue receiver',()=>{
+ const originalSet=globalThis.setTimeout,originalClear=globalThis.clearTimeout;
+ let receiver;
+ try {
+  globalThis.setTimeout=function(){receiver=this;return 1};
+  globalThis.clearTimeout=function(){receiver=this};
+  const q=new AutosaveQueue(()=>{});q.changed();assert.equal(receiver,undefined);
+  q.changed();assert.equal(receiver,undefined);
+ }finally{globalThis.setTimeout=originalSet;globalThis.clearTimeout=originalClear}
+});
