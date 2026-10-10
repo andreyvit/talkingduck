@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"talkingduck/worktree"
 	"unicode"
 	"unicode/utf8"
 )
@@ -338,6 +339,7 @@ func objects(v any) []Object {
 func enrich(report Object) Object {
 	report["schema_version"] = 2
 	for _, repo := range objects(report["repositories"]) {
+		repo["parent_path"] = worktree.Parent(str(repo["path"]))
 		if truth(repo["error"]) {
 			repo["git"] = Object{"error": repo["error"]}
 		} else {

@@ -54,6 +54,10 @@ func FormatWithOptions(t Table, width int, options FormatOptions) Layout {
 			}
 			for _, l := range r.Cells[j].Lines {
 				n := Width(l.Text())
+				if r.Cells[j].WrapWidth > 0 {
+					n = min(n, r.Cells[j].WrapWidth-r.Cells[j].Indent)
+				}
+				n += r.Cells[j].Indent
 				for _, item := range l.Items {
 					if !item.Hidden && item.Copy != nil && options.CopyControl != "" {
 						n += Width(options.CopyControl)
@@ -89,7 +93,12 @@ func FormatWithOptions(t Table, width int, options FormatOptions) Layout {
 			}
 			for li, line := range row.Cells[ci].Lines {
 				spans := []Span{}
-				x := 0
+				indent := row.Cells[ci].Indent
+				limit := result.Widths[ci]
+				if row.Cells[ci].WrapWidth > 0 {
+					limit = min(limit, row.Cells[ci].WrapWidth)
+				}
+				x := indent
 				if prefixes && col.Prefix != "" && line.Text() != "" {
 					color := "dim"
 					if row.State == "pushed" {
@@ -112,10 +121,10 @@ func FormatWithOptions(t Table, width int, options FormatOptions) Layout {
 						for graphemes.Next() {
 							text := graphemes.Str()
 							w := Width(text)
-							if col.Flex && x+w > result.Widths[ci] && x > 0 {
+							if (col.Flex || row.Cells[ci].WrapWidth > 0) && x+w > limit && x > indent {
 								cells[ci] = append(cells[ci], spans)
 								spans = nil
-								x = 0
+								x = indent
 							}
 							color := item.Color
 							if row.State == "pushed" {

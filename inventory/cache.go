@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"sync"
+	"talkingduck/worktree"
 	"time"
 )
 
@@ -154,7 +155,7 @@ func (c *Inventory) Snapshot() *Snapshot {
 		if o.snapshot == nil {
 			why := state.Error
 			repo = Repo{Path: o.path, Error: why, AgentState: "unknown", Specs: []*Spec{}}
-			row = Object{"path": o.path, "error": why, "git": Object{"error": why}, "specs": []Object{}, "unassigned_sessions": []Object{}}
+			row = Object{"path": o.path, "parent_path": worktree.Parent(o.path), "error": why, "git": Object{"error": why}, "specs": []Object{}, "unassigned_sessions": []Object{}}
 		} else {
 			repo = o.snapshot.Details.Repositories[0]
 			// Copy the row before attaching cache metadata; nested data remains immutable

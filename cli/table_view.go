@@ -10,12 +10,13 @@ import (
 // TableView is the CLI's unwrapped table, also used by the desktop overview.
 // Each row is one task (or empty/error checkout); newlines stay within cells.
 type TableView struct {
-	Model         table.Table `json:"table"`
-	WorktreePaths []string    `json:"worktreePaths"` // Absolute worktree path for every row, even when its label is blank.
-	Rows          [][]string  `json:"rows"`
-	SpecPaths     []string    `json:"specPaths"` // One absolute path per row; empty for non-task rows.
-	AgentLinks    []string    `json:"agentLinks"`
-	Warnings      []string    `json:"warnings"`
+	Parents       map[string]string `json:"-"`
+	Model         table.Table       `json:"table"`
+	WorktreePaths []string          `json:"worktreePaths"` // Absolute worktree path for every row, even when its label is blank.
+	Rows          [][]string        `json:"rows"`
+	SpecPaths     []string          `json:"specPaths"` // One absolute path per row; empty for non-task rows.
+	AgentLinks    []string          `json:"agentLinks"`
+	Warnings      []string          `json:"warnings"`
 }
 
 // BuildTable uses the same projection and row builder as terminal output.
@@ -26,8 +27,9 @@ func BuildTable(overview any) (TableView, error) {
 	}
 	var warnings bytes.Buffer
 	printWarnings(&warnings, report)
-	result := TableView{Rows: tableRows(report), Warnings: []string{}}
+	result := TableView{Rows: tableRows(report), Warnings: []string{}, Parents: map[string]string{}}
 	for _, repo := range report.Repositories {
+		result.Parents[repo.Path] = repo.ParentPath
 		if repo.HideSummary && (repo.Git.Error != "" || len(repo.Specs) == 0) {
 			continue
 		}

@@ -30,15 +30,19 @@ type Line struct {
 	Items []Item `json:"items"`
 }
 type Cell struct {
-	Lines []Line `json:"lines"`
+	Indent    int    `json:"indent,omitempty"`
+	WrapWidth int    `json:"wrapWidth,omitempty"`
+	Small     bool   `json:"small,omitempty"`
+	Lines     []Line `json:"lines"`
 }
 type Row struct {
-	Actions []Item  `json:"actions,omitempty"` // Row-level actions without a visible cell.
-	Archive *Action `json:"archive,omitempty"`
-	ID      string  `json:"id"`
-	Group   string  `json:"group"`           // Full worktree path; refresh target, not display text.
-	State   string  `json:"state,omitempty"` // running, attention, pushed, error
-	Cells   []Cell  `json:"cells"`
+	ParentGroup string  `json:"parentGroup,omitempty"`
+	Actions     []Item  `json:"actions,omitempty"` // Row-level actions without a visible cell.
+	Archive     *Action `json:"archive,omitempty"`
+	ID          string  `json:"id"`
+	Group       string  `json:"group"`           // Full worktree path; refresh target, not display text.
+	State       string  `json:"state,omitempty"` // running, attention, pushed, error
+	Cells       []Cell  `json:"cells"`
 }
 type Table struct {
 	Columns []Column `json:"columns"`

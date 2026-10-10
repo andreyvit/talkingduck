@@ -111,3 +111,11 @@ background and effects are omitted; the symbol geometry is unchanged.
 
 Holding Shift also replaces `r Refresh` with `R Refresh all` in the GUI footer;
 release or blur restores the ordinary hint. Both are clickable actions.
+
+Linked worktrees carry their original checkout's `parent_path`, resolved from
+Git's `gitdir`/`commondir` files rather than directory nesting. GUI and TUI place
+all parent rows before its linked worktrees, preserving configured sibling order.
+Absent parents do not create synthetic rows. Each child keeps its own refresh,
+open, copy, and archive targets. Linked folder names use two-character indentation
+and wrap within 14 characters; GUI names use 9 px text, while the TUI retains the
+terminal's font size. Ordinary checkout names keep their existing styling.

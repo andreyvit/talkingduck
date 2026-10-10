@@ -18,6 +18,7 @@ type sourceView struct {
 	Warnings []string `json:"warnings"`
 }
 type worktreeView struct {
+	ParentPath        string                  `json:"parent_path"`
 	HideSummary       bool                    `json:"hide_summary"`
 	Cache             *inventory.RefreshState `json:"cache"`
 	UnassignedCommits []string                `json:"unassigned_commits"`

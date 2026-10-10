@@ -105,8 +105,11 @@ function render(data) {
   row.cells.forEach((cell,column)=>{
    const td=document.createElement('td');td.style.textAlign=model.columns[column].align||'left';
    td.dataset.column=model.columns[column].id;
+   if(cell.small)td.classList.add("small-cell");
    cell.lines.forEach(line=>{
     const lineElement=document.createElement('div');lineElement.className='cell-line';
+    if(cell.indent)lineElement.style.paddingLeft=cell.indent+'ch';
+    if(cell.wrapWidth){lineElement.classList.add('wrapped-cell');lineElement.style.width=cell.wrapWidth+'ch';}
     const items=line.items.filter(item=>!item.hidden);
     if(items.length===1)lineElement.classList.add('single-item');
     items.forEach(item=>{

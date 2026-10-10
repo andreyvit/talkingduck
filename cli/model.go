@@ -38,7 +38,7 @@ func modelTable(view TableView) table.Table {
 		}
 	}
 	for n, raw := range view.Rows {
-		row := table.Row{Group: view.WorktreePaths[n], ID: view.WorktreePaths[n] + ":" + view.SpecPaths[n]}
+		row := table.Row{ParentGroup: view.Parents[view.WorktreePaths[n]], Group: view.WorktreePaths[n], ID: view.WorktreePaths[n] + ":" + view.SpecPaths[n]}
 		row.Actions = []table.Item{
 			{Text: "Editor", Chord: "e", Link: &table.Action{Kind: "editor", Target: row.Group}},
 			{Text: "Git", Chord: "g", Link: &table.Action{Kind: "git", Target: row.Group}},
@@ -72,6 +72,11 @@ func modelTable(view TableView) table.Table {
 						item.Text = "-"
 					}
 				case "folder":
+					if row.ParentGroup != "" {
+						cell.Indent = 2
+						cell.WrapWidth = 14
+						cell.Small = true
+					}
 					item.Text = filepath.Base(row.Group)
 					item.Hidden = text == ""
 					item.Bold = true
@@ -129,6 +134,7 @@ func modelTable(view TableView) table.Table {
 		}
 		model.Rows = append(model.Rows, row)
 	}
+	model.Rows = table.GroupRows(model.Rows)
 	return model
 }
 func itemColor(id, text string) string {
