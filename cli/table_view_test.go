@@ -8,20 +8,20 @@ import (
 func TestDesktopTablePreservesTaskRowsAndTickets(t *testing.T) {
 	data := map[string]any{"repositories": []any{map[string]any{
 		"path": "/example/back2", "git": map[string]any{"cleanliness": "CLEAN", "tracked": 0},
-		"specs": []any{map[string]any{"path": ".spec/example.md", "tickets": []string{"DEV-1", "DEV-2"}, "display_title": "<script>example</script>", "workflow": map[string]any{"stage": "HL"}}},
+		"specs": []any{map[string]any{"path": ".spec/example.md", "tickets": []string{"DEV-1", "DEV-2"}, "uberreviews": true, "display_title": "<script>example</script>", "workflow": map[string]any{"stage": "HL"}}},
 	}}}
 	table, err := BuildTable(data)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(table.Rows) != 1 || len(table.Rows[0]) != 15 {
+	if len(table.Rows) != 1 || len(table.Rows[0]) != 16 {
 		t.Fatalf("wrong table shape: %v", table.Rows)
 	}
 	if len(table.SpecPaths) != 1 || table.SpecPaths[0] != "/example/back2/.spec/example.md" {
 		t.Fatalf("wrong spec paths: %v", table.SpecPaths)
 	}
 	row := table.Rows[0]
-	if row[0] != "back2" || row[2] != "DEV-1\nDEV-2" || row[14] != "<script>example</script>" {
+	if row[5] != "u" || row[0] != "back2" || row[2] != "DEV-1\nDEV-2" || row[15] != "<script>example</script>" {
 		t.Fatalf("lost source cells: %v", row)
 	}
 	if row[1] != "?" || strings.TrimSpace(row[3]) != "?" {

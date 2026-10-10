@@ -68,6 +68,7 @@ type Change struct {
 
 type Spec struct {
 	RecentlyPushed   bool       `json:"recently_pushed,omitempty"`
+	UberReviews      bool       `json:"uberreviews"`
 	GitStatus        string     `json:"git_status,omitempty"`
 	MentionedTickets []string   `json:"mentioned_tickets"`
 	Path             string     `json:"path"`
@@ -232,6 +233,7 @@ func parseSpec(path, body string) *Spec {
 	s := &Spec{commitOrder: 1 << 30, Path: path, Title: strings.TrimSuffix(filepath.Base(path), ".md"), Status: "unknown", body: body, Tickets: []string{}, Commits: []string{}, DirtyFiles: []string{}, Evidence: []Evidence{}}
 	if strings.HasPrefix(body, "---\n") {
 		if end := strings.Index(body[4:], "\n---"); end >= 0 {
+			s.UberReviews = matches(`(?mi)^uberreviews:[ \t]*true[ \t]*(?:#.*)?$`, body[4:4+end])
 			if m := statusRE.FindStringSubmatch(body[4 : 4+end]); m != nil {
 				s.Status = strings.Trim(m[1], ` "'`)
 			}

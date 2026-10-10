@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-const aiKey = "Key: worktree agent tickets round stage done/total progress input questions/suggestions ±tracked ?untracked ℹ︎info ⇣behind ⇡ahead title; ▶working ✓ready !input agent!conflict ?unknown -none; HL=high-level LL=low-level EX=execution FIN=finalization SQ=squash PUSH=push PUSHED=recently-pushed REBA=rebase; session=primary ID spec=spec path."
+const aiKey = "Key: worktree agent tickets round stage U done/total progress input questions/suggestions ±tracked ?untracked ℹ︎info ⇣behind ⇡ahead title; U=uber-review; ▶working ✓ready !input agent!conflict ?unknown -none; HL=high-level LL=low-level EX=execution FIN=finalization SQ=squash PUSH=push PUSHED=recently-pushed REBA=rebase; session=primary ID spec=spec path."
 
 // Reuse table values but omit padding, color, and wrapping. Keep all tickets on
 // one line and identify primary sessions directly for callers enriching unknowns.
@@ -21,7 +21,7 @@ func renderAI(report tableReport) string {
 					value = strings.ReplaceAll(value, "\n", ",")
 				}
 				value = clean(value)
-				if i == 3 || i == 5 || i == 8 || (i >= 9 && i <= 13) {
+				if i == 3 || i == 6 || i == 9 || (i >= 10 && i <= 14) {
 					value = strings.ReplaceAll(value, " ", "")
 				}
 				if value == "" {

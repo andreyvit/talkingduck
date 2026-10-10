@@ -45,7 +45,7 @@ func colorCell(text string, column int) string {
 	if value == "" {
 		return text
 	}
-	if column == 14 {
+	if column == 15 {
 		return paint(text, 15)
 	} // Keep the trailing title white.
 	if column == 1 {
@@ -69,7 +69,7 @@ func colorCell(text string, column int) string {
 		}
 		return paint(text, color)
 	}
-	if column == 6 || column == 7 {
+	if column == 7 || column == 8 {
 		color := map[string]int{"▶": 81, "✓": 114, "!": 221}[value]
 		if color == 0 {
 			color = gray
@@ -79,22 +79,22 @@ func colorCell(text string, column int) string {
 	if column == 3 {
 		return paintNumber(text, "", 141)
 	}
-	if column == 5 || column == 8 {
+	if column == 6 || column == 9 {
 		if parts := strings.SplitN(text, "/", 2); len(parts) == 2 {
 			left, right := 114, 75
-			if column == 8 {
+			if column == 9 {
 				left, right = 221, 209
 			}
 			return paintNumber(parts[0], "", left) + paint("/", gray) + paintNumber(parts[1], "", right)
 		}
 	}
-	if column >= 9 && column <= 13 {
+	if column >= 10 && column <= 14 {
 		prefixes := []string{"±", "?", "ℹ︎", "⇣", "⇡"}
 		colors := []int{221, 114, 75, 203, 81}
 		if value == "ERROR" {
 			return paint(text, 203)
 		}
-		return paintNumber(text, prefixes[column-9], colors[column-9])
+		return paintNumber(text, prefixes[column-10], colors[column-10])
 	}
 	if value == "?" || value == "--" {
 		return paint(text, gray)

@@ -11,8 +11,8 @@ func TestCounterColors(t *testing.T) {
 		column        int
 		zero, nonzero string
 	}{
-		{3, " 0", " 2"}, {9, "± 0", "±229"}, {10, "? 0", "? 5"},
-		{11, "ℹ︎ 0", "ℹ︎ 4"}, {12, "⇣ 0", "⇣27"}, {13, "⇡ 0", "⇡ 2"},
+		{3, " 0", " 2"}, {10, "± 0", "±229"}, {11, "? 0", "? 5"},
+		{12, "ℹ︎ 0", "ℹ︎ 4"}, {13, "⇣ 0", "⇣27"}, {14, "⇡ 0", "⇡ 2"},
 	} {
 		if !strings.Contains(colorCell(tc.zero, tc.column), "[38;5;242m") {
 			t.Errorf("zero not gray: %q", tc.zero)
@@ -21,11 +21,11 @@ func TestCounterColors(t *testing.T) {
 			t.Errorf("nonzero gray: %q", tc.nonzero)
 		}
 	}
-	pair := colorCell(" 0/24", 5)
+	pair := colorCell(" 0/24", 6)
 	if !strings.Contains(pair, "\x1b[38;5;242m 0") || !strings.Contains(pair, "\x1b[38;5;75m24") {
 		t.Fatal(pair)
 	}
-	if got := colorCell("title", 14); got != "\x1b[38;5;15mtitle\x1b[0m" {
+	if got := colorCell("title", 15); got != "\x1b[38;5;15mtitle\x1b[0m" {
 		t.Fatal(got)
 	}
 	conflict := colorCell("Grok! ", 1)

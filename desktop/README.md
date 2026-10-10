@@ -186,3 +186,6 @@ use an Up/Down/Enter or clickable chooser. `e` opens the project in the configur
 The controller in frontend/controller.mjs is independent of DOM and Wails.
 Its Node tests cover selection modes, stable refreshes, action targets, copy
 variants, chooser invalidation, and null startup snapshots. Node is test-only.
+
+The blank Uber column shows `u` when spec frontmatter enables `uberreviews: true`.
+CLI/MCP AI output uses `-` when disabled.

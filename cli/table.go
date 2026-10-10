@@ -53,13 +53,20 @@ func display(v any) string {
 
 // Numeric cells contain intentional padding; text cells are whitespace-normalized.
 func tableCell(s string, column int) string {
-	if column == 3 || column == 5 || column == 8 || (column >= 9 && column <= 13) {
+	if column == 3 || column == 6 || column == 9 || (column >= 10 && column <= 14) {
 		return s
 	}
 	return clean(s)
 }
 
 func numeric(v any) string { return fmt.Sprintf("%2s", display(v)) }
+
+func uberMarker(enabled bool) string {
+	if enabled {
+		return "u"
+	}
+	return ""
+}
 
 func tableRows(report tableReport) [][]string {
 	rows := [][]string{}
@@ -70,13 +77,13 @@ func tableRows(report tableReport) [][]string {
 		name := filepath.Base(repo.Path)
 		g := repo.Git
 		if repo.Cache != nil && repo.Cache.ObservedAt.IsZero() && repo.Cache.Error == "" && (repo.Cache.State == "pending" || repo.Cache.State == "updating") {
-			row := make([]string, 15)
+			row := make([]string, 16)
 			row[0], row[4] = name, "SCANNING"
 			rows = append(rows, row)
 			continue
 		}
 		if g.Error != "" {
-			rows = append(rows, []string{name, "--", "--", " 0", "--", "--", "?", "?", " ?/ ?", "ERROR", "", "", "⇣ ?", "⇡ ?", g.Error})
+			rows = append(rows, []string{name, "--", "--", " 0", "--", "", "--", "?", "?", " ?/ ?", "ERROR", "", "", "⇣ ?", "⇡ ?", g.Error})
 			continue
 		}
 		tracked := "±" + numeric(g.Tracked)
@@ -85,7 +92,7 @@ func tableRows(report tableReport) [][]string {
 		behind, ahead := "⇣"+numeric(g.Behind), "⇡"+numeric(g.Ahead)
 		specs := repo.Specs
 		if needsCurrentSummary(repo) {
-			rows = append(rows, []string{name, "--", "--", " 0", g.Cleanliness, " 0/ 0", "", "", " 0/ 0", tracked, untracked, info, behind, ahead, worktreeSummary(repo)})
+			rows = append(rows, []string{name, "--", "--", " 0", g.Cleanliness, "", " 0/ 0", "", "", " 0/ 0", tracked, untracked, info, behind, ahead, worktreeSummary(repo)})
 			name = ""
 		}
 		for _, s := range specs {
@@ -105,7 +112,7 @@ func tableRows(report tableReport) [][]string {
 			if ticket == "" {
 				ticket = "--"
 			}
-			rows = append(rows, []string{name, agent, ticket, numeric(w.Round), w.Stage, numeric(w.SubtasksDone) + "/" + numeric(w.SubtasksTotal), w.Progress, w.Interaction, numeric(w.Questions) + "/" + numeric(w.Suggestions), tracked, untracked, info, behind, ahead, s.DisplayTitle})
+			rows = append(rows, []string{name, agent, ticket, numeric(w.Round), w.Stage, uberMarker(s.UberReviews), numeric(w.SubtasksDone) + "/" + numeric(w.SubtasksTotal), w.Progress, w.Interaction, numeric(w.Questions) + "/" + numeric(w.Suggestions), tracked, untracked, info, behind, ahead, s.DisplayTitle})
 			name = "" // Show the worktree once; AI output restores its full path.
 		}
 	}
@@ -114,7 +121,7 @@ func tableRows(report tableReport) [][]string {
 
 func render(report tableReport, size int, colors bool) string {
 	rows := tableRows(report)
-	widths := []int{6, 6, 8, 2, 4, 5, 1, 1, 5, 3, 3, 3, 3, 3}
+	widths := []int{6, 6, 8, 2, 4, 1, 5, 1, 1, 5, 3, 3, 3, 3, 3}
 	for _, row := range rows {
 		for i, value := range row[:len(widths)] {
 			for _, line := range strings.Split(value, "\n") {

@@ -253,3 +253,19 @@ func TestCommitOrderAndUntrackedStatus(t *testing.T) {
 		t.Fatalf("unexpected order: %+v", r.Specs)
 	}
 }
+
+func TestUberReviewsFrontmatter(t *testing.T) {
+	for _, tc := range []struct {
+		body string
+		want bool
+	}{
+		{"---\nuberreviews: true\n---\n# Task", true},
+		{"---\nuberreviews: false\n---\n# Task", false},
+		{"# Task\nuberreviews: true", false},
+		{"---\nstatus: planning\n---\nuberreviews: true", false},
+	} {
+		if got := parseSpec("task.md", tc.body).UberReviews; got != tc.want {
+			t.Errorf("%q: got %v", tc.body, got)
+		}
+	}
+}

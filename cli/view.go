@@ -38,6 +38,7 @@ type gitView struct {
 	Warnings      []string `json:"warnings"`
 }
 type taskView struct {
+	UberReviews    bool     `json:"uberreviews"`
 	Path           string   `json:"path"`
 	Tickets        []string `json:"tickets"`
 	DisplayTitle   string   `json:"display_title"`
