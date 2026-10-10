@@ -71,9 +71,9 @@ document.addEventListener('keyup',e=>{
  heldShifts.delete(e.code);
  if(!heldShifts.size)finishLeap();
 });
-const hints=[['Escape','Esc','Close'],['Tab','Tab','Dashboard'],[' ','Space','Next page'],['ArrowDown','↑↓','ToC'],['ArrowLeft','←',''],['ArrowRight','→','History'],['r','r','Refresh'],['c','c','ToC'],['h','h','History'],['Shift','Shift','Hold to search']];
+const hints=[['Escape','Esc','Close'],['Tab','Tab','Dashboard'],[' ','Space','Half page'],['ArrowDown','↑↓','ToC'],['ArrowLeft','←',''],['ArrowRight','→','History'],['r','r','Refresh'],['c','c','ToC'],['h','h','History'],['Shift','Shift','Hold to search']];
 for(const [key,label,title] of hints){const button=document.createElement('button');button.className='key-hint';button.dataset.key=key;const k=document.createElement('kbd');k.textContent=label;button.append(k);if(title)button.append(' '+title);button.onclick=e=>{if(key==='Shift')return;cancelRestore();if(key==='Tab'){finishLeap();send('dashboard')}else send('',{key,shift:e.shiftKey})};$('keys').append(button)}
-$('keys').querySelector('[data-key=" "]').title='Space: next page; Shift-Space: previous page before typing a search';
+$('keys').querySelector('[data-key=" "]').title='Space: half page down; Shift-Space: half page up before typing a search';
 const historyHints=document.createElement('span');historyHints.className='history-hints';
 const backHint=$('keys').querySelector('[data-key="ArrowLeft"]'),forwardHint=$('keys').querySelector('[data-key="ArrowRight"]');
 backHint.before(historyHints);historyHints.append(backHint,forwardHint);
@@ -98,7 +98,7 @@ Events.On('markdown:snapshot',({data})=>{
  for(const img of article.querySelectorAll('img'))if(!img.complete){img.addEventListener('load',apply,{once:true});img.addEventListener('error',apply,{once:true})}
  document.fonts.ready.then(apply);
 });
-Events.On('markdown:effect',({data})=>{cancelRestore();switch(data.action){case 'heading':jump(data.id);break;case 'toc':{const p=position();$('toc').hidden=data.hidden;restore(p);break}case 'page-up':scroller.scrollBy({top:-scroller.clientHeight*.9,behavior:'smooth'});break;case 'page-down':scroller.scrollBy({top:scroller.clientHeight*.9,behavior:'smooth'});break}});
+Events.On('markdown:effect',({data})=>{cancelRestore();switch(data.action){case 'heading':jump(data.id);break;case 'toc':{const p=position();$('toc').hidden=data.hidden;restore(p);break}case 'page-up':scroller.scrollBy({top:-scroller.clientHeight*.5,behavior:'smooth'});break;case 'page-down':scroller.scrollBy({top:scroller.clientHeight*.5,behavior:'smooth'});break}});
 Events.On('markdown:error',({data})=>{$('error').textContent=data});
 Events.Emit('markdown:ready');
 let recent=[],filtered=[],historyIndex=0;

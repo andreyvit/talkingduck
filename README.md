@@ -34,7 +34,7 @@ Press `s` on a dashboard row, click its spec, or use Finder's Open With menu.
 - Hold either Shift and type to search headings from the top. Matching ignores
   case and spaces: `UICH` finds `UI Changes`. Release Shift to keep a match;
   a failed search restores the original position.
-- Smooth page scrolling. Live reload with a 0.5-second cooldown and 2-second
+- Smooth half-page scrolling. Live reload with a 0.5-second cooldown and 2-second
   throttle, preserving the reading position across edits and atomic saves.
 - Searchable history of 50 recent files, with scroll positions saved across launches.
 - One reused window, remembered position and size, and a separate global hotkey.
@@ -45,7 +45,7 @@ Press `s` on a dashboard row, click its spec, or use Finder's Open With menu.
 | Key | Action |
 | --- | --- |
 | Esc / Tab | Close / switch to dashboard |
-| Space / Shift-Space | Next / previous page; Shift-Space adds a space once searching |
+| Space / Shift-Space | Half page down / up; Shift-Space adds a space once searching |
 | ↑ / ↓ | Previous / next ToC heading |
 | ← / → | File history |
 | h | Search recent files |

@@ -14,7 +14,7 @@ The standalone TUI cannot create the built-in desktop window.
 | --- | --- |
 | Esc | Close preview, return to dashboard |
 | Tab | Switch to dashboard; Tab there returns to the last Markdown preview |
-| Space / Shift-Space | Smoothly scroll next / previous page; Shift-Space searches once text is entered |
+| Space / Shift-Space | Smoothly scroll half a page down / up; Shift-Space searches once text is entered |
 | Up / Down | Previous / next ToC heading |
 | Left / Right | Back / forward through opened files |
 | r | Refresh now |
@@ -29,7 +29,7 @@ Hold either Shift key to search. While held, the bottom bar shows
 `Type to search: <query>`, a gap, then `↑↓ Matches`, `Esc Reset`, and `⌫ Delete`. Each edit selects the first match and highlights
 matching characters in the ToC. A failed or cleared search restores both the
 document and ToC scroll offsets from before the search. Releasing Shift keeps a
-match; releasing with no match keeps the original position. Before any search text, Shift-Space scrolls up a page. Once text is entered, it
+match; releasing with no match keeps the original position. Before any search text, Shift-Space scrolls up half a page. Once text is entered, it
 adds a space. Matching ignores whitespace, so `UICH` also finds `UI Changes`.
 
 Back/forward and recent-file selection also select the corresponding dashboard
