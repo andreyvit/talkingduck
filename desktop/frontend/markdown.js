@@ -1,4 +1,4 @@
-import {LeapSearch} from './markdown-leap.mjs';
+import {LeapSearch,HeldShifts} from './markdown-leap.mjs';
 import {Events} from '/wails/runtime.js';
 const elements=new Map([...document.querySelectorAll("[id]")].map(e=>[e.id,e]));
 const $=id=>elements.get(id),scroller=$("scroller"),article=$("document");
@@ -16,7 +16,7 @@ scroller.addEventListener('wheel',cancelRestore,{passive:true});scroller.addEven
 scroller.addEventListener('scroll',()=>{highlight();clearTimeout(positionTimer);positionTimer=setTimeout(savePosition,300)},{passive:true});
 window.addEventListener('blur',()=>{finishLeap();savePosition()});
 let leap=null;
-const heldShifts=new Set();
+const heldShifts=new HeldShifts();
 const leapBar=document.createElement('nav'),leapQuery=document.createElement('span');
 leapBar.className='leap-bar';leapBar.hidden=true;leapBar.setAttribute('aria-label','Search actions');
 for(const [key,label,action] of [['↑↓','Matches',()=>{leap.move(1);applyLeap()}],['Esc','Reset',()=>{leap.edit('');applyLeap()}],['⌫','Delete',()=>{leap.edit([...leap.query].slice(0,-1).join(''));applyLeap()}]]){
@@ -54,7 +54,7 @@ function finishLeap(){
 }
 function handleLeap(e){
  if(e.metaKey||e.ctrlKey||e.altKey||$('history').open||e.target.closest('input,textarea,select,[contenteditable=true]'))return false;
- if(e.key==='Shift'){heldShifts.add(e.code);beginLeap();return true}
+ if(e.key==='Shift'){const next=heldShifts.press(e.code);beginLeap();if(next){e.preventDefault();leap.move(1);applyLeap()}return true}
  if(!e.shiftKey){finishLeap();return false;}
  if(e.key==='Escape'){beginLeap();e.preventDefault();leap.edit('');applyLeap();return true}
  if(e.key==='ArrowUp'||e.key==='ArrowDown'){
@@ -68,7 +68,7 @@ function handleLeap(e){
 document.addEventListener('keyup',e=>{
  if(e.key!=='Shift')return;
  heldShifts.delete(e.code);
- if(!e.shiftKey||!heldShifts.size)finishLeap();
+ if(!heldShifts.size)finishLeap();
 });
 const hints=[['Escape','Esc','Close'],[' ','Space','Next page'],['ArrowDown','↑↓','ToC'],['ArrowLeft','←','Back'],['ArrowRight','→','Forward'],['r','r','Refresh'],['c','c','ToC'],['h','h','History'],['Shift','Shift','Hold to search']];
 for(const [key,label,title] of hints){const button=document.createElement('button');button.className='key-hint';button.dataset.key=key;const k=document.createElement('kbd');k.textContent=label;button.append(k,' '+title);button.onclick=e=>{if(key==='Shift')return;cancelRestore();send('',{key,shift:e.shiftKey})};$('keys').append(button)}

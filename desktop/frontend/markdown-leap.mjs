@@ -12,3 +12,12 @@ export class LeapSearch {
  move(delta) { if(this.matches.length)this.cursor=(this.cursor+delta+this.matches.length)%this.matches.length; return this.match; }
  get match() { return this.matches[this.cursor] || null; }
 }
+
+// Distinguish the two physical keys; key repeats must not advance the search.
+export class HeldShifts extends Set {
+ press(code) {
+  const second=this.size>0&&!this.has(code);
+  this.add(code);
+  return second;
+ }
+}

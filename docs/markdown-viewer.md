@@ -21,6 +21,7 @@ The standalone TUI cannot create the built-in desktop window.
 | h | Search recent files; arrows select, Enter opens |
 | Shift + typing | Search the ToC from the top, ignoring case |
 | Shift-Up / Shift-Down | Previous / next matching heading, wrapping at either end |
+| Other Shift while holding Shift | Next match; release and tap again to repeat |
 | Shift-Esc | Clear search and restore the pre-search position |
 
 Hold either Shift key to search. While held, the bottom bar shows
