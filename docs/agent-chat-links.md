@@ -71,7 +71,22 @@ Use uppercase `A`, then the agent letter; Escape cancels.
 The GUI footer shows `A Pick agent` instead of `a Agent` while Shift is held.
 After `A`, both footers show the choices.
 
-Each choice opens the latest primary session associated with that task in that
-agent. Reviews are excluded. Missing or unsupported session links show an
-unavailable notice; this does not create a new session. Plain `a` still opens
-the task's latest primary across all agents.
+Each choice reuses the latest primary session for that task in the chosen agent
+when a supported session link exists. Reviews are excluded. Otherwise it opens
+a fresh session in the row's exact worktree, including clean rows with no task
+or prior session. A fresh session leaves the prompt empty. Plain `a` still
+opens the existing primary across agents.
+
+- Codex: `codex://threads/new?path=<absolute-folder>` opens a fresh composer.
+  [Official commands reference](https://learn.chatgpt.com/docs/reference/commands#chats).
+- Claude: `claude://code/new?folder=<absolute-folder>` opens a fresh Code
+  composer. Claude may ask to confirm the folder.
+  [Official deep-link reference](https://support.claude.com/en/articles/14729294-open-claude-desktop-with-a-link).
+- Grok Build: on macOS, create and focus a cmux workspace with that cwd and run
+  `grok --cwd <absolute-folder>`, without a prompt or resume flag.
+  Verified against installed `cmux new-workspace --help` and `grok --help`.
+  Requires cmux and Grok; errors are shown rather than falling back to another folder.
+
+To switch from Claude to Codex for squashing: select the row, press `Ax`,
+then enter your squash request. No chat history is copied, and no operation
+runs until you ask the agent.

@@ -94,7 +94,7 @@ export class InventoryController {
   else if(matches.length>1) {
    this.choices=matches;this.choice=0;this.choiceAction={row:target.id,key};
   }
-  if(!matches.length&&key.startsWith('A'))this.run({kind:'notice',value:'No matching agent session'});
+  if(!matches.length&&key.startsWith('A'))this.run({kind:'notice',value:'Action unavailable for this row'});
   return true;
  }
 }

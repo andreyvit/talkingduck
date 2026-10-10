@@ -45,6 +45,8 @@ func (o Opener) Open(a table.Action) error {
 		return OpenGrok(strings.TrimPrefix(target, "talkingduck-grok:"))
 	}
 	switch a.Kind {
+	case "new-codex", "new-claude", "new-grok":
+		return launchers.OpenAgent(strings.TrimPrefix(a.Kind, "new-"), target)
 	case "reveal-spec":
 		return launchers.Reveal(target)
 	case "spec":

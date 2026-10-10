@@ -43,8 +43,20 @@ func modelTable(view TableView) table.Table {
 			{Text: "Editor", Chord: "e", Link: &table.Action{Kind: "editor", Target: row.Group}},
 			{Text: "Git", Chord: "g", Link: &table.Action{Kind: "git", Target: row.Group}},
 		}
+		choices := map[string]table.Item{}
 		if n < len(view.AgentChoices) {
-			row.Actions = append(row.Actions, view.AgentChoices[n]...)
+			for _, item := range view.AgentChoices[n] {
+				choices[item.Chord] = item
+			}
+		}
+		for _, agent := range []struct{ chord, name, kind string }{
+			{"Ax", "ChatGPT / Codex", "new-codex"}, {"Ac", "Claude", "new-claude"}, {"Ag", "Grok Build", "new-grok"},
+		} {
+			item, found := choices[agent.chord]
+			if !found {
+				item = table.Item{Text: agent.name, Chord: agent.chord, Link: &table.Action{Kind: agent.kind, Target: row.Group}}
+			}
+			row.Actions = append(row.Actions, item)
 		}
 		if view.SpecPaths[n] == "" {
 			row.Archive = &table.Action{Kind: "archive", Target: ""}

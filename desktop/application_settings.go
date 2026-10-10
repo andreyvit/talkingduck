@@ -102,7 +102,7 @@ func registerApplicationSettings(app *application.App, v *inventoryView, publish
 			}
 		}()
 	})
-	for _, kind := range []string{"editor", "git"} {
+	for _, kind := range []string{"editor", "git", "new-codex", "new-claude", "new-grok"} {
 		app.Event.On("inventory:open-"+kind, func(e *application.CustomEvent) {
 			path, ok := e.Data.(string)
 			if !ok {
