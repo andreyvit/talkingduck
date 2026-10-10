@@ -12,3 +12,5 @@ dialog{color:#f0f6fc;background:#151b23;border:1px solid #3d444d;border-radius:1
 #toc mark{color:#fff1a8;background:#675625;border-radius:2px}#toc a[aria-current=true] mark{background:#806829;color:#fff6be}
 
 #keys[hidden],.leap-bar[hidden]{display:none}.leap-bar{display:flex;align-items:center;gap:12px;flex:1;min-width:0}.leap-query{margin-right:20px;font:12px/1.6 ui-monospace,monospace;color:#f0f6fc;white-space:pre-wrap;overflow-wrap:anywhere;min-width:0}.leap-query.no-match{color:#f18a8a}
+
+.history-hints{display:inline-flex;gap:0}
