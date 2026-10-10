@@ -10,7 +10,7 @@ func TestAgentLinks(t *testing.T) {
 		{"claude", "desktop", id, "", ""},
 		{"claude", "cli", id, "local_" + id, ""},
 		{"codex", "desktop", "new", "", ""},
-		{"grok", "desktop", id, "", ""},
+		{"grok", "desktop", id, "", "talkingduck-grok:" + id},
 	} {
 		var task taskView
 		task.PrimarySession.Engine = tc.engine

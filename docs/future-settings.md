@@ -9,7 +9,8 @@ or startup error. Open it from the overview, tray menu, or ⌘,.
 | Folder order | Saved insertion order; discovered folders appended hidden | Reordering |
 | Ticket tracker scope | Configurable global tracker and workspace URL; see [launchers](launchers.md) | Per-project overrides |
 | Markdown preview | Configurable viewer, default association, or configured editor | Implemented; see settings and launchers docs |
-| Agent chat destination | Native Codex and Claude Code deep links when IDs are known | Per-agent app preference and future remote/cloud routing; see [chat links](agent-chat-links.md) |
+| Agent chat destination | Native Codex/Claude links; Grok via cmux session hooks and socket when identity is confirmed | Per-agent app preference and future remote/cloud routing; see [chat links](agent-chat-links.md) |
+| cmux integration | CLI at `/Applications/cmux.app/Contents/Resources/bin/cmux`; hooks in `~/.cmuxterm` | App/CLI and hook-state location, connection diagnostics |
 | Ticket destination | macOS opens the HTTPS URL with its default handler | Optional browser/Linear-app preference |
 | Remote fetch | Startup and every 15 minutes independently of scanning; failed attempts also throttled | Fetch interval and enable/disable |
 | Refresh scheduling | Cheap cooldown 1–5s/throttle 5s; expensive cooldown 5–20s/throttle 60s; process checks 30s; recovery 10min | Per-queue timing; optional pause/resume |

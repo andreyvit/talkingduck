@@ -41,4 +41,24 @@ does not use this route. See [Claude's deep-link reference](https://support.clau
 UI search can find a title when a stable deep link is unavailable, but ambiguous
 names make that unsuitable for automatic row links. Launching a CLI with resume
 flags starts a terminal session rather than selecting the existing desktop chat.
-Neither fallback is used here. Grok remains unlinked.
+Neither fallback is used here.
+
+## Grok in cmux
+
+Grok links are internal actions, not public URL schemes. On click, read cmux's
+`~/.cmuxterm/grok-hook-sessions.json` and find the exact session ID. Reject a
+missing record or any newer/equally recent session on the same surface/process.
+Verify the PID's start time and Grok executable, then ask cmux's
+`agent.resolve_delivery_target` for its live terminal. Require that surface to
+match the hook record; select its current workspace, focus the surface, and
+activate cmux. No prompt is sent and no session is resumed.
+
+The adapter uses `/Applications/cmux.app/Contents/Resources/bin/cmux`, with a
+10-second timeout. Existing socket access must permit TalkingDuck; it does not
+change cmux permissions. Missing/ambiguous/stale identities fail visibly. A
+session can still change between validation and focus; these APIs are not atomic.
+
+Observed locally: PID resolution returns `source=pid`, `workspace_id`, and
+`surface_id`. Saved resume bindings can lag the latest hook session, so they
+are not used as identity evidence. Recheck hook schema and RPC support after
+cmux upgrades. See [cmux's resolver implementation](https://github.com/manaflow-ai/cmux/blob/main/CLI/CMUXCLI%2BClaudeHookDeliveryTarget.swift).

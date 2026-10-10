@@ -8,6 +8,10 @@ var claudeDesktopID = regexp.MustCompile(`^local_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[
 func agentLink(task taskView) string {
 	p := task.PrimarySession
 	switch p.Engine {
+	case "grok":
+		if sessionUUID.MatchString(p.ID) {
+			return "talkingduck-grok:" + p.ID
+		}
 	case "codex":
 		if p.Client != "cli" && sessionUUID.MatchString(p.ID) {
 			return "codex://threads/" + p.ID
