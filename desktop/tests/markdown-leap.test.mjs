@@ -14,3 +14,12 @@ test('edits always search from top, arrows cycle only matching headings',()=>{
  assert.equal(s.edit(''),null);
  assert.equal(s.edit('code').index,1);
 });
+
+test('spaces are search characters, including the first character',()=>{
+ const s=new LeapSearch(['Scope','Code overview','Code changes'],{main:123,toc:45});
+ assert.equal(s.edit(' ').index,1);
+ assert.equal(s.edit(' c').index,2);
+ assert.equal(s.edit('missing'),null);
+ assert.equal(s.edit(''),null);
+ assert.deepEqual(s.origin,{main:123,toc:45});
+});

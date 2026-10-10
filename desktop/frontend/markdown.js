@@ -17,10 +17,22 @@ scroller.addEventListener('scroll',()=>{highlight();clearTimeout(positionTimer);
 window.addEventListener('blur',()=>{finishLeap();savePosition()});
 let leap=null;
 const heldShifts=new Set();
+const leapBar=document.createElement('nav'),leapQuery=document.createElement('span');
+leapBar.className='leap-bar';leapBar.hidden=true;leapBar.setAttribute('aria-label','Search actions');
+for(const [key,label,action] of [['↑↓','Matches',()=>{leap.move(1);applyLeap()}],['Esc','Reset',()=>{leap.edit('');applyLeap()}],['⌫','Delete',()=>{leap.edit([...leap.query].slice(0,-1).join(''));applyLeap()}]]){
+ const button=document.createElement('button'),kbd=document.createElement('kbd');button.className='key-hint';kbd.textContent=key;button.append(kbd,' '+label);button.onclick=()=>{if(leap)action()};leapBar.append(button);
+}
+leapQuery.className='leap-query';leapBar.append(leapQuery);$('keys').after(leapBar);
+function renderLeapBar(){
+ $('keys').hidden=!!leap;leapBar.hidden=!leap;
+ leapQuery.textContent='Search: '+(leap?.query||'');
+ leapQuery.classList.toggle('no-match',!!leap?.query&&!leap.match);
+}
 function beginLeap(){
  if(leap)return;
  cancelRestore();clearTimeout(positionTimer);
  leap=new LeapSearch(headings.map(h=>h.textContent),{main:scroller.scrollTop,toc:$('toc').scrollTop});
+ renderLeapBar();
 }
 function paintLeap(){
  for(const [i,a] of [...$('toc').querySelectorAll('a')].entries()){
@@ -31,21 +43,19 @@ function paintLeap(){
  }
 }
 function applyLeap(){
- paintLeap();
+ renderLeapBar();paintLeap();
  if(leap.match)jump(headings[leap.match.index].id);
  else {scroller.scrollTop=leap.origin.main;highlight();$('toc').scrollTop=leap.origin.toc}
 }
 function finishLeap(){
  if(!leap)return;
  if(!leap.match){scroller.scrollTop=leap.origin.main;$('toc').scrollTop=leap.origin.toc}
- leap=null;heldShifts.clear();paintLeap();highlight();savePosition();
+ leap=null;heldShifts.clear();renderLeapBar();paintLeap();highlight();savePosition();
 }
 function handleLeap(e){
  if(e.metaKey||e.ctrlKey||e.altKey||$('history').open||e.target.closest('input,textarea,select,[contenteditable=true]'))return false;
  if(e.key==='Shift'){heldShifts.add(e.code);beginLeap();return true}
  if(!e.shiftKey){finishLeap();return false;}
- // Preserve Shift-Space page up until a search has text.
- if(e.key===' '&&!leap?.query){finishLeap();return false}
  if(e.key==='Escape'){beginLeap();e.preventDefault();leap.edit('');applyLeap();return true}
  if(e.key==='ArrowUp'||e.key==='ArrowDown'){
   beginLeap();e.preventDefault();leap.move(e.key==='ArrowUp'?-1:1);applyLeap();return true;
@@ -62,7 +72,7 @@ document.addEventListener('keyup',e=>{
 });
 const hints=[['Escape','Esc','Close'],[' ','Space','Next page'],['ArrowDown','↑↓','ToC'],['ArrowLeft','←','Back'],['ArrowRight','→','Forward'],['r','r','Refresh'],['c','c','ToC'],['h','h','History'],['Shift','Shift','Hold to search']];
 for(const [key,label,title] of hints){const button=document.createElement('button');button.className='key-hint';button.dataset.key=key;const k=document.createElement('kbd');k.textContent=label;button.append(k,' '+title);button.onclick=e=>{if(key==='Shift')return;cancelRestore();send('',{key,shift:e.shiftKey})};$('keys').append(button)}
-$('keys').querySelector('[data-key=" "]').title='Space: page down; Shift-Space: page up';
+$('keys').querySelector('[data-key=" "]').title='Space: next page';
 document.addEventListener('keydown',e=>{if(handleLeap(e))return;if(e.metaKey||e.ctrlKey||e.altKey||e.target.closest('input,textarea,select,[contenteditable=true]'))return;if(!['Escape',' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','r','R','c','C','h','H'].includes(e.key))return;e.preventDefault();cancelRestore();send('',{key:e.key,shift:e.shiftKey})});
 article.addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;e.preventDefault();const href=a.getAttribute('href')||'';if(href.startsWith('#')){try{jump(decodeURIComponent(href.slice(1)))}catch{}}else send('link',{link:href})});
 Events.On('markdown:snapshot',({data})=>{
