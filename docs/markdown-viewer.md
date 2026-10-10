@@ -24,7 +24,7 @@ The standalone TUI cannot create the built-in desktop window.
 | Shift-Esc | Clear search and restore the pre-search position |
 
 Hold either Shift key to search. While held, the bottom bar shows
-`↑↓ Matches`, `Esc Reset`, `⌫ Delete`, and the current `Search:` text. Each edit selects the first match and highlights
+`Type to search: <query>`, a gap, then `↑↓ Matches`, `Esc Reset`, and `⌫ Delete`. Each edit selects the first match and highlights
 matching characters in the ToC. A failed or cleared search restores both the
 document and ToC scroll offsets from before the search. Releasing Shift keeps a
 match; releasing with no match keeps the original position. Shift-Space enters a literal space in the search, including as its first character.

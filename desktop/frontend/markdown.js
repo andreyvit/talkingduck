@@ -22,10 +22,10 @@ leapBar.className='leap-bar';leapBar.hidden=true;leapBar.setAttribute('aria-labe
 for(const [key,label,action] of [['↑↓','Matches',()=>{leap.move(1);applyLeap()}],['Esc','Reset',()=>{leap.edit('');applyLeap()}],['⌫','Delete',()=>{leap.edit([...leap.query].slice(0,-1).join(''));applyLeap()}]]){
  const button=document.createElement('button'),kbd=document.createElement('kbd');button.className='key-hint';kbd.textContent=key;button.append(kbd,' '+label);button.onclick=()=>{if(leap)action()};leapBar.append(button);
 }
-leapQuery.className='leap-query';leapBar.append(leapQuery);$('keys').after(leapBar);
+leapQuery.className='leap-query';leapBar.prepend(leapQuery);$('keys').after(leapBar);
 function renderLeapBar(){
  $('keys').hidden=!!leap;leapBar.hidden=!leap;
- leapQuery.textContent='Search: '+(leap?.query||'');
+ leapQuery.textContent='Type to search: '+(leap?.query||'');
  leapQuery.classList.toggle('no-match',!!leap?.query&&!leap.match);
 }
 function beginLeap(){
