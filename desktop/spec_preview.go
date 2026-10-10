@@ -28,5 +28,14 @@ func (v *inventoryView) specAction(path, kind string) error {
 	if !info.Mode().IsRegular() {
 		return fmt.Errorf("spec is not a regular file: %s", path)
 	}
+	if kind == "spec" {
+		data, err := v.settings.Load()
+		if err != nil {
+			return err
+		}
+		if data.Applications.Markdown.ID == "built-in" && v.markdown != nil {
+			return v.markdown.open(path)
+		}
+	}
 	return (actions.Opener{SettingsPath: v.settings.Path}).Open(table.Action{Kind: kind, Target: path})
 }

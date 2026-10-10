@@ -1,6 +1,6 @@
 # Window placement
 
-Inventory and Settings restore independently once their Wails window runtime is
+Inventory, Settings and Markdown preview restore independently once their Wails window runtime is
 ready, after initial native positioning. Reloading the page does not restore again.
 Application-started is too early: Wails starts pending windows asynchronously.
 

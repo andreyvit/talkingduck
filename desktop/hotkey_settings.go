@@ -9,8 +9,8 @@ import (
 	"talkingduck/settings"
 )
 
-func registerHotkeySettings(app *application.App, window *application.WebviewWindow, store *settings.Store, action func()) func() {
-	h := &hotkeyController{registry: app.GlobalShortcut, store: store, action: action}
+func registerHotkeySettings(app *application.App, window *application.WebviewWindow, store *settings.Store, action, markdownAction func()) func() {
+	h := &hotkeyController{registry: app.GlobalShortcut, store: store, action: action, markdownAction: markdownAction}
 	type request struct {
 		Kind string           `json:"kind"`
 		Keys settings.Hotkeys `json:"keys"`

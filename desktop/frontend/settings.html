@@ -5,12 +5,18 @@
 <section aria-labelledby="hotkeys-title"><h2 id="hotkeys-title">Keyboard Shortcuts</h2><div class="group"><div class="hotkey-form">
 <div class="form-row"><label for="hotkey-0">Global hotkey</label><div class="hotkey-control"><button id="hotkey-0" class="hotkey-recorder" aria-pressed="false">Record shortcut</button><button id="hotkey-clear-0" class="hotkey-clear" aria-label="Clear global hotkey" title="Clear global hotkey" hidden>×</button></div></div>
 <div class="form-row"><label for="hotkey-1">Additional hotkey</label><div class="hotkey-control"><button id="hotkey-1" class="hotkey-recorder" aria-pressed="false">Record shortcut</button><button id="hotkey-clear-1" class="hotkey-clear" aria-label="Clear additional hotkey" title="Clear additional hotkey" hidden>×</button></div></div>
+<div class="form-row"><label for="hotkey-2">Markdown preview</label><div class="hotkey-control"><button id="hotkey-2" class="hotkey-recorder" aria-pressed="false">Record shortcut</button><button id="hotkey-clear-2" class="hotkey-clear" aria-label="Clear Markdown preview shortcut" title="Clear Markdown preview shortcut" hidden>×</button></div></div>
+<p class="form-help">The Markdown shortcut opens the last preview. With no history, it shows the recent-files chooser.</p>
 <p class="form-help">Show or hide the dashboard from any app. Combine ⌃ Control, ⌥ Option, ⇧ Shift, and ⌘ Command. Escape cancels recording.</p>
 <p id="hotkey-error" class="form-status error" role="status"></p>
 </div></div></section>
 <section aria-labelledby="applications-title"><h2 id="applications-title">Applications</h2>
 <div class="group"><form id="editor-form"></form><form id="git_client-form"></form><form id="markdown-form"></form></div>
 <p class="section-help">Open the selected project with E (editor) or G (Git client). Gray apps weren’t found. Use Custom for other locations.</p></section>
+<section aria-labelledby="markdown-title"><h2 id="markdown-title">Built-in Markdown Preview</h2><div class="group"><form id="markdown-appearance-form">
+<div class="form-row"><label for="markdown-font">Font family</label><select id="markdown-font"><option value="github">GitHub default (System — San Francisco)</option></select></div>
+<div class="form-row"><label for="markdown-size">Font size</label><input id="markdown-size" type="number" min="10" max="40" step="1" value="16"></div>
+<p class="form-help">GitHub defaults to 16 px. Fonts are read from this Mac.</p><p id="markdown-appearance-error" class="form-status error" role="status"></p></form></div></section>
 <section aria-labelledby="tickets-title"><h2 id="tickets-title">Tickets</h2><div class="group"><form id="tracker-form"></form></div></section>
 <section aria-labelledby="folders-title"><div class="section-heading"><h2 id="folders-title">Folders</h2><button id="add">Add Folder…</button></div>
 <div class="group folders"><table><colgroup><col class="use-col"><col><col class="shortcut-col"></colgroup><thead><tr><th class="use-cell">Use</th><th>Folder</th><th>Menu Bar Shortcut</th></tr></thead><tbody id="folders"></tbody></table></div>

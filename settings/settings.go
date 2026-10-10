@@ -21,10 +21,11 @@ type Folder struct {
 	Discovered          bool   `json:"discovered,omitempty"`
 }
 type Data struct {
-	GlobalHotkeys *Hotkeys     `json:"global_hotkeys,omitempty"`
-	Applications  Applications `json:"applications"`
-	Version       int          `json:"version"`
-	Folders       []Folder     `json:"folders"`
+	MarkdownAppearance MarkdownAppearance `json:"markdown_appearance,omitzero"`
+	GlobalHotkeys      *Hotkeys           `json:"global_hotkeys,omitempty"`
+	Applications       Applications       `json:"applications"`
+	Version            int                `json:"version"`
+	Folders            []Folder           `json:"folders"`
 }
 type Store struct {
 	Path string

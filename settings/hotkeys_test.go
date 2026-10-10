@@ -42,3 +42,15 @@ func TestValidateHotkeys(t *testing.T) {
 		}
 	}
 }
+
+func TestLegacyTwoHotkeysAndMarkdownConflict(t *testing.T) {
+	s := &Store{Path: filepath.Join(t.TempDir(), "settings.json")}
+	os.WriteFile(s.Path, []byte(`{"version":1,"global_hotkeys":["Ctrl+T","Alt+T"],"folders":[]}`), 0600)
+	d, e := s.Load()
+	if e != nil || d.EffectiveHotkeys() != (Hotkeys{"Ctrl+T", "Alt+T", ""}) {
+		t.Fatal(d, e)
+	}
+	if ValidateHotkeys(Hotkeys{"Ctrl+Alt+T", "", "Alt+Ctrl+T"}) == nil {
+		t.Fatal("accepted Markdown/dashboard conflict")
+	}
+}

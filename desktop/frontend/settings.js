@@ -1,5 +1,6 @@
 import {Events} from '/wails/runtime.js';
 import {shortcutOptions,shortcutLabel} from './settings-model.mjs';
+import {updateMarkdownAppearance} from "./settings-markdown.js";
 import {updateApplications} from './settings-apps.js';
 import './settings-archives.js';
 import './settings-hotkeys.js';
@@ -13,6 +14,7 @@ function select(values,value,label,onchange){
 }
 Events.On('settings:snapshot',({data})=>{
  updateApplications(data.applications);
+ updateMarkdownAppearance(data.applications);
  if(addressValue!==data.address){
   addressValue=data.address;
   const field=document.createElement('input');field.id='address';field.readOnly=true;field.value=data.address;field.placeholder='Starting server…';field.onclick=()=>field.select();

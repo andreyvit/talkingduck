@@ -126,6 +126,8 @@ func run(opts *cli.Options, mcpPort int) error {
 	app.Event.On("settings:open", func(*application.CustomEvent) { showSettings() })
 	view = &inventoryView{folderOverride: len(opts.Inventory.Paths) > 0, settings: store, settingsChanged: publishSettings, settingsError: func(err error) { app.Event.Emit("settings:error", err.Error()) }, cache: cache, fetch: fetchRemote, emit: func(state inventoryState) { app.Event.Emit("inventory:snapshot", state) }}
 
+	view.markdown = newMarkdownViewer(ctx, app, window, store)
+	registerMarkdownOpen(app, view.markdown)
 	registerApplicationSettings(app, view, publishSettings)
 
 	app.Event.On("settings:visibility", func(event *application.CustomEvent) {
@@ -327,7 +329,7 @@ func run(opts *cli.Options, mcpPort int) error {
 		}()
 	})
 
-	syncHotkeys = registerHotkeySettings(app, settingsWindow, store, toggleOverview)
+	syncHotkeys = registerHotkeySettings(app, settingsWindow, store, toggleOverview, func() { go view.markdown.show() })
 
 	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
 		// Older Settings frames predate the folder list.

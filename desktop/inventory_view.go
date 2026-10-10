@@ -33,6 +33,7 @@ type inventoryView struct {
 	folderOverride  bool
 	folderMu        sync.Mutex
 	settings        *settings.Store
+	markdown        *markdownViewer
 	settingsChanged func()
 	settingsError   func(error)
 	publicationMu   sync.Mutex

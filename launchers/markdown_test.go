@@ -9,6 +9,14 @@ import (
 func TestMarkdownCatalog(t *testing.T) {
 	for _, platform := range []string{"darwin", "linux", "windows"} {
 		apps := Available(MarkdownViewers, platform)
+		offset := 0
+		if platform == "darwin" {
+			if apps[0].ID != "built-in" {
+				t.Fatal(apps)
+			}
+			offset = 1
+		}
+		apps = apps[offset:]
 		if apps[0].ID != "default" || apps[1].ID != "text-editor" || apps[len(apps)-1].ID != "custom" {
 			t.Fatal(apps)
 		}

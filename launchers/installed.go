@@ -34,7 +34,7 @@ func DetectedApps(apps []App) []App {
 	result := Available(apps, runtime.GOOS)
 	for i := range result {
 		a := &result[i]
-		if a.ID == "custom" || a.ID == "default" || a.ID == "text-editor" {
+		if a.ID == "built-in" || a.ID == "custom" || a.ID == "default" || a.ID == "text-editor" {
 			continue
 		}
 		found := false

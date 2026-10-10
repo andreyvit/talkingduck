@@ -83,7 +83,7 @@ Connection includes a copy button for the MCP address. Configuration File shows
 JSON format and the active settings path; Reveal selects that file in Finder.
 
 Markdown viewer defaults to `(Default)` (OS association). `(Text editor)` follows
-Editor. Other viewers and Custom open the spec file directly. App dropdowns are
+Editor. `(Built-in viewer)` opens the shared desktop preview; see [Markdown preview](markdown-viewer.md). Other viewers and Custom open the spec file directly. App dropdowns are
 alphabetical, platform-filtered, and mark undetected installations with muted
 text. Quick checks are cached until restart; Custom handles undetected locations.
 
@@ -98,15 +98,17 @@ stored even when outside this list.
 
 ## Global hotkeys
 
-Settings → Keyboard Shortcuts has two inline recorders: Global hotkey and
-Additional hotkey. Click to record; press a combination; Escape cancels. The ×
+Settings → Keyboard Shortcuts has three inline recorders: Global hotkey,
+Additional hotkey, and Markdown preview. Click to record; press a combination; Escape cancels. The ×
 button clears a binding. Changes save immediately and apply without relaunching.
 The original Control-T default remains until configured; clearing both disables
-all global bindings. Both shortcuts toggle the dashboard.
+the dashboard bindings. The first two shortcuts toggle the dashboard; the third
+opens the last Markdown preview.
 
-`global_hotkeys` stores two accelerator strings in the shared settings JSON.
-An absent field means `["Ctrl+T", ""]`; `["", ""]` means disabled. Example:
-`["Ctrl+Alt+Shift+Super+T", "F18"]`. `Super` means Command on macOS.
+`global_hotkeys` stores three accelerator strings in the shared settings JSON.
+An absent field means `["Ctrl+T", "", ""]`; `["", "", ""]` means disabled. Legacy two-entry arrays
+leave the Markdown shortcut unassigned. Example:
+`["Ctrl+Alt+Shift+Super+T", "F18", "Ctrl+Alt+M"]`. `Super` means Command on macOS.
 
 The macOS backend supports any combination of Control, Option, Shift, and Command,
 letters, digits, punctuation, navigation keys, and F1–F20. Fn/Globe, modifier-only
@@ -118,3 +120,7 @@ as an error; rejected edits preserve the previous setting.
 Global bindings pause while recording and resume on completion, cancellation, or
 Settings losing focus. The recorder is local HTML/JavaScript; native registration
 uses the existing Wails Carbon backend without Accessibility permission.
+
+Built-in Markdown Preview settings store `markdown_appearance.font` (default
+`github`) and `size` (default 16 px). Font choices come from installed macOS
+families. These fields use the same autosave behavior as Applications.

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"sync"
 	"talkingduck/launchers"
+	"talkingduck/settings"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -24,7 +25,7 @@ func applicationSettings(v *inventoryView) map[string]any {
 	if err != nil {
 		message = err.Error()
 	}
-	return map[string]any{"values": data.Applications.Defaults(), "editors": editorChoices, "gitClients": gitChoices, "markdownViewers": markdownChoices, "trackers": launchers.Trackers, "error": message}
+	return map[string]any{"appearance": data.MarkdownAppearance.Defaults(), "fonts": installedMarkdownFonts(), "values": data.Applications.Defaults(), "editors": editorChoices, "gitClients": gitChoices, "markdownViewers": markdownChoices, "trackers": launchers.Trackers, "error": message}
 }
 func registerApplicationSettings(app *application.App, v *inventoryView, publish func()) {
 	app.Event.On("inventory:open-reveal-spec", func(e *application.CustomEvent) {
@@ -65,7 +66,18 @@ func registerApplicationSettings(app *application.App, v *inventoryView, publish
 			}
 			latest[key] = request.Revision
 			var err error
-			if request.Kind == "tracker" {
+			if request.Kind == "markdown_appearance" {
+				var a settings.MarkdownAppearance
+				err = json.Unmarshal(request.Selection, &a)
+				if err == nil {
+					_, err = v.settings.SetMarkdownAppearance(a)
+				}
+				if err == nil && v.markdown != nil {
+					v.markdown.mu.Lock()
+					v.markdown.publish("")
+					v.markdown.mu.Unlock()
+				}
+			} else if request.Kind == "tracker" {
 				var s launchers.TrackerSelection
 				err = json.Unmarshal(request.Selection, &s)
 				if err == nil {

@@ -2,6 +2,7 @@ package launchers
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -9,6 +10,7 @@ import (
 )
 
 var MarkdownViewers = []App{
+	{ID: "built-in", Name: "(Built-in viewer)", Platforms: map[string]Launch{"darwin": {}}},
 	{ID: "default", Name: "(Default)", Platforms: map[string]Launch{"darwin": {}, "linux": {}, "windows": {}}},
 	{ID: "text-editor", Name: "(Text editor)", Platforms: map[string]Launch{"darwin": {}, "linux": {}, "windows": {}}},
 	editor("markdownreader", "MarkDownReader", "com.markdownreader.MarkDownReader", "", ""),
@@ -22,6 +24,8 @@ var MarkdownViewers = []App{
 
 func OpenMarkdown(viewer, editor Selection, path string) error {
 	switch viewer.ID {
+	case "built-in":
+		return fmt.Errorf("the built-in Markdown viewer requires the TalkingDuck desktop app")
 	case "", "default":
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()

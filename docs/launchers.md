@@ -90,7 +90,9 @@ opens a spec with the OS file association; `(Text editor)` uses the configured
 editor and passes the spec file instead of its folder. Custom `$PATH` is the file.
 The viewer catalog is platform-filtered: MarkDownReader, Marked, MacMD Viewer,
 MacDown (Mac); Typora and MarkText (Mac/Linux/Windows); ghostwriter (Linux/Windows).
-App names sort alphabetically after the two special choices; Custom stays last.
+On macOS, `(Built-in viewer)` (`id: "built-in"`) opens the shared desktop
+preview. The standalone TUI reports that this choice requires the desktop app.
+App names sort alphabetically after the special choices; Custom stays last.
 Editor and Git client catalogs use the same alphabetical ordering.
 
 Settings checks standard Mac application directories (including Setapp and

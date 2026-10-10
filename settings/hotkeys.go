@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-// Nil preserves the original default; two empty entries explicitly disable it.
-type Hotkeys [2]string
+// Nil preserves the original default; all empty entries explicitly disable it.
+type Hotkeys [3]string
 
 func (d Data) EffectiveHotkeys() Hotkeys {
 	if d.GlobalHotkeys == nil {
@@ -52,8 +52,16 @@ func ValidateHotkeys(keys Hotkeys) error {
 		}
 		return result + parts[len(parts)-1]
 	}
-	if keys[0] != "" && canonical(keys[0]) == canonical(keys[1]) {
-		return fmt.Errorf("choose two different hotkeys")
+	seenKeys := map[string]bool{}
+	for _, key := range keys {
+		if key == "" {
+			continue
+		}
+		c := canonical(key)
+		if seenKeys[c] {
+			return fmt.Errorf("choose different hotkeys")
+		}
+		seenKeys[c] = true
 	}
 	return nil
 }

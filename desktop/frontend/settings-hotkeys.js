@@ -1,8 +1,8 @@
 import {Events} from '/wails/runtime.js';
 import {recordedHotkey,hotkeyLabel} from './hotkey-model.mjs';
-let keys=['Ctrl+T',''],recording=-1,ready=false,pending=false;
+let keys=['Ctrl+T','',''],recording=-1,ready=false,pending=false;
 const error=document.getElementById('hotkey-error');
-const controls=[0,1].map(index=>{
+const controls=[0,1,2].map(index=>{
  const button=document.getElementById('hotkey-'+index),clear=document.getElementById('hotkey-clear-'+index);
  button.onclick=()=>{
   if(pending)return;
@@ -16,7 +16,7 @@ function render(){
  controls.forEach(({button,clear},index)=>{
   button.textContent=recording===index?'Press shortcut…':hotkeyLabel(keys[index]);
   button.classList.toggle('recording',recording===index);
-  button.setAttribute('aria-label',(index===0?'Global hotkey: ':'Additional hotkey: ')+button.textContent);
+  button.setAttribute('aria-label',(['Global hotkey: ','Additional hotkey: ','Markdown preview: '][index])+button.textContent);
   button.setAttribute('aria-pressed',String(recording===index));
   button.disabled=pending;clear.disabled=pending;clear.hidden=!keys[index];
  });

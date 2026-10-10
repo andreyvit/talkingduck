@@ -167,8 +167,9 @@ errors are ignored; independent fetch errors still produce warnings.
 
 ## Inventory controls
 
-Settings → Keyboard Shortcuts provides two configurable global hotkeys. Control-T
-is the default; either recorder can be cleared. Both use the tray toggle: hide a
+Settings → Keyboard Shortcuts provides two dashboard hotkeys and a separate
+Markdown preview hotkey. See [Markdown preview](../docs/markdown-viewer.md). Control-T
+is the default; either recorder can be cleared. Both dashboard shortcuts use the tray toggle: hide a
 focused overview, otherwise show and focus it. See [hotkeys](../docs/settings.md#global-hotkeys)
 for supported keys, persistence, and native registration limits.
 
@@ -193,7 +194,7 @@ CLI/MCP AI output uses `-` when disabled.
 Q/S combines questions and suggestions; an unknown component keeps the total
 unknown. CLI and MCP compact output use the same combined count.
 
-Inventory and Settings restore position and size independently using a display
+Inventory, Settings and Markdown preview restore position and size independently using a display
 UUID and screen-relative frame in macOS user defaults. AppKit frame autosaving
 is used only to migrate older settings; see [window placement](../docs/window-placement.md).
 

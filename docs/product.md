@@ -90,3 +90,9 @@ Project actions open the selected worktree in a configurable editor or Git clien
 Ticket links use a configurable tracker. GUI and TUI share these settings and the
 same launcher package; the desktop Settings follows practical macOS conventions.
 See [launchers](launchers.md) and [Settings UI](macos-settings-ui.md).
+
+## Visual style
+
+Tasteful Norton style adapted to dark-background terminals: compact rows, muted
+panel backgrounds, and edge-to-edge selection. Keep navigation dense enough for
+real specs. Markdown content uses GitHub dark styling.

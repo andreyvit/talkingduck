@@ -5,9 +5,13 @@ go 1.27.1
 require (
 	github.com/fswatcher/fswatcher v0.1.0
 	github.com/gdamore/tcell/v2 v2.13.10
+	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/rivo/uniseg v0.4.7
 	github.com/wailsapp/wails/v3 v3.0.0-beta.27
+	github.com/yuin/goldmark v1.8.6
+	go.yaml.in/yaml/v3 v3.0.5
+	golang.org/x/net v0.56.0
 	golang.org/x/term v0.46.0
 	golang.org/x/text v0.42.0
 	modernc.org/sqlite v1.60.1
@@ -15,6 +19,7 @@ require (
 
 require (
 	github.com/adrg/xdg v0.5.3 // indirect
+	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/coder/websocket v1.8.14 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
@@ -23,6 +28,7 @@ require (
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/google/jsonschema-go v0.4.3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/gorilla/css v1.0.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect

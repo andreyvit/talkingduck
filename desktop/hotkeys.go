@@ -15,12 +15,14 @@ type shortcutRegistry interface {
 // Serializes recording, registration, and persistence. New bindings are acquired
 // before old bindings are released; rejected edits leave the last setting intact.
 type hotkeyController struct {
-	mu        sync.Mutex
-	registry  shortcutRegistry
-	store     *settings.Store
-	action    func()
-	active    map[string]bool
-	recording bool
+	mu             sync.Mutex
+	registry       shortcutRegistry
+	store          *settings.Store
+	action         func()
+	markdownAction func()
+	keys           settings.Hotkeys
+	active         map[string]bool
+	recording      bool
 }
 
 func (h *hotkeyController) replace(keys settings.Hotkeys) error {
@@ -32,7 +34,17 @@ func (h *hotkeyController) replace(keys settings.Hotkeys) error {
 		if key == "" || h.active[key] {
 			continue
 		}
-		if err := h.registry.Register(key, h.action); err != nil {
+		if err := h.registry.Register(key, func() {
+			h.mu.Lock()
+			action := h.action
+			if key == h.keys[2] {
+				action = h.markdownAction
+			}
+			h.mu.Unlock()
+			if action != nil {
+				action()
+			}
+		}); err != nil {
 			for _, key := range added {
 				_ = h.registry.Unregister(key)
 				delete(h.active, key)
@@ -46,7 +58,7 @@ func (h *hotkeyController) replace(keys settings.Hotkeys) error {
 		added = append(added, key)
 	}
 	for key := range h.active {
-		if key == keys[0] || key == keys[1] {
+		if key == keys[0] || key == keys[1] || key == keys[2] {
 			continue
 		}
 		if err := h.registry.Unregister(key); err != nil {
@@ -54,6 +66,7 @@ func (h *hotkeyController) replace(keys settings.Hotkeys) error {
 		}
 		delete(h.active, key)
 	}
+	h.keys = keys
 	return nil
 }
 func (h *hotkeyController) handle(kind string, keys settings.Hotkeys) error {

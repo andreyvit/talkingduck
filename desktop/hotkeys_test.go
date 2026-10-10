@@ -73,3 +73,41 @@ func TestHotkeyRecordingAndFailure(t *testing.T) {
 		t.Fatal("cleared default came back")
 	}
 }
+
+func TestMarkdownHotkeyIndependentAndSwap(t *testing.T) {
+	f := &fakeShortcuts{active: map[string]func(){}}
+	store := &settings.Store{Path: filepath.Join(t.TempDir(), "settings.json")}
+	main, preview := 0, 0
+	h := &hotkeyController{registry: f, store: store, action: func() { main++ }, markdownAction: func() { preview++ }}
+	if e := h.handle("save", settings.Hotkeys{"Ctrl+T", "", "Ctrl+M"}); e != nil {
+		t.Fatal(e)
+	}
+	f.active["Ctrl+T"]()
+	f.active["Ctrl+M"]()
+	if main != 1 || preview != 1 {
+		t.Fatal(main, preview)
+	}
+	if e := h.handle("save", settings.Hotkeys{"Ctrl+M", "", "Ctrl+T"}); e != nil {
+		t.Fatal(e)
+	}
+	f.active["Ctrl+T"]()
+	if preview != 2 || main != 1 {
+		t.Fatal("swapped callback did not change")
+	}
+	if e := h.handle("save", settings.Hotkeys{"Ctrl+M", "", "Ctrl+M"}); e == nil {
+		t.Fatal("accepted conflict")
+	}
+	if e := h.handle("record", settings.Hotkeys{}); e != nil {
+		t.Fatal(e)
+	}
+	if len(f.active) != 0 {
+		t.Fatal("preview hotkey active during recording")
+	}
+	if e := h.handle("cancel", settings.Hotkeys{}); e != nil {
+		t.Fatal(e)
+	}
+	f.active["Ctrl+T"]()
+	if preview != 3 {
+		t.Fatal("lost preview binding")
+	}
+}

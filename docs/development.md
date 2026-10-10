@@ -17,6 +17,7 @@ The window uses the CLI's shared table rows.
 - `cli/`: reusable flag registration, terminal output, and exit codes.
 - `worktree/`: cheap filesystem validation of Git checkout roots, including linked worktrees.
 - `launchers/`: reusable application commands and ticket URL templates; no UI or settings dependency.
+- `markdownview/`: pure-Go Markdown rendering, history, refresh timing and key actions.
 - `desktop/`: Wails app, native tray-width shim, embedded overview, and local build script; see [desktop instructions](../desktop/README.md).
 - `mcpserver/`: loopback Streamable HTTP tools using the desktop cache; see [MCP setup](../mcpserver/README.md).
 - `menubarimage/`: shared standard/compact pixel renderer used by the app and scratch command.
@@ -77,3 +78,9 @@ go vet ./inventory ./cli ./table ./actions ./cmd/talkingduck
 go test -race ./inventory ./monitor
 CGO_ENABLED=0 go build -o /tmp/talkingduck ./cmd/talkingduck
 ```
+
+For Markdown preview changes, run
+`CGO_ENABLED=0 go test ./markdownview ./settings ./launchers`, desktop tests and frontend tests from [desktop instructions](../desktop/README.md).
+Rebuild the main installed app during development so relaunches show current work;
+do not substitute a separate test app. Verify the ToC with a current real spec
+as well as synthetic rendering fixtures.
