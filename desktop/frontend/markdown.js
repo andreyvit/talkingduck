@@ -1,3 +1,4 @@
+import {LeapSearch} from './markdown-leap.mjs';
 import {Events} from '/wails/runtime.js';
 const elements=new Map([...document.querySelectorAll("[id]")].map(e=>[e.id,e]));
 const $=id=>elements.get(id),scroller=$("scroller"),article=$("document");
@@ -6,21 +7,67 @@ let state=null,headings=[],renderToken=0,positionTimer=null,restoreTarget=null;
 function currentHeading(){let current=-1;for(let i=0;i<headings.length;i++){if(headings[i].getBoundingClientRect().top-scroller.getBoundingClientRect().top<=headingTopGap+1)current=i;else break}return current}
 function position(){const i=currentHeading();return {top:scroller.scrollTop,heading:i<0?'':headings[i].id,offset:i<0?0:scroller.scrollTop-headings[i].offsetTop}}
 function send(action,extra={}){Events.Emit('markdown:command',{action,path:state?.path||'',position:position(),heading:currentHeading(),...extra})}
-function savePosition(){if(state)send('position')}
-function highlight(reveal=false){const i=currentHeading();for(const [index,a] of [...$('toc').querySelectorAll('a')].entries()){a.setAttribute('aria-current',String(index===i));if(reveal&&index===i)a.scrollIntoView({block:'nearest'})}}
+function savePosition(){if(state&&!leap)send('position')}
+function highlight(reveal=false){const i=leap?.match?.index??currentHeading();for(const [index,a] of [...$('toc').querySelectorAll('a')].entries()){a.setAttribute('aria-current',String(index===i));if(reveal&&index===i)a.scrollIntoView({block:'nearest'})}}
 function restore(p){const h=p.heading&&headings.find(h=>h.id===p.heading);scroller.scrollTop=h?h.offsetTop+p.offset:p.top;highlight(true)}
 function jump(id){restoreTarget=null;const h=headings.find(h=>h.id===id);if(h){scroller.scrollTop=h.offsetTop-headingTopGap;highlight(true);savePosition()}}
 function cancelRestore(){restoreTarget=null}
 scroller.addEventListener('wheel',cancelRestore,{passive:true});scroller.addEventListener('touchstart',cancelRestore,{passive:true});scroller.addEventListener('pointerdown',cancelRestore);
 scroller.addEventListener('scroll',()=>{highlight();clearTimeout(positionTimer);positionTimer=setTimeout(savePosition,300)},{passive:true});
-window.addEventListener('blur',savePosition);
-const hints=[['Escape','Esc','Close'],[' ','Space','Next page'],['ArrowDown','↑↓','ToC'],['ArrowLeft','←','Back'],['ArrowRight','→','Forward'],['r','r','Refresh'],['c','c','ToC'],['h','h','History']];
-for(const [key,label,title] of hints){const button=document.createElement('button');button.className='key-hint';button.dataset.key=key;const k=document.createElement('kbd');k.textContent=label;button.append(k,' '+title);button.onclick=e=>{cancelRestore();send('',{key,shift:e.shiftKey})};$('keys').append(button)}
+window.addEventListener('blur',()=>{finishLeap();savePosition()});
+let leap=null;
+const heldShifts=new Set();
+function beginLeap(){
+ if(leap)return;
+ cancelRestore();clearTimeout(positionTimer);
+ leap=new LeapSearch(headings.map(h=>h.textContent),{main:scroller.scrollTop,toc:$('toc').scrollTop});
+}
+function paintLeap(){
+ for(const [i,a] of [...$('toc').querySelectorAll('a')].entries()){
+  const title=headings[i].textContent,m=leap?.matches.find(m=>m.index===i);
+  a.replaceChildren();
+  if(m){const mark=document.createElement('mark');mark.textContent=title.slice(m.start,m.start+m.length);a.append(title.slice(0,m.start),mark,title.slice(m.start+m.length))}
+  else a.textContent=title;
+ }
+}
+function applyLeap(){
+ paintLeap();
+ if(leap.match)jump(headings[leap.match.index].id);
+ else {scroller.scrollTop=leap.origin.main;highlight();$('toc').scrollTop=leap.origin.toc}
+}
+function finishLeap(){
+ if(!leap)return;
+ if(!leap.match){scroller.scrollTop=leap.origin.main;$('toc').scrollTop=leap.origin.toc}
+ leap=null;heldShifts.clear();paintLeap();highlight();savePosition();
+}
+function handleLeap(e){
+ if(e.metaKey||e.ctrlKey||e.altKey||$('history').open||e.target.closest('input,textarea,select,[contenteditable=true]'))return false;
+ if(e.key==='Shift'){heldShifts.add(e.code);beginLeap();return true}
+ if(!e.shiftKey){finishLeap();return false;}
+ // Preserve Shift-Space page up until a search has text.
+ if(e.key===' '&&!leap?.query){finishLeap();return false}
+ if(e.key==='Escape'){beginLeap();e.preventDefault();leap.edit('');applyLeap();return true}
+ if(e.key==='ArrowUp'||e.key==='ArrowDown'){
+  beginLeap();e.preventDefault();leap.move(e.key==='ArrowUp'?-1:1);applyLeap();return true;
+ }
+ if(e.key==='Backspace'||(e.key.length===1&&!e.isComposing)){
+  beginLeap();e.preventDefault();leap.edit(e.key==='Backspace'?[...leap.query].slice(0,-1).join(''):leap.query+e.key);applyLeap();return true;
+ }
+ return false;
+}
+document.addEventListener('keyup',e=>{
+ if(e.key!=='Shift')return;
+ heldShifts.delete(e.code);
+ if(!e.shiftKey||!heldShifts.size)finishLeap();
+});
+const hints=[['Escape','Esc','Close'],[' ','Space','Next page'],['ArrowDown','↑↓','ToC'],['ArrowLeft','←','Back'],['ArrowRight','→','Forward'],['r','r','Refresh'],['c','c','ToC'],['h','h','History'],['Shift','Shift','Hold to search']];
+for(const [key,label,title] of hints){const button=document.createElement('button');button.className='key-hint';button.dataset.key=key;const k=document.createElement('kbd');k.textContent=label;button.append(k,' '+title);button.onclick=e=>{if(key==='Shift')return;cancelRestore();send('',{key,shift:e.shiftKey})};$('keys').append(button)}
 $('keys').querySelector('[data-key=" "]').title='Space: page down; Shift-Space: page up';
-document.addEventListener('keydown',e=>{if(e.metaKey||e.ctrlKey||e.altKey||e.target.closest('input,textarea,select,[contenteditable=true]'))return;if(!['Escape',' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','r','R','c','C','h','H'].includes(e.key))return;e.preventDefault();cancelRestore();send('',{key:e.key,shift:e.shiftKey})});
+document.addEventListener('keydown',e=>{if(handleLeap(e))return;if(e.metaKey||e.ctrlKey||e.altKey||e.target.closest('input,textarea,select,[contenteditable=true]'))return;if(!['Escape',' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','r','R','c','C','h','H'].includes(e.key))return;e.preventDefault();cancelRestore();send('',{key:e.key,shift:e.shiftKey})});
 article.addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;e.preventDefault();const href=a.getAttribute('href')||'';if(href.startsWith('#')){try{jump(decodeURIComponent(href.slice(1)))}catch{}}else send('link',{link:href})});
 Events.On('markdown:snapshot',({data})=>{
  if(state&&data.generation<state.generation)return;
+ finishLeap();
  const same=state?.generation>0&&state?.path===data.path,keep=same?position():data.position;
  const changed=!same||state?.document.html!==data.document.html;
  clearTimeout(positionTimer);

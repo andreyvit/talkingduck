@@ -5,6 +5,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"talkingduck/table"
 	"testing"
 	"time"
 )
@@ -52,13 +53,18 @@ func TestMarkdownStampSurvivesRepeatedAtomicSaves(t *testing.T) {
 }
 
 func TestMarkdownWindowTitle(t *testing.T) {
-	for _, tt := range []struct{ path, home, want string }{
-		{"/Users/test/spec.md", "/Users/test", "~/spec.md"},
-		{"/Users/test-other/spec.md", "/Users/test", "/Users/test-other/spec.md"},
-		{"/tmp/spec.md", "", "/tmp/spec.md"},
+	model := table.Table{Columns: []table.Column{{ID: "folder"}}}
+	for _, folder := range []struct{ path, label string }{{"/work/repo", "Work label"}, {"/work/repo/nested", "Nested label"}} {
+		model.Rows = append(model.Rows, table.Row{Group: folder.path, Cells: []table.Cell{{Lines: []table.Line{{Items: []table.Item{{Text: folder.label}}}}}}})
+	}
+	for _, tt := range []struct{ path, want string }{
+		{"/work/repo/.spec/file.md", "file.md — Work label"},
+		{"/work/repo/nested/.spec/file.md", "file.md — Nested label"},
+		{"/work/repo-other/file.md", "file.md — /work/repo-other"},
+		{"/tmp/file.md", "file.md — /tmp"},
 	} {
-		if got := markdownWindowTitle(tt.path, tt.home); got != tt.want {
-			t.Errorf("title(%q, %q) = %q, want %q", tt.path, tt.home, got, tt.want)
+		if got := markdownWindowTitle(tt.path, model); got != tt.want {
+			t.Errorf("title(%q) = %q, want %q", tt.path, got, tt.want)
 		}
 	}
 }

@@ -17,6 +17,7 @@ import (
 
 	"talkingduck/markdownview"
 	"talkingduck/settings"
+	"talkingduck/table"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
@@ -34,6 +35,7 @@ type markdownViewer struct {
 	stamp        string
 	generation   uint64
 	visible      bool
+	title        func(string) string
 }
 
 func newMarkdownViewer(ctx context.Context, app *application.App, main *application.WebviewWindow, store *settings.Store) *markdownViewer {
@@ -217,8 +219,11 @@ func (v *markdownViewer) render() {
 		return
 	}
 	v.document = d
-	home, _ := os.UserHomeDir()
-	v.window.SetTitle(markdownWindowTitle(path, home))
+	title := markdownWindowTitle(path, table.Table{})
+	if v.title != nil {
+		title = v.title(path)
+	}
+	v.window.SetTitle(title)
 	v.publish("")
 }
 func (v *markdownViewer) publish(message string) {
@@ -276,10 +281,47 @@ func (v *markdownViewer) show() {
 	v.window.Focus()
 }
 
-// Keep the full location visible without repeating the user's home directory.
-func markdownWindowTitle(path, home string) string {
-	if home != "" && (path == home || strings.HasPrefix(path, home+string(filepath.Separator))) {
-		return "~" + strings.TrimPrefix(path, home)
+// Use the same folder label and visible rows as the dashboard. Nested roots win.
+func markdownWindowTitle(path string, model table.Table) string {
+	parent := filepath.Dir(path)
+	best := ""
+	column := -1
+	for i, c := range model.Columns {
+		if c.ID == "folder" {
+			column = i
+			break
+		}
 	}
-	return path
+	if column >= 0 {
+		for _, row := range model.Rows {
+			root := filepath.Clean(row.Group)
+			if root == "." || len(root) <= len(best) || column >= len(row.Cells) {
+				continue
+			}
+			relative, err := filepath.Rel(root, path)
+			if err != nil || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
+				continue
+			}
+			label := row.Cells[column].Text()
+			if label != "" {
+				best = root
+				parent = label
+			}
+		}
+	}
+	return filepath.Base(path) + " — " + parent
+}
+
+func (v *inventoryView) markdownTitle(path string) string {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	return markdownWindowTitle(path, v.state.Model)
+}
+
+func (v *markdownViewer) updateTitle() {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	if path := v.history.Current(); path != "" && v.title != nil {
+		v.window.SetTitle(v.title(path))
+	}
 }

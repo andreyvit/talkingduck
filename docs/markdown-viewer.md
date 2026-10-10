@@ -2,8 +2,8 @@
 
 Choose `(Built-in viewer)` under Settings → Applications → Markdown viewer.
 Click a spec or press `s` in the dashboard to open it. All files share one
-preview window, brought forward on opening. The title shows the full path,
-with `~` for the home directory. Closing hides the window and focuses the dashboard.
+preview window, brought forward on opening. The title is `<file name> — <folder label>`, using the deepest containing
+folder visible in the dashboard. Other files show their full parent directory. Closing hides the window and focuses the dashboard.
 Position and size restore independently of the other windows.
 
 The build registers TalkingDuck as a Markdown viewer for Finder's Open With
@@ -19,6 +19,15 @@ The standalone TUI cannot create the built-in desktop window.
 | r | Refresh now |
 | c | Show / hide ToC |
 | h | Search recent files; arrows select, Enter opens |
+| Shift + typing | Search the ToC from the top, ignoring case |
+| Shift-Up / Shift-Down | Previous / next matching heading, wrapping at either end |
+| Shift-Esc | Clear search and restore the pre-search position |
+
+Hold either Shift key to search. Each edit selects the first match and highlights
+matching characters in the ToC. A failed or cleared search restores both the
+document and ToC scroll offsets from before the search. Releasing Shift keeps a
+match; releasing with no match keeps the original position. Shift-Space still
+scrolls up a page before any search text is entered.
 
 Settings → Keyboard Shortcuts has a separate Markdown preview hotkey, initially
 unassigned. It opens the last file, or the recent-file chooser when none is open.

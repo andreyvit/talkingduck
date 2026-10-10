@@ -110,6 +110,9 @@ func (v *inventoryView) publishTable(snapshot *inventory.Snapshot, table cli.Tab
 	}
 	v.mu.Unlock()
 	v.publish()
+	if v.markdown != nil {
+		v.markdown.updateTitle()
+	}
 	if v.updateTray != nil {
 		v.updateTray(snapshot)
 	}

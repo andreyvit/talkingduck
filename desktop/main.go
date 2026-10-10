@@ -127,6 +127,7 @@ func run(opts *cli.Options, mcpPort int) error {
 	view = &inventoryView{folderOverride: len(opts.Inventory.Paths) > 0, settings: store, settingsChanged: publishSettings, settingsError: func(err error) { app.Event.Emit("settings:error", err.Error()) }, cache: cache, fetch: fetchRemote, emit: func(state inventoryState) { app.Event.Emit("inventory:snapshot", state) }}
 
 	view.markdown = newMarkdownViewer(ctx, app, window, store)
+	view.markdown.title = view.markdownTitle
 	registerMarkdownOpen(app, view.markdown)
 	registerApplicationSettings(app, view, publishSettings)
 
