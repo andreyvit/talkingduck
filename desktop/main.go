@@ -129,6 +129,7 @@ func run(opts *cli.Options, mcpPort int) error {
 	view.markdown = newMarkdownViewer(ctx, app, window, store)
 	view.markdown.title = view.markdownTitle
 	registerMarkdownOpen(app, view.markdown)
+	app.Event.On("inventory:preview", func(*application.CustomEvent) { go view.markdown.showLast() })
 	registerApplicationSettings(app, view, publishSettings)
 
 	app.Event.On("settings:visibility", func(event *application.CustomEvent) {

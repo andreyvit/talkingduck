@@ -69,15 +69,23 @@ function renderChooser() {
 }
 $('chooser').addEventListener('cancel',event=>{event.preventDefault();invoke('Escape');});
 $('cancel-choice').onclick=()=>invoke('Escape');
+let previewSelection=null;
+function selectPreviewRow(path){
+ if(!controller.selectSpec(path))return false;
+ paintState();$('rows').children[controller.selected]?.scrollIntoView({block:'nearest'});return true;
+}
+Events.On('inventory:select-spec',({data})=>{previewSelection=data;selectPreviewRow(data)});
 document.addEventListener('keydown',event=>{
  if(event.key==='Shift'){shiftHeld=true;paintState();return;}
  if(event.isComposing || event.target.matches('input,textarea,[contenteditable=true]'))return;
  if(event.ctrlKey&&event.key.toLowerCase()==='s') {event.preventDefault();invoke('settings');return;}
  if(event.ctrlKey||event.metaKey||event.altKey)return;
+ if(event.key==='Tab'&&!event.shiftKey&&!$('chooser').open){event.preventDefault();controller.cancel();paintState();Events.Emit('inventory:preview');return;}
  if(invoke(event.key))event.preventDefault();
 });
 document.addEventListener('keyup',event=>{if(event.key==='Shift'){shiftHeld=false;paintState();}});
 window.addEventListener('focus',()=>{
+ if(previewSelection){const path=previewSelection;previewSelection=null;if(selectPreviewRow(path))return;}
  const row=document.querySelector('#rows tr:hover');
  controller.activate(row?.dataset.rowId??null);paintState();
 });
@@ -135,7 +143,7 @@ function render(data) {
  paintState();
 }
 Events.On('inventory:snapshot',event=>{
- try {render(event.data);} catch(error) {$('error').textContent='Could not render inventory: '+error.message;}
+ try {render(event.data);if(previewSelection)selectPreviewRow(previewSelection);} catch(error) {$('error').textContent='Could not render inventory: '+error.message;}
 });
 Events.On('inventory:archived',()=>notice('Archived'));
 Events.On('inventory:open-error',event=>{$('error').textContent=event.data;});

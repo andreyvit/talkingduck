@@ -13,6 +13,7 @@ The standalone TUI cannot create the built-in desktop window.
 | Key | Action |
 | --- | --- |
 | Esc | Close preview, return to dashboard |
+| Tab | Switch to dashboard; Tab there returns to the last Markdown preview |
 | Space | Next page |
 | Up / Down | Previous / next ToC heading |
 | Left / Right | Back / forward through opened files |
@@ -29,6 +30,11 @@ Hold either Shift key to search. While held, the bottom bar shows
 matching characters in the ToC. A failed or cleared search restores both the
 document and ToC scroll offsets from before the search. Releasing Shift keeps a
 match; releasing with no match keeps the original position. Shift-Space enters a literal space in the search, including as its first character.
+
+Back/forward and recent-file selection also select the corresponding dashboard
+row in keyboard mode, without bringing the dashboard forward. Files absent from
+the dashboard leave its selection unchanged. Tab switches window focus without
+closing the preview; text fields and open choosers retain normal Tab navigation.
 
 Settings → Keyboard Shortcuts has a separate Markdown preview hotkey, initially
 unassigned. It opens the last file, or the recent-file chooser when none is open.

@@ -77,7 +77,7 @@ const historyHints=document.createElement('span');historyHints.className='histor
 const backHint=$('keys').querySelector('[data-key="ArrowLeft"]'),forwardHint=$('keys').querySelector('[data-key="ArrowRight"]');
 backHint.before(historyHints);historyHints.append(backHint,forwardHint);
 backHint.setAttribute('aria-label','Back');backHint.title='Back';forwardHint.setAttribute('aria-label','Forward');forwardHint.title='Forward';
-document.addEventListener('keydown',e=>{if(handleLeap(e))return;if(e.metaKey||e.ctrlKey||e.altKey||e.target.closest('input,textarea,select,[contenteditable=true]'))return;if(!['Escape',' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','r','R','c','C','h','H'].includes(e.key))return;e.preventDefault();cancelRestore();send('',{key:e.key,shift:e.shiftKey})});
+document.addEventListener('keydown',e=>{if(handleLeap(e))return;if(e.metaKey||e.ctrlKey||e.altKey||e.target.closest('input,textarea,select,[contenteditable=true]'))return;if(e.key==='Tab'&&!e.shiftKey){e.preventDefault();finishLeap();send('dashboard');return;}if(!['Escape',' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','r','R','c','C','h','H'].includes(e.key))return;e.preventDefault();cancelRestore();send('',{key:e.key,shift:e.shiftKey})});
 article.addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;e.preventDefault();const href=a.getAttribute('href')||'';if(href.startsWith('#')){try{jump(decodeURIComponent(href.slice(1)))}catch{}}else send('link',{link:href})});
 Events.On('markdown:snapshot',({data})=>{
  if(state&&data.generation<state.generation)return;

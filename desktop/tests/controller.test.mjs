@@ -115,3 +115,11 @@ test('A picks an agent, including c without starting a copy chord',()=>{
  c.hover('b');c.action('A');c.action('x');
  assert.equal(calls.at(-1).kind,'notice');
 });
+
+test('preview history selects the matching spec in keyboard mode and cancels a chooser',()=>{
+ const {c}=fixture();c.hover('b');c.action('t');assert.equal(c.choices.length,2);
+ assert.equal(c.selectSpec('/spec/c'),true);
+ assert.equal(c.mode,'keyboard');assert.equal(c.effectiveRow.id,'c');assert.equal(c.choices.length,0);
+ c.replace([row('c'),row('a')]);assert.equal(c.effectiveRow.id,'c');
+ assert.equal(c.selectSpec('/outside.md'),false);assert.equal(c.effectiveRow.id,'c');
+});

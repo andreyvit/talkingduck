@@ -42,6 +42,11 @@ export class InventoryController {
   ).map(item=>({label:item.text,kind:copying?(suffix==='T'?'copy-ticket-url':'copy'):'open',value:copying?
    (suffix==='T'||pathCopy?item.link.target:item.copy):key==='S'?{...item.link,kind:'reveal-spec'}:item.link}));
  }
+ selectSpec(path) {
+  const row=this.rows.find(row=>this.matches(row,'s').some(action=>action.value.target===path));
+  if(!row)return false;
+  this.cancel();this.selectRow(row.id);return true;
+ }
  selectRow(id) {
   const index=this.rows.findIndex(row=>row.id===id);
   if(index<0)return;

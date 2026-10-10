@@ -179,6 +179,9 @@ the separately remembered keyboard row. Only keyboard mode shows the cyan
 selection and arrow. Esc returns to mouse mode without clearing that row.
 Refreshes preserve both identities; missing rows cannot receive stale actions.
 
+Tab switches to the last Markdown preview; Tab in that preview returns here.
+Markdown history navigation selects its corresponding dashboard row in keyboard mode.
+
 The bottom hints invoke the same actions as keys: r refreshes the effective
 worktree, R refreshes all, a/t/s/f opens agent/ticket/spec/folder. c starts copy:
 ct number, cT (also CT) ticket URL, cs spec title, cf folder path. Multiple tickets

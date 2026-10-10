@@ -89,6 +89,11 @@ func newMarkdownViewer(ctx context.Context, app *application.App, main *applicat
 				return
 			}
 			switch action {
+			case "dashboard":
+				v.save()
+				v.main.UnMinimise()
+				v.main.Show()
+				v.main.Focus()
 			case "history":
 				v.app.Event.Emit("markdown:history", v.history.Recent)
 			case "recent":
@@ -101,6 +106,7 @@ func newMarkdownViewer(ctx context.Context, app *application.App, main *applicat
 				}
 				if known {
 					v.history.Open(req.Link)
+					v.selectDashboardRow()
 					v.render()
 					v.save()
 				}
@@ -114,6 +120,7 @@ func newMarkdownViewer(ctx context.Context, app *application.App, main *applicat
 					delta = 1
 				}
 				if v.history.Move(delta) {
+					v.selectDashboardRow()
 					v.render()
 					v.save()
 				}
@@ -323,5 +330,18 @@ func (v *markdownViewer) updateTitle() {
 	defer v.mu.Unlock()
 	if path := v.history.Current(); path != "" && v.title != nil {
 		v.window.SetTitle(v.title(path))
+	}
+}
+
+func (v *markdownViewer) selectDashboardRow() {
+	v.app.Event.Emit("inventory:select-spec", v.history.Current())
+}
+
+func (v *markdownViewer) showLast() {
+	v.mu.Lock()
+	hasFile := v.history.Current() != ""
+	v.mu.Unlock()
+	if hasFile {
+		v.show()
 	}
 }
