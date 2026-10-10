@@ -167,6 +167,11 @@ errors are ignored; independent fetch errors still produce warnings.
 
 ## Inventory controls
 
+Settings → Keyboard Shortcuts provides two configurable global hotkeys. Control-T
+is the default; either recorder can be cleared. Both use the tray toggle: hide a
+focused overview, otherwise show and focus it. See [hotkeys](../docs/settings.md#global-hotkeys)
+for supported keys, persistence, and native registration limits.
+
 Startup uses mouse mode. Hovering a row chooses it for actions; its identity stays
 available when moving to the bottom bar. Up/Down enters keyboard mode and moves
 the separately remembered keyboard row. Only keyboard mode shows the cyan

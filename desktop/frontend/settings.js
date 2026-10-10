@@ -2,6 +2,7 @@ import {Events} from '/wails/runtime.js';
 import {shortcutOptions,shortcutLabel} from './settings-model.mjs';
 import {updateApplications} from './settings-apps.js';
 import './settings-archives.js';
+import './settings-hotkeys.js';
 import {copyable} from './copy.js';
 const $=id=>document.getElementById(id);
 let folderSnapshot=[],folderSignature='',addressValue=null;

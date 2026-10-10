@@ -10,7 +10,8 @@ TalkingDuck design rules, not a claim that HTML controls equal AppKit controls.
   Closing it hides it; it does not quit the app. Keep normal text-editing menus.
 - Keep the title bar native. Do not draw traffic lights, fake toolbars, or a
   second large page title beneath the window title.
-- Group settings by purpose: Applications, Tickets, Folders, Connection, Configuration File.
+- Group settings by purpose: Keyboard Shortcuts, Applications, Tickets, Folders,
+  Connection, Configuration File.
   Avoid a sidebar while these fit in one understandable page.
 - Scroll the entire page. No fixed-height folder list or nested scroll area.
   Native popup menus may scroll their options; that is a different control.

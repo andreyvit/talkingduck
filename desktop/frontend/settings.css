@@ -50,3 +50,9 @@ td select{width:100%;height:26px}
 .archive-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .archive-age{color:var(--secondary);font-size:11px;white-space:nowrap}
 .archive-empty{margin:12px;color:var(--secondary)}
+
+.hotkey-form{padding:12px}
+.hotkey-control{display:flex;align-items:center;gap:6px}
+.hotkey-recorder{min-width:168px;height:28px;border:1px solid var(--rule);border-radius:6px;background:var(--page);font-variant-numeric:tabular-nums}
+.hotkey-recorder.recording{border-color:AccentColor;color:AccentColor}
+.hotkey-clear{border:0;background:none;color:var(--secondary);font-size:18px;padding:0 6px}

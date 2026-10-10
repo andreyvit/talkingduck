@@ -95,3 +95,26 @@ the name for the full worktree/spec path. Legacy entries have no date and sort l
 Unarchive removes the display tombstone and refreshes monitored worktrees; it
 does not enable hidden folders or modify repository files. Older archives remain
 stored even when outside this list.
+
+## Global hotkeys
+
+Settings → Keyboard Shortcuts has two inline recorders: Global hotkey and
+Additional hotkey. Click to record; press a combination; Escape cancels. The ×
+button clears a binding. Changes save immediately and apply without relaunching.
+The original Control-T default remains until configured; clearing both disables
+all global bindings. Both shortcuts toggle the dashboard.
+
+`global_hotkeys` stores two accelerator strings in the shared settings JSON.
+An absent field means `["Ctrl+T", ""]`; `["", ""]` means disabled. Example:
+`["Ctrl+Alt+Shift+Super+T", "F18"]`. `Super` means Command on macOS.
+
+The macOS backend supports any combination of Control, Option, Shift, and Command,
+letters, digits, punctuation, navigation keys, and F1–F20. Fn/Globe, modifier-only
+bindings, and media keys are unsupported. Physical key positions follow the
+native backend’s ANSI/QWERTY map. Standard system/menu shortcuts can be intercepted
+before the recorder receives them. Another app’s occupied shortcut is reported
+as an error; rejected edits preserve the previous setting.
+
+Global bindings pause while recording and resume on completion, cancellation, or
+Settings losing focus. The recorder is local HTML/JavaScript; native registration
+uses the existing Wails Carbon backend without Accessibility permission.

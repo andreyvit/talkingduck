@@ -107,6 +107,7 @@ func run(opts *cli.Options, mcpPort int) error {
 		})
 	}
 	var view *inventoryView
+	syncHotkeys := func() {}
 	var settingsMu sync.Mutex
 	mcpAddress, mcpError := "", "Starting server…"
 	publishSettings := func() {
@@ -117,6 +118,7 @@ func run(opts *cli.Options, mcpPort int) error {
 		if err != nil {
 			settingsError = err.Error()
 		}
+		syncHotkeys()
 		publishArchivedSettings(app, view)
 		app.Event.Emit("settings:snapshot", map[string]any{"applications": applicationSettings(view), "address": mcpAddress, "error": mcpError, "folders": folders, "settingsError": settingsError, "path": store.Path})
 	}
@@ -192,7 +194,7 @@ func run(opts *cli.Options, mcpPort int) error {
 		return err
 	}
 	tray.SetTemplateIcon(data)
-	tray.OnClick(func() {
+	toggleOverview := func() {
 		if window.IsVisible() && window.IsFocused() {
 			log.Print("tray: hide overview")
 			window.Hide()
@@ -201,7 +203,8 @@ func run(opts *cli.Options, mcpPort int) error {
 		log.Print("tray: show and focus overview")
 		window.Show()
 		window.Focus()
-	})
+	}
+	tray.OnClick(toggleOverview)
 	// Disable Wails' automatic menu attachment. The native monitor installed
 	// after startup handles right-clicks before the status button tracks them.
 	tray.OnRightClick(func() {})
@@ -323,6 +326,8 @@ func run(opts *cli.Options, mcpPort int) error {
 			}
 		}()
 	})
+
+	syncHotkeys = registerHotkeySettings(app, settingsWindow, store, toggleOverview)
 
 	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
 		// Older Settings frames predate the folder list.
