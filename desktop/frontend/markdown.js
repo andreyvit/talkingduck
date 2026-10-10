@@ -71,8 +71,8 @@ document.addEventListener('keyup',e=>{
  heldShifts.delete(e.code);
  if(!heldShifts.size)finishLeap();
 });
-const hints=[['Escape','Esc','Close'],[' ','Space','Next page'],['ArrowDown','↑↓','ToC'],['ArrowLeft','←',''],['ArrowRight','→','History'],['r','r','Refresh'],['c','c','ToC'],['h','h','History'],['Shift','Shift','Hold to search']];
-for(const [key,label,title] of hints){const button=document.createElement('button');button.className='key-hint';button.dataset.key=key;const k=document.createElement('kbd');k.textContent=label;button.append(k);if(title)button.append(' '+title);button.onclick=e=>{if(key==='Shift')return;cancelRestore();send('',{key,shift:e.shiftKey})};$('keys').append(button)}
+const hints=[['Escape','Esc','Close'],['Tab','Tab','Dashboard'],[' ','Space','Next page'],['ArrowDown','↑↓','ToC'],['ArrowLeft','←',''],['ArrowRight','→','History'],['r','r','Refresh'],['c','c','ToC'],['h','h','History'],['Shift','Shift','Hold to search']];
+for(const [key,label,title] of hints){const button=document.createElement('button');button.className='key-hint';button.dataset.key=key;const k=document.createElement('kbd');k.textContent=label;button.append(k);if(title)button.append(' '+title);button.onclick=e=>{if(key==='Shift')return;cancelRestore();if(key==='Tab'){finishLeap();send('dashboard')}else send('',{key,shift:e.shiftKey})};$('keys').append(button)}
 $('keys').querySelector('[data-key=" "]').title='Space: next page; Shift-Space: previous page before typing a search';
 const historyHints=document.createElement('span');historyHints.className='history-hints';
 const backHint=$('keys').querySelector('[data-key="ArrowLeft"]'),forwardHint=$('keys').querySelector('[data-key="ArrowRight"]');

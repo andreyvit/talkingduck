@@ -25,10 +25,11 @@ function notice(text) {
  noticeTimer=setTimeout(()=>{$('notice').textContent='';},4000);
 }
 const hints=[[null,'↑↓','Select'],['r','r','Refresh'],
- ['a','a','Agent'],['t','t','Ticket'],['s','s','Spec'],['f','f','Folder'],['e','e','Editor'],['g','g','Git'],['c','c','Copy'],['X','X','Archive'],['settings','^S','Settings']];
+ ['a','a','Agent'],['t','t','Ticket'],['s','s','Spec'],['f','f','Folder'],['e','e','Editor'],['g','g','Git'],['c','c','Copy'],['X','X','Archive'],['settings','^S','Settings'],['Tab','Tab','Back to Viewer']];
 const agentHints=[['x','Ax','ChatGPT / Codex'],['c','Ac','Claude'],['g','Ag','Grok Build'],['Escape','Esc','Cancel']];
 const copyHints=[['t','ct','Ticket'],['T','cT','Ticket URL'],['s','cs','Spec'],['S','cS','Spec path'],['f','cf','Folder path'],['Escape','Esc','Cancel']];
 function invoke(key) {
+ if(key==='Tab'){controller.cancel();paintState();Events.Emit('inventory:preview');return true;}
  const handled=controller.action(key);
  if(!handled)return false;
  paintState();
@@ -80,7 +81,7 @@ document.addEventListener('keydown',event=>{
  if(event.isComposing || event.target.matches('input,textarea,[contenteditable=true]'))return;
  if(event.ctrlKey&&event.key.toLowerCase()==='s') {event.preventDefault();invoke('settings');return;}
  if(event.ctrlKey||event.metaKey||event.altKey)return;
- if(event.key==='Tab'&&!event.shiftKey&&!$('chooser').open){event.preventDefault();controller.cancel();paintState();Events.Emit('inventory:preview');return;}
+ if(event.key==='Tab'&&!event.shiftKey&&!$('chooser').open){event.preventDefault();invoke('Tab');return;}
  if(invoke(event.key))event.preventDefault();
 });
 document.addEventListener('keyup',event=>{if(event.key==='Shift'){shiftHeld=false;paintState();}});
