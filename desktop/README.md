@@ -189,3 +189,6 @@ variants, chooser invalidation, and null startup snapshots. Node is test-only.
 
 The blank Uber column shows `u` when spec frontmatter enables `uberreviews: true`.
 CLI/MCP AI output uses `-` when disabled.
+
+Q/S combines questions and suggestions; an unknown component keeps the total
+unknown. CLI and MCP compact output use the same combined count.

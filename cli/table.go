@@ -61,6 +61,16 @@ func tableCell(s string, column int) string {
 
 func numeric(v any) string { return fmt.Sprintf("%2s", display(v)) }
 
+// Unknown components keep the total unknown rather than understating it.
+func combinedQuestions(questions, suggestions any) string {
+	q, qerr := strconv.Atoi(display(questions))
+	s, serr := strconv.Atoi(display(suggestions))
+	if qerr != nil || serr != nil {
+		return numeric(nil)
+	}
+	return numeric(q + s)
+}
+
 func uberMarker(enabled bool) string {
 	if enabled {
 		return "u"
@@ -83,7 +93,7 @@ func tableRows(report tableReport) [][]string {
 			continue
 		}
 		if g.Error != "" {
-			rows = append(rows, []string{name, "--", "--", " 0", "--", "", "--", "?", "?", " ?/ ?", "ERROR", "", "", "⇣ ?", "⇡ ?", g.Error})
+			rows = append(rows, []string{name, "--", "--", " 0", "--", "", "--", "?", "?", " ?", "ERROR", "", "", "⇣ ?", "⇡ ?", g.Error})
 			continue
 		}
 		tracked := "±" + numeric(g.Tracked)
@@ -92,7 +102,7 @@ func tableRows(report tableReport) [][]string {
 		behind, ahead := "⇣"+numeric(g.Behind), "⇡"+numeric(g.Ahead)
 		specs := repo.Specs
 		if needsCurrentSummary(repo) {
-			rows = append(rows, []string{name, "--", "--", " 0", g.Cleanliness, "", " 0/ 0", "", "", " 0/ 0", tracked, untracked, info, behind, ahead, worktreeSummary(repo)})
+			rows = append(rows, []string{name, "--", "--", " 0", g.Cleanliness, "", " 0/ 0", "", "", " 0", tracked, untracked, info, behind, ahead, worktreeSummary(repo)})
 			name = ""
 		}
 		for _, s := range specs {
@@ -112,7 +122,7 @@ func tableRows(report tableReport) [][]string {
 			if ticket == "" {
 				ticket = "--"
 			}
-			rows = append(rows, []string{name, agent, ticket, numeric(w.Round), w.Stage, uberMarker(s.UberReviews), numeric(w.SubtasksDone) + "/" + numeric(w.SubtasksTotal), w.Progress, w.Interaction, numeric(w.Questions) + "/" + numeric(w.Suggestions), tracked, untracked, info, behind, ahead, s.DisplayTitle})
+			rows = append(rows, []string{name, agent, ticket, numeric(w.Round), w.Stage, uberMarker(s.UberReviews), numeric(w.SubtasksDone) + "/" + numeric(w.SubtasksTotal), w.Progress, w.Interaction, combinedQuestions(w.Questions, w.Suggestions), tracked, untracked, info, behind, ahead, s.DisplayTitle})
 			name = "" // Show the worktree once; AI output restores its full path.
 		}
 	}
@@ -121,7 +131,7 @@ func tableRows(report tableReport) [][]string {
 
 func render(report tableReport, size int, colors bool) string {
 	rows := tableRows(report)
-	widths := []int{6, 6, 8, 2, 4, 1, 5, 1, 1, 5, 3, 3, 3, 3, 3}
+	widths := []int{6, 6, 8, 2, 4, 1, 5, 1, 1, 2, 3, 3, 3, 3, 3}
 	for _, row := range rows {
 		for i, value := range row[:len(widths)] {
 			for _, line := range strings.Split(value, "\n") {

@@ -18,7 +18,7 @@ func TestAIOutput(t *testing.T) {
 	if len(lines) != 3 || lines[2] != aiKey {
 		t.Fatal(got)
 	}
-	want := "/work/back2 Grok DEV-1234,DEV-5678 1 HL - 0/0 ✓ - 0/2 ±229 ?5 ℹ︎4 ⇣27 ⇡0 Long title stays on one line spec=.spec/example.md session=session-example"
+	want := "/work/back2 Grok DEV-1234,DEV-5678 1 HL - 0/0 ✓ - 2 ±229 ?5 ℹ︎4 ⇣27 ⇡0 Long title stays on one line spec=.spec/example.md session=session-example"
 	if lines[0] != want || strings.Fields(lines[1])[4] != "CLEAN" {
 		t.Fatal(got)
 	}
@@ -40,5 +40,19 @@ func TestSessionListIsPlainText(t *testing.T) {
 	got, err := renderSessions(map[string]any{"sessions": []any{map[string]any{"engine": "grok", "id": "example-id", "cwd": "/work/back2", "title": "Example", "activity": map[string]any{"value": "unknown"}, "question": map[string]any{"value": "yes"}}}, "sources": []any{map[string]any{"engine": "codex", "status": "partial", "warnings": []string{"schema unavailable"}}}})
 	if err != nil || !strings.Contains(got, "session=example-id") || !strings.Contains(got, "schema unavailable") || !strings.HasPrefix(strings.Split(got, "\n")[2], "Key:") {
 		t.Fatal(got, err)
+	}
+}
+
+func TestCombinedQuestions(t *testing.T) {
+	for _, tc := range []struct {
+		q, s any
+		want string
+	}{
+		{2, 3, " 5"}, {float64(2), float64(3), " 5"},
+		{0, 0, " 0"}, {nil, 3, " ?"}, {2, nil, " ?"},
+	} {
+		if got := combinedQuestions(tc.q, tc.s); got != tc.want {
+			t.Errorf("combinedQuestions(%v, %v) = %q, want %q", tc.q, tc.s, got, tc.want)
+		}
 	}
 }
