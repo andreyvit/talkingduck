@@ -106,6 +106,10 @@ The versioned JSON maps absolute worktree paths to at most 100 relative spec pat
 last-seen times, and activity times. Only tasks observed in local/unpushed selection
 enter history. Each full refresh appends at most one most-recent historical task
 that no longer qualifies locally and whose spec still exists, after active tasks.
+Retention requires explicit completion: `stage: FIN` with `stage_complete: true`,
+or legacy `status: done/complete/completed` when stage metadata is absent.
+Planning, research checklists, and unknown completion do not qualify, including
+entries already stored by older versions.
 Its stage is `PUSHED`, with no attention marker. Pulled-only specs never qualify.
 Reopened tasks return to normal selection; deleted files leave history. Retention
 has no time expiry and does not renew the historical last-seen time.

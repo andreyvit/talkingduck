@@ -75,14 +75,17 @@ status: implemented prototype; correlation and workflow states are heuristic
 - Persist at most 100 previously selected specs per absolute worktree path in one
   versioned JSON file: relative spec path, last-seen time, and activity time.
 - Append one most-recent eligible historical task after active rows when it leaves
-  local selection and its file still exists. Sort last-seen time, then activity.
+  local selection and its file still exists. Require explicit `stage: FIN` and
+  `stage_complete: true`, or legacy done/complete/completed status without stage
+  metadata. Apply this to existing history too; research checkboxes do not count.
+  Sort last-seen time, then activity.
   Retained rows do not renew their last-seen time; there is no time expiry.
 - Historical rows are additional: when no current task remains, show a current
   worktree summary first, then the retained historical row. Put CLEAN/MARKDN/DIRTY
   in Stage, retaining its normal white text; reserve Title for extra details.
 - Show `PUSHED`, with no progress/input attention. Reopened tasks return to normal
   local selection. Missing files leave history. Pulling alone never adds history.
-- This is inferred completion, not proof of a push: discarding local work can look
+- The push is inferred, not proven: discarding local work can look
   identical. Failed/warned scans cannot infer the transition.
 - Full refreshes update history; cheap updates preserve its result. Store by default
   in `~/Library/Application Support/TalkingDuck/state.json` on macOS. CLI/desktop

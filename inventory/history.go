@@ -37,7 +37,7 @@ func validHistorySpec(path string) bool {
 	return !filepath.IsAbs(path) && filepath.Clean(path) == path && specPath(filepath.ToSlash(path)) && !strings.Contains(path, "../")
 }
 
-// History is eligibility evidence: a pulled-only spec has never appeared here.
+// History records local sightings; retention also requires explicit completion.
 // This is a read/merge/atomic-replace transaction shared by CLI and desktop.
 func applyHistory(report *Report, path string) error {
 	return updateHistory(path, func(state *inventoryHistory) error {
@@ -92,6 +92,9 @@ func applyHistory(report *Report, path string) error {
 					continue
 				}
 				s := parseSpec(old.Path, string(b))
+				if !completedHistorySpec(s) {
+					continue
+				}
 				s.RecentlyPushed = true
 				s.LastActivity = old.Activity
 				s.Evidence = append(s.Evidence, Evidence{"Previously displayed local task; no longer selected by local Git evidence", old.LastSeen.Format(time.RFC3339Nano), true})
@@ -101,6 +104,18 @@ func applyHistory(report *Report, path string) error {
 		}
 		return nil
 	})
+}
+
+// completedHistorySpec rejects planning/research checklists and stale legacy status
+// when newer workflow metadata exists. Unknown completion is not completion.
+func completedHistorySpec(s *Spec) bool {
+	frontmatter := zooFrontmatter(s.body)
+	if matches(`(?m)^(?:stage|stage_complete):`, frontmatter) {
+		stage, stageOK := zooField(s.body, "stage")
+		complete, completeOK := zooField(s.body, "stage_complete")
+		return stageOK && completeOK && stage == "FIN" && complete == "true"
+	}
+	return s.Stage == "done"
 }
 
 // updateHistory serializes read/modify/write across app processes.
