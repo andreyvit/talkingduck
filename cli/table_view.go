@@ -10,6 +10,7 @@ import (
 // TableView is the CLI's unwrapped table, also used by the desktop overview.
 // Each row is one task (or empty/error checkout); newlines stay within cells.
 type TableView struct {
+	AgentChoices  [][]table.Item    `json:"-"`
 	Parents       map[string]string `json:"-"`
 	Model         table.Table       `json:"table"`
 	WorktreePaths []string          `json:"worktreePaths"` // Absolute worktree path for every row, even when its label is blank.
@@ -46,6 +47,7 @@ func BuildTable(overview any) (TableView, error) {
 		if repo.Git.Error != "" || needsCurrentSummary(repo) {
 			result.SpecPaths = append(result.SpecPaths, "")
 			result.AgentLinks = append(result.AgentLinks, "")
+			result.AgentChoices = append(result.AgentChoices, nil)
 			if repo.Git.Error != "" {
 				continue
 			}
@@ -57,6 +59,7 @@ func BuildTable(overview any) (TableView, error) {
 			}
 			result.SpecPaths = append(result.SpecPaths, path)
 			result.AgentLinks = append(result.AgentLinks, agentLink(spec))
+			result.AgentChoices = append(result.AgentChoices, agentChoices(spec))
 		}
 	}
 	if text := strings.TrimSpace(warnings.String()); text != "" {

@@ -43,6 +43,9 @@ func modelTable(view TableView) table.Table {
 			{Text: "Editor", Chord: "e", Link: &table.Action{Kind: "editor", Target: row.Group}},
 			{Text: "Git", Chord: "g", Link: &table.Action{Kind: "git", Target: row.Group}},
 		}
+		if n < len(view.AgentChoices) {
+			row.Actions = append(row.Actions, view.AgentChoices[n]...)
+		}
 		if view.SpecPaths[n] == "" {
 			row.Archive = &table.Action{Kind: "archive", Target: ""}
 		} else if relative, err := filepath.Rel(row.Group, view.SpecPaths[n]); err == nil {

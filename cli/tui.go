@@ -109,7 +109,7 @@ func (s *tuiState) key(e *tcell.EventKey) bool {
 		case 'R':
 			s.refresh("")
 			s.notice = "Refresh all queued"
-		case 'c':
+		case 'c', 'A':
 			s.chord = string(r)
 		case 'a', 't', 's', 'S', 'f', 'e', 'g':
 			s.activate("o", string(r))
@@ -122,6 +122,9 @@ func (s *tuiState) key(e *tcell.EventKey) bool {
 	}
 	s.chord += string(r)
 	verb, key := s.chord[:1], s.chord[1:]
+	if verb == "A" {
+		verb, key = "o", "A"+strings.ToLower(key)
+	}
 	if s.activate(verb, key) {
 		return false
 	}
@@ -277,6 +280,9 @@ func (s *tuiState) draw(screen tcell.Screen) {
 	}
 	if s.chord != "" {
 		message = s.chord + "…  t ticket  T ticket URL  s spec  S spec path  f folder · Esc cancel"
+		if s.chord == "A" {
+			message = "A…  x ChatGPT / Codex  c Claude  g Grok Build · Esc cancel"
+		}
 	}
 	put(screen, 1, h-2, w-1, message, base.Foreground(tuiColor("cyan")))
 	put(screen, 1, h-1, w-1, "↑↓ select  r refresh  R all  a agent  t ticket  s spec  f folder  e editor  g Git  c copy  X archive  Q quit", bar)

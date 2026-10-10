@@ -73,14 +73,14 @@ export class InventoryController {
    this.selected=Math.max(0,Math.min(this.rows.length-1,this.selected+(key==='ArrowDown'?1:-1)));
    return true;
   }
-  if(key==='c'||key==='C') {
+  if(!this.chord&&(key==='c'||key==='C'||key==='A')) {
    if(!row)return true;
-   this.chord='c';this.chordRow=row.id;return true;
+   this.chord=key==='A'?'A':'c';this.chordRow=row.id;return true;
   }
   let target=row;
   if(this.chord) {
    target=this.rows.find(row=>row.id===this.chordRow);
-   key='c'+key;this.chord='';this.chordRow=null;
+   key=this.chord+(this.chord==='A'?key.toLowerCase():key);this.chord='';this.chordRow=null;
   }
   if(key==='R') {this.perform({kind:'refresh',value:''});return true;}
   if(key==='X') {
@@ -88,12 +88,13 @@ export class InventoryController {
    return true;
   }
   if(key==='r') {if(target)this.perform({kind:'refresh',value:target.group},target.id);return true;}
-  if(!['a','t','s','S','f','e','g','ct','cT','cs','cS','cf'].includes(key))return false;
+  if(!['a','t','s','S','f','e','g','ct','cT','cs','cS','cf','Ax','Ac','Ag'].includes(key))return false;
   const matches=this.matches(target,key);
   if(matches.length===1)this.perform(matches[0],target.id);
   else if(matches.length>1) {
    this.choices=matches;this.choice=0;this.choiceAction={row:target.id,key};
   }
+  if(!matches.length&&key.startsWith('A'))this.run({kind:'notice',value:'No matching agent session'});
   return true;
  }
 }

@@ -15,6 +15,7 @@ const controller=new InventoryController(async action=>{
    case 'copy-ticket-url': Events.Emit('inventory:copy-ticket-url',action.value);break;
    case 'refresh': Events.Emit(action.value?'inventory:refresh-folder':'inventory:refresh',action.value);notice('Refresh queued');break;
    case 'archive': Events.Emit('inventory:archive-row',action.value);break;
+   case 'notice': notice(action.value);break;
    case 'settings': Events.Emit('settings:open');break;
   }
  } catch(error) {$('error').textContent=String(error);}
@@ -25,6 +26,7 @@ function notice(text) {
 }
 const hints=[[null,'↑↓','Select'],['r','r','Refresh'],
  ['a','a','Agent'],['t','t','Ticket'],['s','s','Spec'],['f','f','Folder'],['e','e','Editor'],['g','g','Git'],['c','c','Copy'],['X','X','Archive'],['settings','^S','Settings']];
+const agentHints=[['x','Ax','ChatGPT / Codex'],['c','Ac','Claude'],['g','Ag','Grok Build'],['Escape','Esc','Cancel']];
 const copyHints=[['t','ct','Ticket'],['T','cT','Ticket URL'],['s','cs','Spec'],['S','cS','Spec path'],['f','cf','Folder path'],['Escape','Esc','Cancel']];
 function invoke(key) {
  const handled=controller.action(key);
@@ -41,7 +43,8 @@ function paintState() {
   tr.classList.toggle('mouse-selected',controller.mode==='mouse'&&controller.hovered===tr.dataset.rowId);
   tr.setAttribute('aria-selected',String(keyboard));
  }
- $('keys').replaceChildren(...(controller.chord?copyHints:hints).map(([key,label,text])=>{
+ $('keys').replaceChildren(...(controller.chord==='A'?agentHints:controller.chord?copyHints:hints).map(([key,label,text])=>{
+  if(shiftHeld&&!controller.chord&&key==='a'){key='A';label='A';text='Pick agent';}
   if(shiftHeld&&!controller.chord&&key==='r'){key='R';label='R';text='Refresh all';}
   if(shiftHeld&&!controller.chord&&key==='s'){key='S';label='S';text='Reveal spec';}
   const button=document.createElement(key?'button':'span');button.className='key-hint';

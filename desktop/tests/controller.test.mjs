@@ -103,3 +103,15 @@ test('activation follows the row under the pointer, without requiring a click',(
  c.activate('a');assert.equal(c.mode,'mouse');assert.equal(c.effectiveRow.id,'a');
  assert.equal(c.selected,2);
 });
+
+test('A picks an agent, including c without starting a copy chord',()=>{
+ const {c,calls}=fixture();
+ c.rows[0].actions=['Ax','Ac','Ag'].map(chord=>({text:chord,chord,link:{kind:'agent',target:chord}}));
+ c.hover('a');
+ for(const keys of ['Ax','Ac','AG'])for(const key of keys)c.action(key);
+ assert.deepEqual(calls.map(a=>a.value.target),['Ax','Ac','Ag']);
+ assert.equal(c.mode,'keyboard');assert.equal(c.chord,'');
+ c.action('A');c.action('Escape');assert.equal(c.chord,'');
+ c.hover('b');c.action('A');c.action('x');
+ assert.equal(calls.at(-1).kind,'notice');
+});

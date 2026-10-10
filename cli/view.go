@@ -38,18 +38,14 @@ type gitView struct {
 	Warnings      []string `json:"warnings"`
 }
 type taskView struct {
-	UberReviews    bool     `json:"uberreviews"`
-	Path           string   `json:"path"`
-	Tickets        []string `json:"tickets"`
-	DisplayTitle   string   `json:"display_title"`
-	PrimarySession struct {
-		Engine       string `json:"engine"`
-		ID           string `json:"id"`
-		AppSessionID string `json:"app_session_id"`
-		Client       string `json:"client"`
-	} `json:"primary_session"`
-	PrimaryConflict bool         `json:"primary_conflict"`
-	Workflow        workflowView `json:"workflow"`
+	UberReviews     bool          `json:"uberreviews"`
+	Path            string        `json:"path"`
+	Tickets         []string      `json:"tickets"`
+	DisplayTitle    string        `json:"display_title"`
+	PrimarySession  sessionView   `json:"primary_session"`
+	Sessions        []sessionView `json:"sessions"`
+	PrimaryConflict bool          `json:"primary_conflict"`
+	Workflow        workflowView  `json:"workflow"`
 }
 type workflowView struct {
 	Round         any    `json:"round"`
@@ -70,4 +66,16 @@ func tableData(data any) (tableReport, error) {
 	}
 	err = json.Unmarshal(b, &result)
 	return result, err
+}
+
+// sessionView retains only fields needed to open a task's primary chats.
+type sessionView struct {
+	Engine       string `json:"engine"`
+	ID           string `json:"id"`
+	AppSessionID string `json:"app_session_id"`
+	Client       string `json:"client"`
+	UpdatedAt    string `json:"updated_at"`
+	TaskRole     struct {
+		Value string `json:"value"`
+	} `json:"task_role"`
 }

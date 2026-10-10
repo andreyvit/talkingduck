@@ -62,3 +62,16 @@ Observed locally: PID resolution returns `source=pid`, `workspace_id`, and
 `surface_id`. Saved resume bindings can lag the latest hook session, so they
 are not used as identity evidence. Recheck hook schema and RPC support after
 cmux upgrades. See [cmux's resolver implementation](https://github.com/manaflow-ai/cmux/blob/main/CLI/CMUXCLI%2BClaudeHookDeliveryTarget.swift).
+
+
+## Pick an agent
+
+GUI and TUI: `Ax` opens ChatGPT / Codex, `Ac` Claude, `Ag` Grok Build.
+Use uppercase `A`, then the agent letter; Escape cancels.
+The GUI footer shows `A Pick agent` instead of `a Agent` while Shift is held.
+After `A`, both footers show the choices.
+
+Each choice opens the latest primary session associated with that task in that
+agent. Reviews are excluded. Missing or unsupported session links show an
+unavailable notice; this does not create a new session. Plain `a` still opens
+the task's latest primary across all agents.

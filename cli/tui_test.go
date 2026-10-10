@@ -326,3 +326,27 @@ func TestCopySpecPath(t *testing.T) {
 		t.Fatal("spec-free row has copy action")
 	}
 }
+
+func TestTUIPickAgent(t *testing.T) {
+	s := tuiState{model: tuiFixture()}
+	s.model.Rows[0].Actions = []table.Item{{Text: "Claude", Chord: "Ac", Link: &table.Action{Kind: "agent", Target: "claude:test"}}}
+	calls := 0
+	s.perform = func(verb string, item table.Item) {
+		calls++
+		if verb != "o" || item.Link.Target != "claude:test" {
+			t.Fatal(verb, item)
+		}
+	}
+	for _, r := range "Ac" {
+		s.key(tcell.NewEventKey(tcell.KeyRune, r, tcell.ModNone))
+	}
+	if calls != 1 || s.chord != "" {
+		t.Fatal(calls, s.chord)
+	}
+	for _, r := range "Ax" {
+		s.key(tcell.NewEventKey(tcell.KeyRune, r, tcell.ModNone))
+	}
+	if calls != 1 || s.chord != "" || s.notice == "" {
+		t.Fatal(calls, s.chord, s.notice)
+	}
+}
