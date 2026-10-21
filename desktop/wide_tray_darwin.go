@@ -42,14 +42,25 @@ static void tdInstallMenuMonitor(void *handle, void *menuHandle) {
 }
 
 // Called off the main thread; the block follows Wails' queued image assignment.
-static double tdWidenTray(void *handle, double width, double height, double padding) {
+static double tdWidenTray(void *handle, double width, double height, double padding, double prefix, int tintPing) {
     __block double actual = -1;
     dispatch_sync(dispatch_get_main_queue(), ^{
     NSStatusItem *item = (NSStatusItem *)handle;
     if (![item isKindOfClass:[NSStatusItem class]] || !item.button.image) return;
     NSImage *image = [item.button.image copy];
     image.size = NSMakeSize(width, height);
-    image.template = YES;
+    if (prefix > 0) {
+        NSImage *colored = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
+        [colored lockFocus];
+        [image drawInRect:NSMakeRect(0, 0, width, height)];
+        [item.button.effectiveAppearance performAsCurrentDrawingAppearance:^{
+            [NSColor.labelColor setFill];
+            NSRectFillUsingOperation(NSMakeRect(prefix, 0, width-prefix, height), NSCompositingOperationSourceAtop);
+            if (tintPing) NSRectFillUsingOperation(NSMakeRect(0, 0, 8, height), NSCompositingOperationSourceAtop);
+        }];
+        [colored unlockFocus];
+        [image release]; image=colored; image.template=NO;
+    } else { image.template=YES; }
     item.button.image = image;
     item.button.imageScaling = NSImageScaleNone;
     item.button.imagePosition = NSImageOnly;
@@ -111,7 +122,12 @@ func nativeTrayHandle(tray *application.SystemTray) (unsafe.Pointer, error) {
 // updateWideTray runs off the AppKit main thread. Wails enqueues image assignment
 // on dispatch_get_main_queue, whereas InvokeSync uses another dispatch mechanism.
 // Dispatching our resize synchronously onto that SAME queue establishes ordering.
-func updateWideTray(tray *application.SystemTray, data []byte, width, height, padding int) error {
+type trayMonitorStyle struct {
+	Width    int
+	TintPing bool
+}
+
+func updateWideTray(tray *application.SystemTray, data []byte, width, height, padding int, monitorOptions ...trayMonitorStyle) error {
 	var handle unsafe.Pointer
 	err := application.InvokeSyncWithError(func() error {
 		var err error
@@ -121,8 +137,21 @@ func updateWideTray(tray *application.SystemTray, data []byte, width, height, pa
 	if err != nil {
 		return err
 	}
-	tray.SetTemplateIcon(data)
-	actual := float64(C.tdWidenTray(handle, C.double(width), C.double(height), C.double(padding)))
+	prefix, tintPing := 0, false
+	if len(monitorOptions) > 0 {
+		prefix = monitorOptions[0].Width
+		tintPing = monitorOptions[0].TintPing
+	}
+	if prefix > 0 {
+		tray.SetIcon(data)
+	} else {
+		tray.SetTemplateIcon(data)
+	}
+	tint := 0
+	if tintPing {
+		tint = 1
+	}
+	actual := float64(C.tdWidenTray(handle, C.double(width), C.double(height), C.double(padding), C.double(prefix), C.int(tint)))
 	if actual != float64(width) {
 		return fmt.Errorf("native image width %.0f; expected %d", actual, width)
 	}

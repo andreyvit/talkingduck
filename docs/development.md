@@ -21,6 +21,7 @@ The window uses the CLI's shared table rows.
 - `desktop/`: Wails app, native tray-width shim, embedded overview, and local build script; see [desktop instructions](../desktop/README.md).
 - `mcpserver/`: loopback Streamable HTTP tools using the desktop cache; see [MCP setup](../mcpserver/README.md).
 - `menubarimage/`: shared standard/compact pixel renderer used by the app and scratch command.
+- `telemetry/`: independent ping and weekly quota collectors; no Keychain access.
 - `monitor/`: event-coalescing queues; deterministic deadline and concurrency tests.
 - `inventory/`: read-only builder, correlation, and in-memory per-worktree cache; modernc SQLite without cgo.
 - `cmd/scout/`: small standard-library Go review script; no module needed.
@@ -84,3 +85,7 @@ For Markdown preview changes, run
 Rebuild the main installed app during development so relaunches show current work;
 do not substitute a separate test app. Verify the ToC with a current real spec
 as well as synthetic rendering fixtures.
+
+For connection/limits changes, run `go test -race ./telemetry ./settings ./menubarimage ./desktop`,
+`node --test desktop/tests/*.test.mjs`, and rebuild the main installed app.
+Tests must use synthetic credentials and responses; never probe real Keychain items.

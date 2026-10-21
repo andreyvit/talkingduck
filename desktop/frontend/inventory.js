@@ -1,6 +1,7 @@
 import {Events,Clipboard} from '/wails/runtime.js';
 import {USE_AGENT_ICONS,agentIdentity,agentIcon} from './agent-icons.mjs';
 import {copyable} from './copy.js';
+import {toggleLimits} from './limits.js';
 import {InventoryController} from './controller.mjs';
 
 document.body.classList.toggle('agent-icons',USE_AGENT_ICONS);
@@ -25,10 +26,11 @@ function notice(text) {
  noticeTimer=setTimeout(()=>{$('notice').textContent='';},4000);
 }
 const hints=[[null,'↑↓','Select'],['r','r','Refresh'],
- ['a','a','Agent'],['t','t','Ticket'],['s','s','Spec'],['f','f','Folder'],['e','e','Editor'],['g','g','Git'],['c','c','Copy'],['X','X','Archive'],['settings','^S','Settings'],['Tab','Tab','Back to Viewer']];
+ ['a','a','Agent'],['t','t','Ticket'],['s','s','Spec'],['f','f','Folder'],['e','e','Editor'],['g','g','Git'],['c','c','Copy'],['X','X','Archive'],['l','l','Limits'],['settings','^S','Settings'],['Tab','Tab','Back to Viewer']];
 const agentHints=[['x','Ax','ChatGPT / Codex'],['c','Ac','Claude'],['g','Ag','Grok Build'],['Escape','Esc','Cancel']];
 const copyHints=[['t','ct','Ticket'],['T','cT','Ticket URL'],['s','cs','Spec'],['S','cS','Spec path'],['f','cf','Folder path'],['Escape','Esc','Cancel']];
 function invoke(key) {
+ if(key==='l'&&!controller.chord&&!controller.choices.length){toggleLimits();return true;}
  if(key==='Tab'){controller.cancel();paintState();Events.Emit('inventory:preview');return true;}
  const handled=controller.action(key);
  if(!handled)return false;

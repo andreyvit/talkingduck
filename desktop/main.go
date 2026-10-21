@@ -22,6 +22,8 @@ import (
 	"talkingduck/mcpserver"
 	"talkingduck/menubarimage"
 	"talkingduck/settings"
+	"talkingduck/telemetry"
+	"time"
 )
 
 //go:embed frontend/*
@@ -108,6 +110,7 @@ func run(opts *cli.Options, mcpPort int) error {
 	}
 	var view *inventoryView
 	syncHotkeys := func() {}
+	syncMonitor := func() {}
 	var settingsMu sync.Mutex
 	mcpAddress, mcpError := "", "Starting server…"
 	publishSettings := func() {
@@ -119,8 +122,10 @@ func run(opts *cli.Options, mcpPort int) error {
 			settingsError = err.Error()
 		}
 		syncHotkeys()
+		syncMonitor()
+		preferences, _ := store.Load()
 		publishArchivedSettings(app, view)
-		app.Event.Emit("settings:snapshot", map[string]any{"applications": applicationSettings(view), "address": mcpAddress, "error": mcpError, "folders": folders, "settingsError": settingsError, "path": store.Path})
+		app.Event.Emit("settings:snapshot", map[string]any{"menubar": preferences.Menubar.Defaults(), "applications": applicationSettings(view), "address": mcpAddress, "error": mcpError, "folders": folders, "settingsError": settingsError, "path": store.Path})
 	}
 	app.Event.On("settings:ready", func(*application.CustomEvent) { publishSettings() })
 	app.Event.On("settings:open", func(*application.CustomEvent) { showSettings() })
@@ -183,6 +188,29 @@ func run(opts *cli.Options, mcpPort int) error {
 			}
 		}()
 	})
+	monitorChanges := make(chan struct{}, 1)
+	signalMonitor := func() {
+		select {
+		case monitorChanges <- struct{}{}:
+		default:
+		}
+	}
+	initialSettings, _ := store.Load()
+	monitoring := telemetry.New(monitorConfig(initialSettings.Menubar), func(telemetry.Snapshot) { signalMonitor() })
+	defer monitoring.Close()
+	publishMonitor := func() {
+		preferences, _ := store.Load()
+		app.Event.Emit("monitor:snapshot", map[string]any{"snapshot": monitoring.Snapshot(), "config": preferences.Menubar.Defaults()})
+	}
+	syncMonitor = func() {
+		preferences, err := store.Load()
+		if err == nil {
+			monitoring.Update(monitorConfig(preferences.Menubar))
+			signalMonitor()
+		}
+	}
+	registerMenubarSettings(app, store, func() { publishSettings() })
+	app.Event.On("monitor:ready", func(*application.CustomEvent) { publishMonitor() })
 	view.startQueues(ctx, !opts.Inventory.NoAgents)
 	trayCells := func(snapshot *inventory.Snapshot) []menubarimage.Cell {
 		data, err := store.Load()
@@ -216,6 +244,8 @@ func run(opts *cli.Options, mcpPort int) error {
 	var mu sync.Mutex
 	compact := false
 	var compactItem *application.MenuItem
+	var lastTray []byte
+	lastPadding := -1
 	update := func(action string, snapshot *inventory.Snapshot) {
 		mu.Lock()
 		defer mu.Unlock()
@@ -232,17 +262,38 @@ func run(opts *cli.Options, mcpPort int) error {
 		if compactItem != nil {
 			compactItem.SetChecked(compact)
 		}
-		data, err := icon(cells, mode)
-		bounds := trayImage(cells, mode).Bounds()
+		preferences, loadErr := store.Load()
+		if loadErr != nil {
+			return
+		}
+		menuConfig := preferences.Menubar.Defaults()
+		art := monitorArt(monitoring.Snapshot(), menuConfig, time.Now())
+		prefix := menubarimage.RenderMonitor(art)
+		var projects *image.NRGBA
+		if menuConfig.Projects != "off" {
+			projects = trayImage(cells, mode)
+		}
+		if prefix.Bounds().Empty() && projects == nil {
+			projects = trayImage(nil, mode)
+		}
+		im := menubarimage.JoinMonitor(prefix, projects)
+		var encoded bytes.Buffer
+		err := png.Encode(&encoded, im)
+		data := encoded.Bytes()
+		bounds := im.Bounds()
+		if err == nil && bytes.Equal(lastTray, data) && lastPadding == padding {
+			return
+		}
 		if err == nil {
-			err = updateWideTray(tray, data, bounds.Dx()/4, bounds.Dy()/4, padding)
+			err = updateWideTray(tray, data, bounds.Dx()/4, bounds.Dy()/4, padding, trayMonitorStyle{Width: prefix.Bounds().Dx() / 4, TintPing: art.Ping != "" && !art.PingFailed})
 		}
 		if err != nil {
 			log.Printf("tray update failed: %v", err)
 			app.Event.Emit("mock:error", err.Error())
 			return
 		}
-		log.Printf("tray: image=%dx%d points; item=%d points", bounds.Dx()/4, bounds.Dy()/4, bounds.Dx()/4+padding)
+		lastTray = append(lastTray[:0], data...)
+		lastPadding = padding
 	}
 	view.updateTray = func(snapshot *inventory.Snapshot) { update("", snapshot) }
 	menu := app.Menu.New()
@@ -343,6 +394,17 @@ func run(opts *cli.Options, mcpPort int) error {
 			log.Printf("tray menu setup failed: %v", err)
 		}
 		update("", nil)
+		go func() {
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-monitorChanges:
+					publishMonitor()
+					update("", nil)
+				}
+			}
+		}()
 		server, addr, err := mcpserver.Start(mcpPort, view)
 		settingsMu.Lock()
 		if err != nil {

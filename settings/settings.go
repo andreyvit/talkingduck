@@ -21,6 +21,7 @@ type Folder struct {
 	Discovered          bool   `json:"discovered,omitempty"`
 }
 type Data struct {
+	Menubar            Menubar            `json:"menubar,omitzero"`
 	MarkdownAppearance MarkdownAppearance `json:"markdown_appearance,omitzero"`
 	GlobalHotkeys      *Hotkeys           `json:"global_hotkeys,omitempty"`
 	Applications       Applications       `json:"applications"`

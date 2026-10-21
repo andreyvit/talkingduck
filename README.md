@@ -22,6 +22,20 @@ built in Go.
 Supports local Codex/ChatGPT and Claude desktop sessions, plus Grok Build in cmux.
 See [collection behavior and limits](cmd/talkingduck/README.md).
 
+## Connection and weekly limits
+
+- Tiny vertical ping readout beside three compact quota bars, before project statuses.
+- Ping Google, Cloudflare, Quad9, or a custom host once per second; show latency
+  or elapsed outage time.
+- Weekly remaining percentages for supported Codex, Claude, and Grok accounts.
+  Missing readings show `—`; stale readings stay marked.
+- Press `l` to toggle a fixed Limits strip with ping, percentages, and reset times.
+- Settings → Menu Bar controls ping, each provider, and project visibility.
+  Auto shows providers used within 14 days. No Keychain access or login prompts.
+
+Quota availability depends on the provider and locally readable account data.
+See [monitoring details](docs/monitoring.md).
+
 ## Markdown viewer
 
 Choose **Settings → Applications → Markdown viewer → (Built-in viewer)**.
@@ -96,6 +110,7 @@ Uppercase keys mean Shift; copy chords are typed in sequence.
 | cs / cS / cf | Copy spec title / spec path / folder path |
 | r / R | Refresh selected folder / all folders |
 | X | Archive row |
+| l | Toggle Limits strip (desktop) |
 | Tab | Back to viewer (desktop) |
 | Esc | Cancel chooser or chord; clear dashboard keyboard selection |
 

@@ -4,6 +4,7 @@ import {updateMarkdownAppearance} from "./settings-markdown.js";
 import {updateApplications} from './settings-apps.js';
 import './settings-archives.js';
 import './settings-hotkeys.js';
+import './settings-menubar.js';
 import {copyable} from './copy.js';
 const $=id=>document.getElementById(id);
 let folderSnapshot=[],folderSignature='',addressValue=null;
