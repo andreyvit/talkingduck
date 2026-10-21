@@ -18,7 +18,7 @@ type Menubar struct {
 
 func (m Menubar) Defaults() Menubar {
 	if m.Ping == "" {
-		m.Ping = "vertical"
+		m.Ping = "off"
 	}
 	if m.PingTarget == "" {
 		m.PingTarget = "8.8.8.8"

@@ -37,6 +37,7 @@ type Snapshot struct {
 	Providers []Provider `json:"providers"`
 }
 type Manager struct {
+	probe      func(context.Context, string) (time.Duration, error)
 	mu         sync.Mutex
 	config     Config
 	snapshot   Snapshot
@@ -51,7 +52,10 @@ type Manager struct {
 }
 
 func New(config Config, changed func(Snapshot)) *Manager {
-	m := &Manager{changed: changed, updates: make(chan struct{}, 1), done: make(chan struct{})}
+	return newManager(config, changed, ping)
+}
+func newManager(config Config, changed func(Snapshot), probe func(context.Context, string) (time.Duration, error)) *Manager {
+	m := &Manager{probe: probe, changed: changed, updates: make(chan struct{}, 1), done: make(chan struct{})}
 	m.notifyWG.Add(1)
 	go m.dispatch()
 	m.Update(config)
@@ -239,7 +243,7 @@ func (m *Manager) runPing(parent context.Context, g uint64, target string) {
 		probes.Add(1)
 		go func() {
 			defer probes.Done()
-			rtt, err := ping(ctx, target)
+			rtt, err := m.probe(ctx, target)
 			select {
 			case results <- result{seq, start, rtt, err}:
 			case <-ctx.Done():

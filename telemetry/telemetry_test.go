@@ -1,9 +1,11 @@
 package telemetry
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -120,5 +122,41 @@ func TestPingWidthRollingTenSeconds(t *testing.T) {
 		if got := w.observe(start.Add(time.Duration(tc.second)*time.Second), &tc.ms); got != tc.want {
 			t.Fatalf("at %ds: got %d want %d", tc.second, got, tc.want)
 		}
+	}
+}
+
+func TestPingOffStopsProbes(t *testing.T) {
+	var calls atomic.Int32
+	started, canceled := make(chan struct{}), make(chan struct{})
+	cfg := Config{Codex: "off", Claude: "off", Grok: "off"}
+	m := newManager(cfg, nil, func(ctx context.Context, _ string) (time.Duration, error) {
+		if calls.Add(1) == 1 {
+			close(started)
+		}
+		<-ctx.Done()
+		close(canceled)
+		return 0, ctx.Err()
+	})
+	defer m.Close()
+	if m.Snapshot().Ping.State != "off" || calls.Load() != 0 {
+		t.Fatal("disabled ping started")
+	}
+	cfg.PingEnabled = true
+	m.Update(cfg)
+	select {
+	case <-started:
+	case <-time.After(time.Second):
+		t.Fatal("probe never started")
+	}
+	cfg.PingEnabled = false
+	m.Update(cfg)
+	select {
+	case <-canceled:
+	case <-time.After(time.Second):
+		t.Fatal("off did not cancel probe")
+	}
+	time.Sleep(1100 * time.Millisecond)
+	if calls.Load() != 1 || m.Snapshot().Ping.State != "off" {
+		t.Fatal("off continued probing", calls.Load())
 	}
 }

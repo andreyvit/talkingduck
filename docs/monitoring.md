@@ -1,15 +1,15 @@
 # Connection and weekly limits
 
 The menu-bar monitor sits left of project status, at most 24 points wide:
-6-point vertical ping text, a 1-point gap, and 17-point quota tracks.
-A 1-point gap separates monitoring from projects.
+5-point vertical ping text, a 2-point gap, and 17-point quota tracks.
+A 2-point gap separates monitoring from projects.
 Tracks have 1-point gaps and softly cut corners; their outer edges align with
 the project grid. Remaining values use digits only and sit in the larger segment. Near-white provider tints appear when multiple tracks are visible. Missing quota is `—`;
 a stale quota carries `~`. Project glyphs retain native appearance colors.
 
 Settings → Menu Bar:
 
-- Ping: Vertical text (default) / Off.
+- Ping: Vertical text / Off (default). Off hides ping in both views and stops probes.
 - Server: Google 8.8.8.8 (default), Cloudflare 1.1.1.1, Quad9 9.9.9.9, Custom hostname/IP.
 - Each provider: On / Auto (default) / Off. Auto means activity in the past 14 days,
   determined from session-file timestamps, without reading credentials for visibility.
@@ -21,8 +21,8 @@ persists locally. Each provider shows remaining percentage and a reset label ali
 with the progress bar's left edge. Resets within 24 hours use a countdown; later
 resets use local weekday/time. Unknown and expired readings never imply a fresh quota.
 
-Monitor text uses integer-grid pixel fonts, including tightly kerned `ms` and a
-1-point word space. Ping is centered in a field sized for the largest reading
+Ping and quota values use the same 3×5 pixel font. Menu-bar ping digits are
+rotated, without an `ms` suffix; outages retain `s` for seconds. Ping is centered in a field sized for the largest reading
 in the last ten seconds: 1 digit below 10ms, 2 from 10ms, 3 from 100ms, 4 from
 1000ms. Fields expand immediately and shrink when the larger sample expires. The main
 window uses the same width with a three-digit minimum and right-aligned numbers.

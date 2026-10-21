@@ -12,7 +12,7 @@ func TestMonitorCompactBounds(t *testing.T) {
 		for i := range bars {
 			bars[i] = LimitBar{ID: "codex", Remaining: &p}
 		}
-		im := RenderMonitor(Monitor{Ping: "20ms", Bars: bars})
+		im := RenderMonitor(Monitor{Ping: "20", Bars: bars})
 		if im.Bounds().Dx() != 24*4 || im.Bounds().Dy() != 23*4 {
 			t.Fatal(im.Bounds())
 		}
@@ -20,7 +20,7 @@ func TestMonitorCompactBounds(t *testing.T) {
 	if !RenderMonitor(Monitor{}).Bounds().Empty() {
 		t.Fatal("empty monitor")
 	}
-	if RenderMonitor(Monitor{Ping: "3s", PingFailed: true}).Bounds().Dx() != 24 {
+	if RenderMonitor(Monitor{Ping: "3s", PingFailed: true}).Bounds().Dx() != 20 {
 		t.Fatal("ping width")
 	}
 }
@@ -56,7 +56,7 @@ func TestPingColorsAndStableWidth(t *testing.T) {
 		ms   float64
 		want color.NRGBA
 	}{{49, color.NRGBA{255, 255, 255, 255}}, {50, color.NRGBA{255, 244, 174, 255}}, {149, color.NRGBA{255, 244, 174, 255}}, {150, color.NRGBA{255, 174, 174, 255}}} {
-		im := RenderMonitor(Monitor{Ping: "99 ms", PingMS: tc.ms})
+		im := RenderMonitor(Monitor{Ping: "99", PingMS: tc.ms})
 		found := false
 		for y := 0; y < im.Bounds().Dy(); y++ {
 			for x := 0; x < im.Bounds().Dx(); x++ {
@@ -69,19 +69,12 @@ func TestPingColorsAndStableWidth(t *testing.T) {
 			t.Fatal("missing ping color", tc.ms)
 		}
 	}
-	a, b := RenderMonitor(Monitor{Ping: "99 ms", PingDigits: 3}), RenderMonitor(Monitor{Ping: "100 ms", PingDigits: 3})
-	for y := 0; y < 20; y++ {
-		for x := 0; x < a.Bounds().Dx(); x++ {
-			if a.NRGBAAt(x, y) != b.NRGBAAt(x, y) {
-				t.Fatal("unit moved when digit count changed", x, y)
-			}
-		}
-	}
+
 }
 
 func TestMonitorPixelsAreOnLogicalGrid(t *testing.T) {
 	value := 38.0
-	im := RenderMonitor(Monitor{Ping: "123 ms", PingDigits: 3, Bars: []LimitBar{{Remaining: &value}, {}, {}}})
+	im := RenderMonitor(Monitor{Ping: "123", PingDigits: 3, Bars: []LimitBar{{Remaining: &value}, {}, {}}})
 	for y := 0; y < im.Bounds().Dy(); y += 4 {
 		for x := 0; x < im.Bounds().Dx(); x += 4 {
 			c := im.NRGBAAt(x, y)
@@ -96,5 +89,32 @@ func TestMonitorPixelsAreOnLogicalGrid(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func TestPingUsesRotatedQuotaFontAndTwoPixelGaps(t *testing.T) {
+	label := monitorText("20", false)
+	ping := RenderMonitor(Monitor{Ping: "20", PingDigits: 2})
+	offset := (23 - label.Bounds().Dx()) / 2
+	for y := 0; y < 23; y++ {
+		for x := 0; x < 5; x++ {
+			want := label.NRGBAAt(label.Bounds().Dx()-1-(y-offset), x).A
+			if ping.NRGBAAt(x*4, y*4).A != want {
+				t.Fatal("ping font differs", x, y)
+			}
+		}
+	}
+	im := RenderMonitor(Monitor{Ping: "20", Bars: []LimitBar{{}}})
+	for x := 5 * 4; x < 7*4; x++ {
+		for y := 0; y < im.Bounds().Dy(); y++ {
+			if im.NRGBAAt(x, y).A != 0 {
+				t.Fatal("ping gap")
+			}
+		}
+	}
+	projects := RenderAgents([]Cell{{Number: 1}}, color.NRGBA{A: 255}, Standard)
+	joined := JoinMonitor(im, projects)
+	if joined.Bounds().Dx() != im.Bounds().Dx()+8+projects.Bounds().Dx() {
+		t.Fatal("project gap")
 	}
 }

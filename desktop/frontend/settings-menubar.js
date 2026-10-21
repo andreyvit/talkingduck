@@ -7,7 +7,7 @@ const queue=new AutosaveQueue(()=>{if(!draft.value?.ping_target){queue.finished(
 function row(id,label,control){const r=document.createElement('div');r.className='form-row';const l=document.createElement('label');l.htmlFor=control.id='menubar-'+id;l.textContent=label;r.append(l,control);form.append(r);return r;}
 for(const [id,label,options]of fields){const select=document.createElement('select');for(const[value,text]of options){const opt=document.createElement('option');opt.value=value;opt.textContent=text;select.append(opt)}controls[id]=select;row(id,label,select);select.onchange=()=>{customRow.hidden=controls.ping_target.value!=='custom';save()};}
 const custom=document.createElement('input');custom.type='text';custom.placeholder='IP address or hostname';const customRow=row('custom','Custom server',custom);customRow.hidden=true;
-const help=document.createElement('p');help.className='form-help';help.textContent='Auto shows providers used in the last 14 days. Ping measures reachability of the selected server.';form.append(help);
+const help=document.createElement('p');help.className='form-help';help.textContent='Auto shows providers used in the last 14 days. Ping Off hides it everywhere and stops probes.';form.append(help);
 const error=document.createElement('p');error.className='form-status error';error.setAttribute('role','status');form.append(error);
 custom.oninput=save;
 form.onsubmit=e=>{e.preventDefault();save()};

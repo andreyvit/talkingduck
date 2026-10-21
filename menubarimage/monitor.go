@@ -94,11 +94,11 @@ func RenderMonitor(m Monitor) *image.NRGBA {
 	}
 	width := 0
 	if m.Ping != "" {
-		width = 6
+		width = 5
 	}
 	if len(m.Bars) > 0 {
 		if width > 0 {
-			width++
+			width += 2
 		}
 		width += barWidth
 	}
@@ -110,14 +110,10 @@ func RenderMonitor(m Monitor) *image.NRGBA {
 	track := color.NRGBA{69, 77, 89, 255}
 	white := color.NRGBA{255, 255, 255, 255}
 	if m.Ping != "" {
-		// Reserve the rolling digit count and keep the unit fixed within that field.
+		// Use the quota font, with the rolling digit field centered vertically.
 		digits := max(1, min(4, m.PingDigits))
-		reserved := monitorText(strings.Repeat("0", digits)+" ms", true).Bounds().Dx()
-		compact := reserved <= height
-		if !compact {
-			reserved = monitorText(strings.Repeat("0", digits)+" ms", false).Bounds().Dx()
-		}
-		label := monitorText(m.Ping, compact)
+		reserved := monitorText(strings.Repeat("0", digits), false).Bounds().Dx()
+		label := monitorText(m.Ping, false)
 		if m.PingFailed {
 			reserved = label.Bounds().Dx()
 		}
@@ -214,7 +210,7 @@ func JoinMonitor(prefix, projects *image.NRGBA) *image.NRGBA {
 	if projects == nil || projects.Bounds().Empty() {
 		return prefix
 	}
-	gap := 1 * 4
+	gap := 2 * 4
 	h := max(prefix.Bounds().Dy(), projects.Bounds().Dy())
 	out := image.NewNRGBA(image.Rect(0, 0, prefix.Bounds().Dx()+gap+projects.Bounds().Dx(), h))
 	draw.Draw(out, prefix.Bounds().Add(image.Pt(0, (h-prefix.Bounds().Dy())/2)), prefix, image.Point{}, draw.Src)

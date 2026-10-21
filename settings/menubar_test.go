@@ -7,7 +7,7 @@ import (
 
 func TestMenubarDefaultsAndValidation(t *testing.T) {
 	m := (Menubar{}).Defaults()
-	if m.Ping != "vertical" || m.PingTarget != "8.8.8.8" || m.Codex != "auto" || m.Projects != "on" {
+	if m.Ping != "off" || m.PingTarget != "8.8.8.8" || m.Codex != "auto" || m.Projects != "on" {
 		t.Fatal(m)
 	}
 	for _, target := range []string{"8.8.8.8", "::1", "dns.example.org"} {
