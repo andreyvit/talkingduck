@@ -9,6 +9,7 @@ Start here; read only what the task needs.
 - [macOS settings UI](macos-settings-ui.md): layout, alignment, controls, behavior, and practical limits.
 - [Future settings](future-settings.md): hardcoded defaults and planned configuration controls.
 - [development.md](development.md): repository layout, work conventions, validation.
+- [Limits source research](limits-sources.md): Claude Desktop login, local caches, Grok billing fallbacks, and prompt boundaries.
 - [Connection and limits](monitoring.md): ping, weekly quotas, compact tray, and recent-use visibility.
 - [Markdown preview](markdown-viewer.md): built-in viewer, controls, rendering, refresh and history.
 - [Window placement](window-placement.md): native frame persistence, display restoration, and fallback.
