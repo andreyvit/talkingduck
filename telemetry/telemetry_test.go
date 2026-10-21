@@ -108,3 +108,17 @@ func TestRecentActivity(t *testing.T) {
 		t.Fatal("symlink is not activity")
 	}
 }
+
+func TestPingWidthRollingTenSeconds(t *testing.T) {
+	var w pingWidths
+	start := time.Now()
+	for _, tc := range []struct {
+		second int
+		ms     float64
+		want   int
+	}{{0, 5, 1}, {1, 12, 2}, {2, 110, 3}, {3, 1200, 4}, {12, 6, 4}, {13, 9, 1}, {14, 99, 2}, {15, 100, 3}, {24, 8, 3}, {25, 8, 1}} {
+		if got := w.observe(start.Add(time.Duration(tc.second)*time.Second), &tc.ms); got != tc.want {
+			t.Fatalf("at %ds: got %d want %d", tc.second, got, tc.want)
+		}
+	}
+}

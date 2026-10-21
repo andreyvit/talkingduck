@@ -13,6 +13,7 @@ type Config struct {
 	Codex, Claude, Grok string
 }
 type Ping struct {
+	Digits      int        `json:"digits"`
 	Target      string     `json:"target"`
 	State       string     `json:"state"`
 	RTTMS       *float64   `json:"rtt_ms,omitempty"`
@@ -218,39 +219,89 @@ func merge(old, p Provider) Provider {
 	}
 	return p
 }
-func (m *Manager) runPing(ctx context.Context, g uint64, target string) {
+func (m *Manager) runPing(parent context.Context, g uint64, target string) {
+	ctx, cancel := context.WithCancel(parent)
+	var probes sync.WaitGroup
+	defer func() { cancel(); probes.Wait() }()
+	type result struct {
+		sequence uint64
+		started  time.Time
+		rtt      time.Duration
+		err      error
+	}
+	results := make(chan result, 8)
+	var sequence, accepted uint64
 	var failed *time.Time
-	var previous time.Time
-	for {
-		start := time.Now()
-		if !previous.IsZero() && start.Sub(previous) > 5*time.Second {
-			failed = nil
-		}
-		previous = start
-		rtt, err := ping(ctx, target)
-		if ctx.Err() != nil {
-			return
-		}
-		p := Ping{Target: target, State: "reachable", ObservedAt: time.Now()}
-		if err != nil {
-			if failed == nil {
-				t := start
-				failed = &t
+	var widths pingWidths
+	launch := func(start time.Time) {
+		sequence++
+		seq := sequence
+		probes.Add(1)
+		go func() {
+			defer probes.Done()
+			rtt, err := ping(ctx, target)
+			select {
+			case results <- result{seq, start, rtt, err}:
+			case <-ctx.Done():
 			}
-			p.State = "unreachable"
-			p.FailedSince = failed
-		} else {
-			failed = nil
-			ms := float64(rtt) / float64(time.Millisecond)
-			p.RTTMS = &ms
-		}
-		m.publish(g, func(s *Snapshot) { s.Ping = p })
-		pause := time.Second - time.Since(start)
-		if pause < 0 {
-			pause = 0
-		}
-		if !wait(ctx, pause) {
+		}()
+	}
+	previous := time.Now()
+	launch(previous)
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
 			return
+		case now := <-ticker.C:
+			if now.Sub(previous) > 5*time.Second {
+				failed = nil
+				widths = pingWidths{}
+				accepted = sequence
+			}
+			previous = now
+			launch(now)
+		case r := <-results:
+			// A delayed reply must not replace a newer observation.
+			if r.sequence <= accepted {
+				continue
+			}
+			accepted = r.sequence
+			p := Ping{Target: target, State: "reachable", ObservedAt: time.Now()}
+			if r.err != nil {
+				if failed == nil {
+					start := r.started
+					failed = &start
+				}
+				p.State = "unreachable"
+				p.FailedSince = failed
+			} else {
+				failed = nil
+				ms := float64(r.rtt) / float64(time.Millisecond)
+				p.RTTMS = &ms
+			}
+			p.Digits = widths.observe(p.ObservedAt, p.RTTMS)
+			m.publish(g, func(s *Snapshot) { s.Ping = p })
 		}
 	}
+}
+
+// Each threshold expires ten seconds after the last reading at or above it.
+type pingWidths struct{ seen [3]time.Time }
+
+func (w *pingWidths) observe(now time.Time, ms *float64) int {
+	if ms != nil {
+		for i, threshold := range []float64{10, 100, 1000} {
+			if *ms >= threshold {
+				w.seen[i] = now
+			}
+		}
+	}
+	for i := 2; i >= 0; i-- {
+		if !w.seen[i].IsZero() && now.Sub(w.seen[i]) < 10*time.Second {
+			return i + 2
+		}
+	}
+	return 1
 }

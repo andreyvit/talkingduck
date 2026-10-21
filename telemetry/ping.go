@@ -13,7 +13,7 @@ import (
 )
 
 func ping(parent context.Context, target string) (time.Duration, error) {
-	ctx, cancel := context.WithTimeout(parent, 900*time.Millisecond)
+	ctx, cancel := context.WithTimeout(parent, 5*time.Second)
 	defer cancel()
 	ips, err := net.DefaultResolver.LookupIPAddr(ctx, target)
 	if err != nil {

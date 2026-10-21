@@ -13,14 +13,14 @@ func TestMonitorCompactBounds(t *testing.T) {
 			bars[i] = LimitBar{ID: "codex", Remaining: &p}
 		}
 		im := RenderMonitor(Monitor{Ping: "20ms", Bars: bars})
-		if im.Bounds().Dx() != 37*4 || im.Bounds().Dy() != 23*4 {
+		if im.Bounds().Dx() != 24*4 || im.Bounds().Dy() != 23*4 {
 			t.Fatal(im.Bounds())
 		}
 	}
 	if !RenderMonitor(Monitor{}).Bounds().Empty() {
 		t.Fatal("empty monitor")
 	}
-	if RenderMonitor(Monitor{Ping: "3s", PingFailed: true}).Bounds().Dx() != 32 {
+	if RenderMonitor(Monitor{Ping: "3s", PingFailed: true}).Bounds().Dx() != 24 {
 		t.Fatal("ping width")
 	}
 }
@@ -51,7 +51,7 @@ func TestMonitorGridEdges(t *testing.T) {
 		}
 	}
 }
-func TestPingColorsAndTopAnchor(t *testing.T) {
+func TestPingColorsAndStableWidth(t *testing.T) {
 	for _, tc := range []struct {
 		ms   float64
 		want color.NRGBA
@@ -69,11 +69,31 @@ func TestPingColorsAndTopAnchor(t *testing.T) {
 			t.Fatal("missing ping color", tc.ms)
 		}
 	}
-	a, b := RenderMonitor(Monitor{Ping: "99 ms"}), RenderMonitor(Monitor{Ping: "100 ms"})
+	a, b := RenderMonitor(Monitor{Ping: "99 ms", PingDigits: 3}), RenderMonitor(Monitor{Ping: "100 ms", PingDigits: 3})
 	for y := 0; y < 20; y++ {
 		for x := 0; x < a.Bounds().Dx(); x++ {
 			if a.NRGBAAt(x, y) != b.NRGBAAt(x, y) {
 				t.Fatal("unit moved when digit count changed", x, y)
+			}
+		}
+	}
+}
+
+func TestMonitorPixelsAreOnLogicalGrid(t *testing.T) {
+	value := 38.0
+	im := RenderMonitor(Monitor{Ping: "123 ms", PingDigits: 3, Bars: []LimitBar{{Remaining: &value}, {}, {}}})
+	for y := 0; y < im.Bounds().Dy(); y += 4 {
+		for x := 0; x < im.Bounds().Dx(); x += 4 {
+			c := im.NRGBAAt(x, y)
+			if c.A != 0 && c.A != 255 {
+				t.Fatal("antialiased edge")
+			}
+			for dy := 0; dy < 4; dy++ {
+				for dx := 0; dx < 4; dx++ {
+					if im.NRGBAAt(x+dx, y+dy) != c {
+						t.Fatal("fractional pixel", x, y)
+					}
+				}
 			}
 		}
 	}

@@ -2,7 +2,7 @@
 
 Independent background collectors; no inventory scans or UI work on their timers.
 
-- Ping: pure-Go unprivileged ICMP, one probe/second, 900ms timeout. Match reply payload and source; clear outage timing after a scheduling gap over five seconds. Failure means the selected host did not respond.
+- Ping: pure-Go unprivileged ICMP, one probe/second, 5s timeout; probes overlap to retain the one-second cadence, and older replies cannot replace newer observations. Match reply payload and source; clear outage timing after a scheduling gap over five seconds. Failure means the selected host did not respond.
 - Codex: existing `$CODEX_HOME/auth.json` (default `~/.codex/auth.json`), account usage endpoint, actual seven-day window. Poll every minute.
 - Claude: existing `$CLAUDE_CONFIG_DIR/.credentials.json` (default `~/.claude/.credentials.json`), OAuth `seven_day`. Poll every five minutes. **No Keychain reads, credential prompts, login, or token refresh.** A stale/missing file stays unavailable.
 - Grok: existing `~/.grok/auth.json`, Build billing endpoint. Accept an explicit percent or a finite used/cap ratio only with a seven-day period. Missing quota or other periods stay unavailable. Poll every minute.

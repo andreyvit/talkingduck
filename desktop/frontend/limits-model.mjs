@@ -12,3 +12,8 @@ export function pingLabel(p,now=Date.now()){
  if(p?.state==='unreachable'&&p.failed_since)return Math.max(0,Math.floor((now-Date.parse(p.failed_since))/1000))+' s no conn';
  return p?.state==='off'?'Ping off':p?.state==='error'?'Ping unavailable':'Checking ping…';
 }
+
+export function pingReading(p,now=Date.now()){
+ const label=pingLabel(p,now),match=/^(\d+)(.*)$/.exec(label);
+ return {label,number:match?.[1]??'—',unit:match?.[2]??' ping',digits:Math.max(3,p?.digits||1,match?.[1]?.length||0)};
+}

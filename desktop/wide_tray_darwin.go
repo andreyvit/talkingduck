@@ -52,6 +52,8 @@ static double tdWidenTray(void *handle, double width, double height, double padd
     if (prefix > 0) {
         NSImage *colored = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
         [colored lockFocus];
+        [NSGraphicsContext currentContext].imageInterpolation = NSImageInterpolationNone;
+        [NSGraphicsContext currentContext].shouldAntialias = NO;
         [image drawInRect:NSMakeRect(0, 0, width, height)];
         [item.button.effectiveAppearance performAsCurrentDrawingAppearance:^{
             [NSColor.labelColor setFill];
