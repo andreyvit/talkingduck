@@ -149,6 +149,9 @@ func collect(parent context.Context, id, mode string) Provider {
 		return p
 	}
 	remaining, reset, err := parseUsage(id, raw)
+	if err != nil && id == "grok" {
+		remaining, reset, err = grokFallback(ctx, &client, grokBillingURL, c.token, raw, time.Now())
+	}
 	if err != nil {
 		p.State = "unavailable"
 		p.Error = err.Error()

@@ -45,6 +45,6 @@ and [verified source research](limits-sources.md).
 
 Local verification: ping and Codex weekly usage worked. Claude's old file token
 returned HTTP 401, but the CLI returned current weekly usage and reset matching
-WhatsMyUsage. Grok's primary billing response omitted percentage; its successful
-fallback probe is documented but not yet implemented. These observations concern
+WhatsMyUsage. Grok’s primary billing response omitted percentage; the collector now uses the
+verified gRPC-web fallback with strict current-week validation. These observations concern
 one account setup, not provider-wide guarantees.

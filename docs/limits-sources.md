@@ -1,7 +1,7 @@
 # Claude and Grok usage sources
 
 Research checked 2026-10-21. Current collectors are documented in
-[monitoring.md](monitoring.md); Claude now uses the verified CLI route below. Grok fallback remains unimplemented.
+[monitoring.md](monitoring.md); Both collectors now use the verified routes below.
 
 ## Reference apps
 
@@ -74,5 +74,7 @@ valid response has a recognized current period containing now. It tracks this
 as an implicit zero, separate from a published percentage. Preserve the proxy's
 authoritative reset. A missing JSON percentage alone is insufficient. Parse
 only schema-known nested messages; unknown bytes are not nested protobuf.
-Check gRPC trailers, malformed lengths, overflowing varints, expired periods,
-and explicit nonzero percentages in synthetic tests before implementation.
+The collector checks gRPC trailers, malformed lengths, overflowing varints, expired
+periods, and explicit nonzero percentages. Synthetic tests cover these cases and
+ensure conflicting primary/fallback periods never mix. The fallback has a six-second
+deadline within the collector’s twelve-second request budget.
