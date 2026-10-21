@@ -34,13 +34,17 @@ Ping runs once per second with a 5-second deadline, allowing four-digit latency 
 is not proof the entire internet is down. Scheduling gaps over five seconds reset
 outage timing, including sleep/wake. Configuration errors are validated before saving.
 
-Collectors run independently of inventory scans. Codex/Grok poll every minute;
-Claude polls every five minutes. Requests time out after 12 seconds, back off on
-failure, and honor Retry-After. Off stops that collector. Existing local auth files
-can authorize read-only usage requests; the app never reads Keychain items, asks for
-login, or refreshes/writes tokens. Unsupported or inaccessible quotas remain unavailable.
-See [collector details](../telemetry/README.md).
+Collectors run independently of inventory scans. Codex/Grok poll every minute
+through read-only HTTP requests with a 12-second deadline and Retry-After/backoff.
+Claude polls `claude --print /usage` every five minutes with a 20-second deadline;
+the CLI owns its authentication. Hooks, MCP, tools, session persistence, and Remote
+Control startup are disabled for this check. Off stops that collector. TalkingDuck
+never reads Keychain items, asks for login, or refreshes/writes tokens. Unsupported
+or inaccessible quotas remain unavailable. See [collector details](../telemetry/README.md)
+and [verified source research](limits-sources.md).
 
-Initial local verification: ping and Codex weekly usage worked; Claude's local token
-returned HTTP 401; Grok billing responded but supplied no usable seven-day quota.
-These are observations from one account setup, not provider-wide guarantees.
+Local verification: ping and Codex weekly usage worked. Claude's old file token
+returned HTTP 401, but the CLI returned current weekly usage and reset matching
+WhatsMyUsage. Grok's primary billing response omitted percentage; its successful
+fallback probe is documented but not yet implemented. These observations concern
+one account setup, not provider-wide guarantees.

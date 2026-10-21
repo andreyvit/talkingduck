@@ -1,7 +1,7 @@
 # Claude and Grok usage sources
 
 Research checked 2026-10-21. Current collectors are documented in
-[monitoring.md](monitoring.md); the alternatives below are not yet implemented.
+[monitoring.md](monitoring.md); Claude now uses the verified CLI route below. Grok fallback remains unimplemented.
 
 ## Reference apps
 
@@ -16,13 +16,26 @@ This establishes shared implementation names, not exact source/version parity.
 
 ## Claude
 
+WhatsMyUsage preferences recorded `claudeKeychainPromptUsed=true`, no last
+Keychain denial, `claudeCLIBackgroundEstablished=true`, and subscription auth.
+This supports prior consent and an established CLI route; it does not prove which
+route supplied a particular refresh.
+
+A live `claude --print /usage` probe returned the same all-model weekly percentage
+and reset time as WhatsMyUsage without a prompt. TalkingDuck now uses this route,
+with hooks, MCP, tools, Remote Control startup, and session persistence disabled.
+An empty temporary working directory avoids loading project context. Poll every
+five minutes; bound execution to twenty seconds and output to 64 KiB. Parse only
+the exact all-model weekly line; reject ambiguous percentages, unknown timezones,
+and resets outside the coming eight days. No PTY or login automation is needed.
+The CLI owns credentials and refresh; TalkingDuck reads neither Claude's stale
+credentials file nor its Keychain. Failures clear the reading because CLI usage
+output does not establish a stable account identity.
+
 Claude Code file OAuth and Claude Desktop login are separate sources. Signing in
 to Desktop does not repair an expired `.claude/.credentials.json` token.
-CodexBar supports OAuth, CLI probing, and web session cookies. Desktop cookie
-import reads `Library/Application Support/Claude/Cookies` and decrypts through
-`Claude Safe Storage` / `Claude Key`; this can require Keychain permission.
-Background polling must never prompt. An explicit connection action remains a
-product decision; no Keychain access was attempted during this research.
+CodexBar also supports OAuth and web session cookies; those alternatives can
+require Keychain access. No direct Keychain probe was attempted.
 
 TokenBar reads `Library/Application Support/Claude/plan-usage-history.json`:
 `samples[].t` is epoch milliseconds; `samples[].u.sd` is weekly used percent,

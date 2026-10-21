@@ -91,6 +91,9 @@ func collect(parent context.Context, id, mode string) Provider {
 	if mode != "on" && !p.RecentlyUsed {
 		return p
 	}
+	if id == "claude" {
+		return collectClaude(parent, p)
+	}
 	c, err := readCredentials(id)
 	if err != nil {
 		if !os.IsNotExist(err) {
