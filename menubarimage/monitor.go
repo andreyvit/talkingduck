@@ -22,6 +22,8 @@ type LimitBar struct {
 type Monitor struct {
 	Ping       string
 	PingFailed bool
+	PingMS     float64
+	Mode       Mode
 	Bars       []LimitBar
 }
 
@@ -34,10 +36,14 @@ func monitorFace(size float64) font.Face {
 	return face
 }
 
-// RenderMonitor uses four backing pixels per point, matching project status art.
-// Three 6-point tracks + two 1-point gaps fit a 22-point menu bar.
+// RenderMonitor matches the outer edges of the project grid at four pixels/point.
 func RenderMonitor(m Monitor) *image.NRGBA {
 	const scale = 4
+	const barWidth = 26
+	height := 23 * scale
+	if m.Mode == Compact {
+		height = 21 * scale
+	}
 	width := 0
 	if m.Ping != "" {
 		width = 8
@@ -46,37 +52,52 @@ func RenderMonitor(m Monitor) *image.NRGBA {
 		if width > 0 {
 			width += 3
 		}
-		width += 42
+		width += barWidth
 	}
 	if width == 0 {
 		return image.NewNRGBA(image.Rectangle{})
 	}
-	out := image.NewNRGBA(image.Rect(0, 0, width*scale, 22*scale))
+	out := image.NewNRGBA(image.Rect(0, 0, width*scale, height))
 	dark := color.NRGBA{24, 30, 38, 255}
 	track := color.NRGBA{69, 77, 89, 255}
-	white := color.NRGBA{245, 247, 250, 255}
+	white := color.NRGBA{255, 255, 255, 255}
 	face := monitorFace(6 * scale)
 	defer face.Close()
 	if m.Ping != "" {
-		pingFace := monitorFace(5.5 * scale)
+		pingFace := monitorFace(6.5 * scale)
 		defer pingFace.Close()
 		d := font.Drawer{Face: pingFace}
 		w := d.MeasureString(m.Ping).Ceil()
-		label := image.NewNRGBA(image.Rect(0, 0, w, 7*scale))
+		label := image.NewNRGBA(image.Rect(0, 0, w, 8*scale))
 		d.Dst = label
 		ink := white
-		if m.PingFailed {
-			ink = color.NRGBA{255, 199, 97, 255}
+		if m.PingFailed || m.PingMS >= 150 {
+			ink = color.NRGBA{255, 174, 174, 255}
+		} else if m.PingMS >= 50 {
+			ink = color.NRGBA{255, 244, 174, 255}
 		}
 		d.Src = image.NewUniform(ink)
-		d.Dot = fixed.P(0, 6*scale)
+		d.Dot = fixed.P(0, 7*scale)
 		d.DrawString(m.Ping)
-		// Rotated bottom-to-top; native tray adapts normal text to menu-bar appearance.
+		// Fix the unit's last ink to the top; only the number's bottom edge moves.
+		last := 0
 		for y := 0; y < label.Bounds().Dy(); y++ {
-			for x := 0; x < label.Bounds().Dx(); x++ {
-				c := label.NRGBAAt(x, y)
+			for x := 0; x < w; x++ {
+				if label.NRGBAAt(x, y).A > 0 {
+					last = max(last, x)
+				}
+			}
+		}
+		span := min(last+1, height)
+		for y := 0; y < label.Bounds().Dy(); y++ {
+			for destY := 0; destY < span; destY++ {
+				srcX := last - destY
+				if last+1 > height {
+					srcX = last - destY*(last+1)/height
+				}
+				c := label.NRGBAAt(srcX, y)
 				if c.A > 0 {
-					out.SetNRGBA(y, (22*scale+w)/2-x-1, c)
+					out.SetNRGBA(y, destY, c)
 				}
 			}
 		}
@@ -86,28 +107,37 @@ func RenderMonitor(m Monitor) *image.NRGBA {
 	if m.Ping != "" {
 		x = 11 * scale
 	}
-	y := (22*scale - (n*6+(n-1))*scale) / 2
-	for _, b := range m.Bars[:n] {
-		rect := image.Rect(x, y, x+42*scale, y+6*scale)
+	y := 0
+	trackHeight := (height - (n-1)*scale) / max(1, n)
+	if n == 1 {
+		trackHeight = 7 * scale
+		y = (height - trackHeight) / 2
+	}
+	for i, b := range m.Bars[:n] {
+		bottom := y + trackHeight
+		if n > 1 && i == n-1 {
+			bottom = height
+		}
+		rect := image.Rect(x, y, x+barWidth*scale, bottom)
 		draw.Draw(out, rect, image.NewUniform(track), image.Point{}, draw.Src)
 		tint := white
 		if n > 1 {
 			switch b.ID {
 			case "codex":
-				tint = color.NRGBA{201, 241, 230, 255}
+				tint = color.NRGBA{239, 255, 250, 255}
 			case "claude":
-				tint = color.NRGBA{255, 219, 181, 255}
+				tint = color.NRGBA{255, 248, 236, 255}
 			case "grok":
-				tint = color.NRGBA{216, 207, 255, 255}
+				tint = color.NRGBA{248, 245, 255, 255}
 			}
 		}
 		label := "—"
-		left, right := x, x+42*scale
+		left, right := x, x+barWidth*scale
 		ink := white
 		if b.Remaining != nil && !math.IsNaN(*b.Remaining) && !math.IsInf(*b.Remaining, 0) {
 			value := math.Max(0, math.Min(100, *b.Remaining))
-			split := x + int(math.Round(42*scale*value/100))
-			draw.Draw(out, image.Rect(x, y, split, y+6*scale), image.NewUniform(tint), image.Point{}, draw.Src)
+			split := x + int(math.Round(barWidth*scale*value/100))
+			draw.Draw(out, image.Rect(x, y, split, bottom), image.NewUniform(tint), image.Point{}, draw.Src)
 			label = fmt.Sprintf("%.0f%%", value)
 			if value > 50 {
 				right = split
@@ -121,9 +151,28 @@ func RenderMonitor(m Monitor) *image.NRGBA {
 		}
 		d := font.Drawer{Dst: out, Src: image.NewUniform(ink), Face: face}
 		tw := d.MeasureString(label).Ceil()
-		d.Dot = fixed.P(left+(right-left-tw)/2, y+5*scale)
+		if tw > right-left-2 {
+			small := monitorFace(6 * scale * float64(right-left-2) / float64(tw))
+			defer small.Close()
+			d.Face = small
+			tw = d.MeasureString(label).Ceil()
+		}
+		metrics := d.Face.Metrics()
+		baseline := (y+bottom-metrics.Ascent.Ceil()-metrics.Descent.Ceil())/2 + metrics.Ascent.Ceil()
+		d.Dot = fixed.P(left+(right-left-tw)/2, baseline)
 		d.DrawString(label)
-		y += 7 * scale
+		// One-point corner cuts soften the track without extra padding.
+		for dy := 0; dy < scale; dy++ {
+			for dx := 0; dx < scale; dx++ {
+				if dx+dy < scale-1 {
+					out.SetNRGBA(x+dx, y+dy, color.NRGBA{})
+					out.SetNRGBA(x+barWidth*scale-1-dx, y+dy, color.NRGBA{})
+					out.SetNRGBA(x+dx, bottom-1-dy, color.NRGBA{})
+					out.SetNRGBA(x+barWidth*scale-1-dx, bottom-1-dy, color.NRGBA{})
+				}
+			}
+		}
+		y = bottom + scale
 	}
 	return out
 }

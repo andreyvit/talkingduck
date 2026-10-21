@@ -26,6 +26,7 @@ func monitorArt(s telemetry.Snapshot, m settings.Menubar, now time.Time) menubar
 		switch s.Ping.State {
 		case "reachable":
 			if s.Ping.RTTMS != nil {
+				art.PingMS = *s.Ping.RTTMS
 				art.Ping = fmt.Sprintf("%.0f ms", math.Min(9999, *s.Ping.RTTMS))
 			} else {
 				art.Ping = "—"

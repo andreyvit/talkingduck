@@ -268,6 +268,7 @@ func run(opts *cli.Options, mcpPort int) error {
 		}
 		menuConfig := preferences.Menubar.Defaults()
 		art := monitorArt(monitoring.Snapshot(), menuConfig, time.Now())
+		art.Mode = mode
 		prefix := menubarimage.RenderMonitor(art)
 		var projects *image.NRGBA
 		if menuConfig.Projects != "off" {
@@ -285,7 +286,7 @@ func run(opts *cli.Options, mcpPort int) error {
 			return
 		}
 		if err == nil {
-			err = updateWideTray(tray, data, bounds.Dx()/4, bounds.Dy()/4, padding, trayMonitorStyle{Width: prefix.Bounds().Dx() / 4, TintPing: art.Ping != "" && !art.PingFailed})
+			err = updateWideTray(tray, data, bounds.Dx()/4, bounds.Dy()/4, padding, trayMonitorStyle{Width: prefix.Bounds().Dx() / 4, TintPing: false})
 		}
 		if err != nil {
 			log.Printf("tray update failed: %v", err)

@@ -1,9 +1,9 @@
 # Connection and weekly limits
 
-The menu-bar monitor sits left of project status, at most 53 points wide:
-8-point vertical ping text, a 3-point gap, and 42-point quota tracks.
-Tracks are 6 points tall with 1-point gaps. Percentages sit in the larger segment;
-provider tints appear when multiple tracks are visible. Missing quota is `—`;
+The menu-bar monitor sits left of project status, at most 37 points wide:
+8-point vertical ping text, a 3-point gap, and 26-point quota tracks.
+Tracks have 1-point gaps and softly cut corners; their outer edges align with
+the project grid. Percentages sit in the larger segment. Near-white provider tints appear when multiple tracks are visible. Missing quota is `—`;
 a stale quota carries `~`. Project glyphs retain native appearance colors.
 
 Settings → Menu Bar:
@@ -19,6 +19,9 @@ Settings → Menu Bar:
 persists locally. Each provider shows remaining percentage and a reset label aligned
 with the progress bar's left edge. Resets within 24 hours use a countdown; later
 resets use local weekday/time. Unknown and expired readings never imply a fresh quota.
+
+Ping text is top-anchored, in a 6.5-point font: white below 50ms, bright yellow
+from 50ms, bright red from 150ms (also red during outages).
 
 Ping runs once per second with a 900ms deadline. `20 ms` means a successful reply;
 `3 s` means the selected server has not replied for three seconds. A failed target
