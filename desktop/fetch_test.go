@@ -100,3 +100,65 @@ func TestRetryFetchLocks(t *testing.T) {
 		t.Fatal(calls, err)
 	}
 }
+
+func TestNetworkFetchFailure(t *testing.T) {
+	for _, message := range []string{
+		"exit status 128: ssh: connect to host github.com port 22: Operation timed out\nfatal: Could not read from remote repository.\nPlease make sure you have the correct access rights\nand the repository exists.",
+		"fatal: unable to access 'https://github.com/example/repo': Could not resolve host: github.com",
+		"ssh: Could not resolve hostname github.com: nodename nor servname provided, or not known",
+		"Network is unreachable", "No route to host", "Failed to connect to github.com port 443", "Connection reset by peer",
+	} {
+		if !networkFetchFailure(errors.New(message)) {
+			t.Error("not classified", message)
+		}
+	}
+	for _, err := range []error{nil, context.Canceled, errors.New("Permission denied (publickey)"), errors.New("Repository not found"), errors.New("Could not read from remote repository"), errors.New("Operation timed out\nfatal: Authentication failed"), errors.New("SSL certificate problem"), errors.New("cannot lock ref 'origin/main'")} {
+		if networkFetchFailure(err) {
+			t.Error("hidden non-network error", err)
+		}
+	}
+	if !networkFetchFailure(context.DeadlineExceeded) {
+		t.Fatal("fetch deadline not classified")
+	}
+}
+func TestFetchConnectivityStatusClearsOnAnyResponse(t *testing.T) {
+	var states []inventoryState
+	v := &inventoryView{emit: func(s inventoryState) { states = append(states, s) }}
+	offline := errors.New("ssh: connect to host github.com port 22: Operation timed out")
+	v.recordFetchResult("a", offline)
+	v.recordFetchResult("b", offline)
+	if !states[len(states)-1].NoInternet || len(v.fetchErrors) != 0 {
+		t.Fatal("network failures were not collapsed")
+	}
+	v.recordFetchResult("c", nil)
+	if states[len(states)-1].NoInternet {
+		t.Fatal("success did not clear offline")
+	}
+	v.recordFetchResult("a", offline)
+	v.recordFetchResult("b", errors.New("Permission denied (publickey)"))
+	if states[len(states)-1].NoInternet || v.fetchErrors["b"] == "" {
+		t.Fatal("other error not preserved")
+	}
+	v.recordFetchResult("b", nil)
+	if len(v.fetchErrors) != 0 {
+		t.Fatal("success retained warning")
+	}
+}
+
+func TestFetchWarningsPublishWithoutAccumulating(t *testing.T) {
+	var state inventoryState
+	v := &inventoryView{cache: &testCache{}, emit: func(s inventoryState) { state = s }}
+	v.recordFetchResult("/a", errors.New("Permission denied (publickey)"))
+	v.publish()
+	if len(state.Warnings) != 1 {
+		t.Fatal("warning lost or duplicated", state.Warnings)
+	}
+	v.recordFetchResult("/a", errors.New("Network is unreachable"))
+	if len(state.Warnings) != 0 || !state.NoInternet {
+		t.Fatal("network error kept old warning", state)
+	}
+	v.recordFetchResult("/b", nil)
+	if state.NoInternet || len(state.Warnings) != 0 {
+		t.Fatal("success did not clear status", state)
+	}
+}

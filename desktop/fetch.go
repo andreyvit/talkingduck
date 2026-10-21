@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -57,13 +58,10 @@ func (v *inventoryView) fetchIfDue(ctx context.Context, path string) {
 			return
 		}
 		err := v.fetch(ctx, path)
-		v.fetchMu.Lock()
-		defer v.fetchMu.Unlock()
-		if err != nil {
-			v.fetchErrors[path] = "fetch failed; remote counts may be stale: " + err.Error()
-		} else {
-			delete(v.fetchErrors, path)
+		if ctx.Err() != nil {
+			return
 		}
+		v.recordFetchResult(path, err)
 	}()
 }
 
@@ -109,4 +107,43 @@ func onlyRefLockFailure(message string) bool {
 		}
 	}
 	return true
+}
+
+// The latest completed fetch decides connectivity; old folder failures do not
+// keep the offline banner alive after another remote responds.
+func (v *inventoryView) recordFetchResult(path string, err error) {
+	v.fetchMu.Lock()
+	v.noInternet = networkFetchFailure(err)
+	if v.fetchErrors == nil {
+		v.fetchErrors = make(map[string]string)
+	}
+	if err != nil && !v.noInternet {
+		v.fetchErrors[path] = "fetch failed; remote counts may be stale: " + err.Error()
+	} else {
+		delete(v.fetchErrors, path)
+	}
+	v.fetchMu.Unlock()
+	v.publish()
+}
+
+func networkFetchFailure(err error) bool {
+	if err == nil || errors.Is(err, context.Canceled) {
+		return false
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+	message := strings.ToLower(err.Error())
+	// --all can report independent failures. Never hide an auth/repository error.
+	for _, other := range []string{"permission denied", "authentication failed", "repository not found", "host key verification failed", "couldn't find remote ref", "cannot lock ref", "ssl certificate problem", "certificate verification failed", "returned error: 4", "returned error: 5"} {
+		if strings.Contains(message, other) {
+			return false
+		}
+	}
+	for _, network := range []string{"network is unreachable", "network is down", "no route to host", "could not resolve host", "could not resolve hostname", "could not resolve proxy", "temporary failure in name resolution", "name or service not known", "nodename nor servname provided", "operation timed out", "connection timed out", "connection timeout", "connection reset", "connection refused", "connection aborted", "failed to connect", "couldn't connect", "could not connect", "unable to connect", "network connection was lost", "empty reply from server", "unexpected disconnect while reading sideband packet"} {
+		if strings.Contains(message, network) {
+			return true
+		}
+	}
+	return false
 }

@@ -16,6 +16,7 @@ import (
 )
 
 type inventoryState struct {
+	NoInternet bool `json:"noInternet"`
 	cli.TableView
 	Loading        bool   `json:"loading"`
 	Error          string `json:"error"`
@@ -43,6 +44,7 @@ type inventoryView struct {
 	fetch           func(context.Context, string) error
 	lastFetch       map[string]time.Time
 	fetchErrors     map[string]string
+	noInternet      bool
 	scanMu          sync.Mutex
 	mu              sync.Mutex
 	cache           inventoryCache
@@ -57,7 +59,20 @@ func (v *inventoryView) publish() {
 	v.mu.Lock()
 	state := v.state
 	v.mu.Unlock()
-	v.emit(state)
+	v.fetchMu.Lock()
+	state.NoInternet = v.noInternet
+	state.Warnings = append([]string(nil), state.Warnings...)
+	if v.cache != nil {
+		for _, path := range v.cache.Paths() {
+			if warning := v.fetchErrors[path]; warning != "" {
+				state.Warnings = append(state.Warnings, filepath.Base(path)+": "+warning)
+			}
+		}
+	}
+	v.fetchMu.Unlock()
+	if v.emit != nil {
+		v.emit(state)
+	}
 }
 
 // Manual refresh enters the same full-reconciliation path as recovery.
@@ -94,13 +109,6 @@ func (v *inventoryView) publishTable(snapshot *inventory.Snapshot, table cli.Tab
 		return
 	}
 	v.generation = generation
-	v.fetchMu.Lock()
-	for _, path := range v.cache.Paths() {
-		if warning := v.fetchErrors[path]; warning != "" {
-			table.Warnings = append(table.Warnings, filepath.Base(path)+": "+warning)
-		}
-	}
-	v.fetchMu.Unlock()
 	v.mu.Lock()
 	if err != nil {
 		v.state.Error = err.Error()

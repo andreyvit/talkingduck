@@ -107,7 +107,7 @@ function render(data) {
   const th=document.createElement('th');th.textContent=USE_AGENT_ICONS&&col.id==='agent'?'':col.label;if(col.id==='agent')th.setAttribute('aria-label','Agent');th.style.textAlign=col.align||'left';
   th.dataset.column=col.id;return th;
  }));
- $('status').textContent=data.loading?'Refreshing '+(data.refreshingPath||'inventory')+'…':'';
+ $('status').textContent=data.noInternet?'No internet':data.loading?'Refreshing '+(data.refreshingPath||'inventory')+'…':'';
  $('error').textContent=data.error||'';
  $('warnings').textContent=(data.warnings||[]).join('\n');
  $('empty').hidden=model.rows.length>0;

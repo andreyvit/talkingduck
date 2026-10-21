@@ -38,7 +38,12 @@ its requested batch, subject to request cancellation.
   the native watcher fails entirely, warn and fall back to minute reconciliation.
 - **Fetch:** launches independently at startup and every 15 minutes, up to five
   concurrent fetches. Ref/index/filesystem changes return through native events;
-  completion does not directly trigger collection. Failed fetches remain warnings.
+  completion does not directly trigger collection. Network failures (DNS, connection
+  failures, and timeouts) show one **No internet** status instead of per-folder
+  warnings. Each completed fetch updates it immediately: success or a non-network
+  error clears it. Authentication, repository, and other errors remain warnings.
+  App shutdown cancellation does not change connectivity status. This uses fetch
+  results and does not enable ping monitoring.
 
 File notifications are hints, not Git status or proof of agent activity. Directory
 replacement and event loss can require recovery. Unsupported provider schemas and
