@@ -25,7 +25,8 @@ its requested batch, subject to request cancellation.
   registry, SQLite database and WAL changes. Ignore SQLite SHM notifications.
 - **Provider routing:** filesystem events request a coalesced cheap metadata check.
   Existing `ChangeProbe` maps changed evidence to worktrees. Shared SQLite changes
-  query thread metadata; cached JSON/file metadata avoids full history parsing.
+  query thread metadata; cached JSON/file metadata avoids full history parsing. Repeated working-directory
+  symlink resolution is cached within each metadata poll.
   Affected folders then enter both queues. This discovery step can add latency
   before the per-folder cooldown; no idle polling of provider files remains.
 - **Process liveness:** every 30 seconds, compare identity-checked Claude/Grok

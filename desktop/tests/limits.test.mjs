@@ -19,3 +19,15 @@ test('Dashboard ping reserves rolling width with a three-digit floor',()=>{
  assert.equal(pingReading({state:'reachable',rtt_ms:99,digits:3}).digits,3);
  assert.deepEqual(pingReading({state:'reachable',rtt_ms:99,digits:4}),{label:'99 ms ping',number:'99',unit:' ms ping',digits:4});
 });
+
+test('limits timers sleep for static dates and stop after reset',async()=>{
+ const {limitsUpdateDelay}=await import('../frontend/limits-model.mjs');
+ const now=Date.parse('2026-10-21T07:00:00Z');
+ const p={id:'codex',recently_used:true,remaining_percent:80,resets_at:new Date(now+172800000).toISOString()};
+ assert.equal(limitsUpdateDelay({providers:[p]}, {},now),86400001);
+ p.resets_at=new Date(now+3600000).toISOString();assert.equal(limitsUpdateDelay({providers:[p]}, {},now),1000);
+ p.resets_at=new Date(now-1).toISOString();assert.equal(limitsUpdateDelay({providers:[p]}, {},now),null);
+ assert.equal(limitsUpdateDelay({ping:{state:'unreachable'}},{ping:'off'},now),null);
+ assert.equal(limitsUpdateDelay({ping:{state:'unreachable'}},{ping:'vertical'},now),1000);
+ assert.equal(limitsUpdateDelay({providers:[p]},{codex:'off'},now),null);
+});

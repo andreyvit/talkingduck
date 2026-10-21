@@ -19,7 +19,8 @@ Settings → Menu Bar:
 `l Limits` toggles a fixed strip above the dashboard command bar. Its visibility
 persists locally. Each provider shows remaining percentage and a reset label aligned
 with the progress bar's left edge. Resets within 24 hours use a countdown; later
-resets use local weekday/time. Unknown and expired readings never imply a fresh quota.
+resets use local weekday/time. The strip sleeps for static dates and while hidden;
+visible countdown ticks update text without rebuilding bars. Unknown and expired readings never imply a fresh quota.
 
 Ping and quota values use the same 3×5 pixel font. Menu-bar ping digits are
 rotated, without an `ms` suffix; outages retain `s` for seconds. Ping is centered in a field sized for the largest reading

@@ -24,22 +24,23 @@ import (
 )
 
 type markdownViewer struct {
-	mu           sync.Mutex
-	app          *application.App
-	window, main *application.WebviewWindow
-	store        *settings.Store
-	history      markdownview.History
-	historyPath  string
-	document     markdownview.Document
-	refresh      markdownview.Refresh
-	stamp        string
-	generation   uint64
-	visible      bool
-	title        func(string) string
+	mu                sync.Mutex
+	app               *application.App
+	window, main      *application.WebviewWindow
+	store             *settings.Store
+	history           markdownview.History
+	historyPath       string
+	document          markdownview.Document
+	refresh           markdownview.Refresh
+	stamp             string
+	generation        uint64
+	visible           bool
+	visibilityChanged chan struct{}
+	title             func(string) string
 }
 
 func newMarkdownViewer(ctx context.Context, app *application.App, main *application.WebviewWindow, store *settings.Store) *markdownViewer {
-	v := &markdownViewer{app: app, main: main, store: store, historyPath: store.Path + ".markdown-history.json"}
+	v := &markdownViewer{app: app, main: main, store: store, historyPath: store.Path + ".markdown-history.json", visibilityChanged: make(chan struct{}, 1)}
 	var err error
 	v.history, err = markdownview.LoadHistory(v.historyPath)
 	if err != nil {
@@ -145,8 +146,13 @@ func newMarkdownViewer(ctx context.Context, app *application.App, main *applicat
 		}()
 	})
 	go func() {
-		ticker := time.NewTicker(100 * time.Millisecond)
-		defer ticker.Stop()
+		var ticker *time.Ticker
+		var ticks <-chan time.Time
+		defer func() {
+			if ticker != nil {
+				ticker.Stop()
+			}
+		}()
 		for {
 			select {
 			case <-ctx.Done():
@@ -154,7 +160,19 @@ func newMarkdownViewer(ctx context.Context, app *application.App, main *applicat
 				v.save()
 				v.mu.Unlock()
 				return
-			case now := <-ticker.C:
+			case <-v.visibilityChanged:
+				v.mu.Lock()
+				visible := v.visible
+				v.mu.Unlock()
+				if visible && ticker == nil {
+					ticker = time.NewTicker(100 * time.Millisecond)
+					ticks = ticker.C
+				} else if !visible && ticker != nil {
+					ticker.Stop()
+					ticker = nil
+					ticks = nil
+				}
+			case now := <-ticks:
 				v.mu.Lock()
 				if v.visible && v.history.Current() != "" {
 					stamp := fileStamp(v.history.Current())
@@ -172,6 +190,12 @@ func newMarkdownViewer(ctx context.Context, app *application.App, main *applicat
 	}()
 	return v
 }
+func (v *markdownViewer) signalVisibility() {
+	select {
+	case v.visibilityChanged <- struct{}{}:
+	default:
+	}
+}
 func fileStamp(path string) string {
 	info, e := os.Stat(path)
 	if e != nil {
@@ -187,6 +211,7 @@ func (v *markdownViewer) open(path string) error {
 	}
 	v.history.Open(path)
 	v.visible = true
+	v.signalVisibility()
 	v.render()
 	v.save()
 	v.window.UnMinimise()
@@ -202,6 +227,7 @@ func (v *markdownViewer) save() {
 func (v *markdownViewer) close() { v.mu.Lock(); defer v.mu.Unlock(); v.closeLocked() }
 func (v *markdownViewer) closeLocked() {
 	v.visible = false
+	v.signalVisibility()
 	v.save()
 	v.window.Hide()
 	v.main.Show()
@@ -278,6 +304,7 @@ func (v *markdownViewer) show() {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	v.visible = true
+	v.signalVisibility()
 	if v.history.Current() != "" {
 		v.render()
 	} else {

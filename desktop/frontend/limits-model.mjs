@@ -17,3 +17,17 @@ export function pingReading(p,now=Date.now()){
  const label=pingLabel(p,now),match=/^(\d+)(.*)$/.exec(label);
  return {label,number:match?.[1]??'—',unit:match?.[2]??' ping',digits:Math.max(3,p?.digits||1,match?.[1]?.length||0)};
 }
+
+// No timer is needed for static weekly dates. Wake at the countdown boundary.
+export function limitsUpdateDelay(snapshot,config,now=Date.now()){
+ if(config.ping==='vertical'&&snapshot.ping?.state==='unreachable')return 1000;
+ let delay=null;
+ for(const p of visibleProviders(snapshot,config)){
+  if(remaining(p)===null)continue;
+  const until=Date.parse(p.resets_at)-now;
+  if(!Number.isFinite(until)||until<=0)continue;
+  const next=until<86400000?1000:Math.max(1000,until-86400000+1);
+  delay=delay===null?next:Math.min(delay,next);
+ }
+ return delay;
+}

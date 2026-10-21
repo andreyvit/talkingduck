@@ -2,6 +2,8 @@ package inventory
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -109,5 +111,31 @@ func TestChangeProbeClaudeTranscriptAndGrokRegistry(t *testing.T) {
 	writeJSON(t, filepath.Join(grok, "active_sessions.json"), []Object{})
 	if c, _ := p.Poll(); len(c) != 1 || c[0] != root {
 		t.Fatal(c)
+	}
+}
+
+func BenchmarkChangeProbeSharedSessionPaths(b *testing.B) {
+	home := b.TempDir()
+	root := filepath.Join(home, "projects", "example")
+	sessions := filepath.Join(home, "claude", "sessions")
+	for _, dir := range []string{root, sessions} {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			b.Fatal(err)
+		}
+	}
+	b.Setenv("CLAUDE_CONFIG_DIR", filepath.Join(home, "claude"))
+	b.Setenv("GROK_HOME", filepath.Join(home, "grok"))
+	b.Setenv("CODEX_HOME", filepath.Join(home, "codex"))
+	data, _ := json.Marshal(map[string]string{"cwd": root})
+	for i := 0; i < 500; i++ {
+		if err := os.WriteFile(filepath.Join(sessions, fmt.Sprintf("session-%d.json", i)), data, 0600); err != nil {
+			b.Fatal(err)
+		}
+	}
+	p := NewChangeProbe([]string{root}, home, true)
+	p.Poll()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		p.Poll()
 	}
 }

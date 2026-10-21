@@ -61,14 +61,25 @@ func (p *ChangeProbe) metadata(path string) Object {
 // Poll establishes a baseline on first call; later calls return changed folders.
 // Errors are advisory: the normal full scan remains the recovery path.
 func (p *ChangeProbe) Poll() ([]string, []string) {
+	// Session histories often repeat the same cwd hundreds of times. Resolve
+	// each path once per poll, without caching across possible symlink changes.
+	resolvedPaths := map[string]string{}
+	resolve := func(path string) string {
+		if result, ok := resolvedPaths[path]; ok {
+			return result
+		}
+		result := resolved(path)
+		resolvedPaths[path] = result
+		return result
+	}
 	signals := map[string][]string{}
 	roots := map[string]string{}
 	for _, path := range p.paths {
-		roots[resolved(path)] = path
+		roots[resolve(path)] = path
 		signals[path] = nil
 	}
 	add := func(cwd, path string) {
-		if root := roots[resolved(cwd)]; root != "" {
+		if root := roots[resolve(cwd)]; root != "" {
 			signals[root] = append(signals[root], path+":"+fileSignal(path))
 		}
 	}
@@ -104,7 +115,7 @@ func (p *ChangeProbe) Poll() ([]string, []string) {
 			var records []Object
 			if json.Unmarshal(b, &records) == nil {
 				for _, record := range records {
-					if root := roots[resolved(str(record["cwd"]))]; root != "" {
+					if root := roots[resolve(str(record["cwd"]))]; root != "" {
 						encoded, _ := json.Marshal(record)
 						signals[root] = append(signals[root], "grok registry:"+string(encoded))
 					}
@@ -122,7 +133,7 @@ func (p *ChangeProbe) Poll() ([]string, []string) {
 				seen[path] = true
 				d := p.metadata(path)
 				cwd := str(first(d["cwd"], obj(d["info"])["cwd"]))
-				if cwd == "" || roots[resolved(cwd)] == "" {
+				if cwd == "" || roots[resolve(cwd)] == "" {
 					continue
 				}
 				add(cwd, path)
@@ -165,7 +176,7 @@ func (p *ChangeProbe) Poll() ([]string, []string) {
 			counts := map[string]int{}
 			for _, row := range cached.rows {
 				cwd := str(row["cwd"])
-				root := roots[resolved(cwd)]
+				root := roots[resolve(cwd)]
 				if root == "" || counts[root] >= 20 {
 					continue
 				}
