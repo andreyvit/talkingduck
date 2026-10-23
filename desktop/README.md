@@ -24,7 +24,7 @@ The desktop executable defaults to GUI mode, including direct execution. Both
 binaries share `-gui`, `-tui`, `-status`, and `-ai`; the command-line binary defaults
 to TUI. Explicit modes override the default and cannot be combined. Use the
 executable path above with `-tui` to open its TUI in a terminal. The standalone CLI remains cgo-free. The GUI creates one in-memory cache and
-updates folders through independent cheap and expensive queues, even while hidden.
+updates folders through independent cheap and expensive queues, while hidden, but pause when displays sleep. Covered windows defer rendering; see [energy behavior](../docs/energy.md).
 Native filesystem events, changed process statuses (checked every 30 seconds),
 and ten-minute recovery feed those queues. Cheap cooldown is 1–5 seconds with a
 5-second completion throttle; expensive cooldown is 5–20 seconds with a 60-second

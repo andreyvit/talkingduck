@@ -35,6 +35,7 @@ type markdownViewer struct {
 	stamp             string
 	generation        uint64
 	visible           bool
+	obscured          bool
 	visibilityChanged chan struct{}
 	title             func(string) string
 }
@@ -162,7 +163,7 @@ func newMarkdownViewer(ctx context.Context, app *application.App, main *applicat
 				return
 			case <-v.visibilityChanged:
 				v.mu.Lock()
-				visible := v.visible
+				visible := v.visible && !v.obscured
 				v.mu.Unlock()
 				if visible && ticker == nil {
 					ticker = time.NewTicker(100 * time.Millisecond)
@@ -174,7 +175,7 @@ func newMarkdownViewer(ctx context.Context, app *application.App, main *applicat
 				}
 			case now := <-ticks:
 				v.mu.Lock()
-				if v.visible && v.history.Current() != "" {
+				if v.visible && !v.obscured && v.history.Current() != "" {
 					stamp := fileStamp(v.history.Current())
 					if stamp != v.stamp {
 						v.stamp = stamp

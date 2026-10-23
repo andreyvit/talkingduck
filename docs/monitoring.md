@@ -49,3 +49,5 @@ returned HTTP 401, but the CLI returned current weekly usage and reset matching
 WhatsMyUsage. Grok’s primary billing response omitted percentage; the collector now uses the
 verified gRPC-web fallback with strict current-week validation. These observations concern
 one account setup, not provider-wide guarantees.
+
+Collectors stop while displays/system sleep, including active ping, HTTP, and Claude CLI requests. Screen wake restarts them; system wake alone does not. Covered dashboard windows stop rendering and countdown timers.

@@ -13,6 +13,15 @@ import (
 func WatchConfigured(ctx context.Context, paths func() []string, agents bool, emit func(ChangeEvent), warn func(error)) {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
+	watchConfigured(ctx, paths, agents, emit, warn, ticker.C, nil)
+}
+
+// WatchConfiguredChanges uses explicit membership notifications instead of polling.
+func WatchConfiguredChanges(ctx context.Context, paths func() []string, agents bool, emit func(ChangeEvent), warn func(error), changed <-chan struct{}) {
+	watchConfigured(ctx, paths, agents, emit, warn, nil, changed)
+}
+
+func watchConfigured(ctx context.Context, paths func() []string, agents bool, emit func(ChangeEvent), warn func(error), ticks <-chan time.Time, changed <-chan struct{}) {
 	var current []string
 	var stop context.CancelFunc
 	var workers sync.WaitGroup
@@ -37,11 +46,15 @@ func WatchConfigured(ctx context.Context, paths func() []string, agents bool, em
 		select {
 		case <-ctx.Done():
 			return
-		case <-ticker.C:
-			next := paths()
-			if !slices.Equal(next, current) {
-				restart(next)
-			}
+		case <-ticks:
+		case <-changed:
+		}
+		if ctx.Err() != nil {
+			return
+		}
+		next := paths()
+		if !slices.Equal(next, current) {
+			restart(next)
 		}
 	}
 }

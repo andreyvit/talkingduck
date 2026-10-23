@@ -36,6 +36,7 @@ type Queue struct {
 	pending map[string]*pending
 	wake    chan struct{}
 	closed  bool
+	paused  bool
 }
 
 func NewQueue(policy Policy) *Queue {
@@ -68,6 +69,18 @@ func (q *Queue) add(key string, waiter chan error) {
 	default:
 	}
 }
+
+// SetPaused retains pending batches without timers or processing. In-flight work finishes.
+func (q *Queue) SetPaused(paused bool) {
+	q.mu.Lock()
+	q.paused = paused
+	q.mu.Unlock()
+	select {
+	case q.wake <- struct{}{}:
+	default:
+	}
+}
+
 func (q *Queue) Notify(key string) { q.add(key, nil) }
 
 // Request joins the next batch and waits for that batch's result. Cancellation
@@ -105,7 +118,7 @@ func (q *Queue) Run(ctx context.Context, process func(context.Context, string) e
 		key := ""
 		var due time.Time
 		for k, p := range q.pending {
-			if p.first.IsZero() {
+			if q.paused || p.first.IsZero() {
 				continue
 			}
 			d := p.due(q.policy)

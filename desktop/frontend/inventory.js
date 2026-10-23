@@ -1,3 +1,4 @@
+import {viewVisible} from './visibility.js';
 import {Events,Clipboard} from '/wails/runtime.js';
 import {USE_AGENT_ICONS,agentIdentity,agentIcon} from './agent-icons.mjs';
 import {copyable} from './copy.js';
@@ -145,9 +146,14 @@ function render(data) {
  }));
  paintState();
 }
-Events.On('inventory:snapshot',event=>{
- try {render(event.data);if(previewSelection)selectPreviewRow(previewSelection);} catch(error) {$('error').textContent='Could not render inventory: '+error.message;}
-});
+let pendingSnapshot;
+function paintSnapshot(){
+ if(!viewVisible()||!pendingSnapshot)return;
+ const data=pendingSnapshot;pendingSnapshot=null;
+ try {render(data);if(previewSelection)selectPreviewRow(previewSelection);} catch(error) {$('error').textContent='Could not render inventory: '+error.message;}
+}
+window.addEventListener('viewvisibility',paintSnapshot);
+Events.On('inventory:snapshot',event=>{pendingSnapshot=event.data;paintSnapshot();});
 Events.On('inventory:archived',()=>notice('Archived'));
 Events.On('inventory:open-error',event=>{$('error').textContent=event.data;});
 Events.On('inventory:notice',event=>notice(event.data));

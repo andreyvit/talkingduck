@@ -43,3 +43,41 @@ For comparisons, keep monitored folders, visible windows, active agent workload,
 and ping settings equal. Ignore startup reconciliation and compare main-process
 CPU plus associated WebKit helpers over several minutes. A macOS energy warning
 is not an instantaneous CPU measurement; this pass does not claim it is cleared.
+
+## Display sleep and covered windows (2026-10-23)
+
+AppKit workspace notifications now pause background work when all displays sleep
+or the Mac sleeps. System wake alone does not resume work: screen wake is required,
+so a Power Nap/dark wake does not restart collectors. Startup checks online displays
+before starting telemetry. Closing a lid with an active external display keeps
+monitoring available there.
+
+- Cancel ping, quota requests/CLI, background Git fetches, settings watches, native
+  inventory watches, process checks, discovery and recovery timers.
+- Pause both inventory queues, retaining one pending batch per folder. An already
+  running inventory collector can finish; its current API is not cancellable.
+- On screen wake, restart watchers and reconcile current state through the existing
+  queues/throttles. Do not replay every filesystem event missed while asleep.
+- AppKit window occlusion controls dashboard DOM work and limits countdowns, including
+  windows covered by other apps. Keep only the latest pending snapshot. Markdown
+  file polling and rendering also wait while its window is covered/hidden.
+- Keep menu-bar monitoring live while displays are awake, even with dashboard hidden.
+- Compare tray inputs before pixel drawing and PNG encoding; unchanged inputs skip both.
+- Desktop folder membership now uses explicit change notifications, removing the
+  one-second membership poll. The CLI-compatible watcher retains its polling API.
+
+Tests cover queue coalescing across pause/resume, collector cancellation, settings
+changes while suspended, suspended startup, and explicit membership notifications.
+Native lifecycle transitions are logged as `energy: awake=… dashboard=… markdown=…`.
+Actual closed-lid/Power Nap behavior still needs a physical sleep/wake observation;
+a notification handler and passing unit tests do not establish battery savings.
+
+Tray PNG compression now uses fast compression with reusable buffers. A synthetic
+10-cell image benchmark measured 116.7µs and 1.11MB allocated per default encode,
+versus 42.3µs and about 30 bytes amortized with pooled fast encoding (64% less time).
+Decoded pixels are tested for exact equality. This measures encoding only, not
+whole-app energy. Settings also defer folder/archive snapshot construction while
+covered or hidden. Native logs confirmed hide/show visibility transitions; reopening
+the dashboard and Markdown viewer rendered current content.
+
+Automatic discovery of unconfigured folders runs only while Settings is visible. It has no timer while hidden; reopening Settings scans immediately. Configured projects and menu-bar status continue monitoring while displays are awake.

@@ -19,6 +19,7 @@ const providerQueueKey = "@providers"
 // immutable. Workers run until app cancellation; cheap and full work never share
 // a worker or collection lock.
 func (v *inventoryView) startQueues(ctx context.Context, agents bool) {
+	v.foldersChanged = make(chan struct{}, 1)
 	v.cheap = monitor.NewQueue(monitor.Cheap)
 	v.expensive = monitor.NewQueue(monitor.Expensive)
 	probePaths := v.cache.Paths()
@@ -88,7 +89,7 @@ func (v *inventoryView) event(e inventory.ChangeEvent) {
 
 func (v *inventoryView) watchChanges(ctx context.Context, agents bool) {
 	go v.fetchPeriodically(ctx)
-	inventory.WatchConfigured(ctx, v.cache.Paths, agents, v.event, func(err error) { log.Printf("inventory events: %v", err) })
+	inventory.WatchConfiguredChanges(ctx, v.cache.Paths, agents, v.event, func(err error) { log.Printf("inventory events: %v", err) }, v.foldersChanged)
 }
 
 func (v *inventoryView) fetchPeriodically(ctx context.Context) {

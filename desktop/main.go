@@ -9,10 +9,10 @@ import (
 	"flag"
 	"image"
 	"image/color"
-	"image/png"
 	"io/fs"
 	"log"
 	"os"
+	"reflect"
 	"sync"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -34,7 +34,7 @@ func icon(cells []menubarimage.Cell, mode menubarimage.Mode) ([]byte, error) {
 	// Agent motifs use four backing pixels per logical point.
 	var b bytes.Buffer
 	// The tray adapter sets the logical image size explicitly.
-	if err := png.Encode(&b, im); err != nil {
+	if err := menubarimage.EncodePNG(&b, im); err != nil {
 		return nil, err
 	}
 	return b.Bytes(), nil
@@ -116,20 +116,27 @@ func run(opts *cli.Options, mcpPort int) error {
 	publishSettings := func() {
 		settingsMu.Lock()
 		defer settingsMu.Unlock()
+		syncHotkeys()
+		syncMonitor()
+		if energyMask.Load()&8 == 0 {
+			return
+		}
 		folders, err := view.ListFolders()
 		settingsError := ""
 		if err != nil {
 			settingsError = err.Error()
 		}
-		syncHotkeys()
-		syncMonitor()
 		preferences, _ := store.Load()
 		publishArchivedSettings(app, view)
 		app.Event.Emit("settings:snapshot", map[string]any{"menubar": preferences.Menubar.Defaults(), "applications": applicationSettings(view), "address": mcpAddress, "error": mcpError, "folders": folders, "settingsError": settingsError, "path": store.Path})
 	}
 	app.Event.On("settings:ready", func(*application.CustomEvent) { publishSettings() })
 	app.Event.On("settings:open", func(*application.CustomEvent) { showSettings() })
-	view = &inventoryView{folderOverride: len(opts.Inventory.Paths) > 0, settings: store, settingsChanged: publishSettings, settingsError: func(err error) { app.Event.Emit("settings:error", err.Error()) }, cache: cache, fetch: fetchRemote, emit: func(state inventoryState) { app.Event.Emit("inventory:snapshot", state) }}
+	view = &inventoryView{folderOverride: len(opts.Inventory.Paths) > 0, settings: store, settingsChanged: publishSettings, settingsError: func(err error) { app.Event.Emit("settings:error", err.Error()) }, cache: cache, fetch: fetchRemote, emit: func(state inventoryState) {
+		if energyMask.Load()&2 != 0 {
+			app.Event.Emit("inventory:snapshot", state)
+		}
+	}}
 
 	view.markdown = newMarkdownViewer(ctx, app, window, store)
 	view.markdown.title = view.markdownTitle
@@ -196,9 +203,12 @@ func run(opts *cli.Options, mcpPort int) error {
 		}
 	}
 	initialSettings, _ := store.Load()
-	monitoring := telemetry.New(monitorConfig(initialSettings.Menubar), func(telemetry.Snapshot) { signalMonitor() })
+	monitoring := telemetry.NewSuspended(monitorConfig(initialSettings.Menubar), func(telemetry.Snapshot) { signalMonitor() })
 	defer monitoring.Close()
 	publishMonitor := func() {
+		if energyMask.Load()&2 == 0 {
+			return
+		}
 		preferences, _ := store.Load()
 		app.Event.Emit("monitor:snapshot", map[string]any{"snapshot": monitoring.Snapshot(), "config": preferences.Menubar.Defaults()})
 	}
@@ -210,8 +220,16 @@ func run(opts *cli.Options, mcpPort int) error {
 		}
 	}
 	registerMenubarSettings(app, store, func() { publishSettings() })
+	app.Event.On("energy:ready", func(*application.CustomEvent) {
+		mask := energyMask.Load()
+		app.Event.Emit("energy:visibility", map[string]bool{"dashboard": mask&2 != 0, "markdown": mask&4 != 0})
+		view.publish()
+		publishMonitor()
+	})
 	app.Event.On("monitor:ready", func(*application.CustomEvent) { publishMonitor() })
 	view.startQueues(ctx, !opts.Inventory.NoAgents)
+	view.cheap.SetPaused(true)
+	view.expensive.SetPaused(true)
 	trayCells := func(snapshot *inventory.Snapshot) []menubarimage.Cell {
 		data, err := store.Load()
 		if err != nil {
@@ -245,6 +263,7 @@ func run(opts *cli.Options, mcpPort int) error {
 	compact := false
 	var compactItem *application.MenuItem
 	var lastTray []byte
+	var lastInputs any
 	lastPadding := -1
 	update := func(action string, snapshot *inventory.Snapshot) {
 		mu.Lock()
@@ -269,6 +288,18 @@ func run(opts *cli.Options, mcpPort int) error {
 		menuConfig := preferences.Menubar.Defaults()
 		art := monitorArt(monitoring.Snapshot(), menuConfig, time.Now())
 		art.Mode = mode
+		if energyMask.Load()&1 == 0 {
+			return
+		}
+		inputs := struct {
+			Art      menubarimage.Monitor
+			Cells    []menubarimage.Cell
+			Projects string
+			Padding  int
+		}{art, append([]menubarimage.Cell(nil), cells...), menuConfig.Projects, padding}
+		if reflect.DeepEqual(lastInputs, inputs) {
+			return
+		}
 		prefix := menubarimage.RenderMonitor(art)
 		var projects *image.NRGBA
 		if menuConfig.Projects != "off" {
@@ -279,10 +310,11 @@ func run(opts *cli.Options, mcpPort int) error {
 		}
 		im := menubarimage.JoinMonitor(prefix, projects)
 		var encoded bytes.Buffer
-		err := png.Encode(&encoded, im)
+		err := menubarimage.EncodePNG(&encoded, im)
 		data := encoded.Bytes()
 		bounds := im.Bounds()
 		if err == nil && bytes.Equal(lastTray, data) && lastPadding == padding {
+			lastInputs = inputs
 			return
 		}
 		if err == nil {
@@ -293,6 +325,7 @@ func run(opts *cli.Options, mcpPort int) error {
 			app.Event.Emit("mock:error", err.Error())
 			return
 		}
+		lastInputs = inputs
 		lastTray = append(lastTray[:0], data...)
 		lastPadding = padding
 	}
@@ -419,8 +452,7 @@ func run(opts *cli.Options, mcpPort int) error {
 		}
 		settingsMu.Unlock()
 		publishSettings()
-		go view.watchChanges(ctx, !opts.Inventory.NoAgents)
-		go view.watchSettings(ctx, !opts.Inventory.NoAgents)
+		go observeEnergy(ctx, app, window, settingsWindow, view, monitoring, !opts.Inventory.NoAgents, func() { view.publish(); publishMonitor(); publishSettings(); update("", nil) })
 	})
 	return app.Run()
 }

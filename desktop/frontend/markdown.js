@@ -1,3 +1,4 @@
+import {viewVisible} from './visibility.js';
 import {LeapSearch,HeldShifts} from './markdown-leap.mjs';
 import {Events} from '/wails/runtime.js';
 const elements=new Map([...document.querySelectorAll("[id]")].map(e=>[e.id,e]));
@@ -80,7 +81,12 @@ backHint.before(historyHints);historyHints.append(backHint,forwardHint);
 backHint.setAttribute('aria-label','Back');backHint.title='Back';forwardHint.setAttribute('aria-label','Forward');forwardHint.title='Forward';
 document.addEventListener('keydown',e=>{if(handleLeap(e))return;if(e.metaKey||e.ctrlKey||e.altKey||e.target.closest('input,textarea,select,[contenteditable=true]'))return;if(e.key==='Tab'&&!e.shiftKey){e.preventDefault();finishLeap();send('dashboard');return;}if(!['Escape',' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','r','R','c','C','h','H'].includes(e.key))return;e.preventDefault();cancelRestore();send('',{key:e.key,shift:e.shiftKey})});
 article.addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;e.preventDefault();const href=a.getAttribute('href')||'';if(href.startsWith('#')){try{jump(decodeURIComponent(href.slice(1)))}catch{}}else send('link',{link:href})});
-Events.On('markdown:snapshot',({data})=>{
+let pendingSnapshot;
+Events.On('markdown:snapshot',({data})=>{pendingSnapshot=data;paintSnapshot()});
+window.addEventListener('viewvisibility',paintSnapshot);
+function paintSnapshot(){
+ if(!viewVisible()||!pendingSnapshot)return;
+ const data=pendingSnapshot;pendingSnapshot=null;
  if(state&&data.generation<state.generation)return;
  finishLeap();
  const same=state?.generation>0&&state?.path===data.path,keep=same?position():data.position;
@@ -97,7 +103,7 @@ Events.On('markdown:snapshot',({data})=>{
  // Images and font swaps can change heading offsets after the first layout.
  for(const img of article.querySelectorAll('img'))if(!img.complete){img.addEventListener('load',apply,{once:true});img.addEventListener('error',apply,{once:true})}
  document.fonts.ready.then(apply);
-});
+}
 Events.On('markdown:effect',({data})=>{cancelRestore();switch(data.action){case 'heading':jump(data.id);break;case 'toc':{const p=position();$('toc').hidden=data.hidden;restore(p);break}case 'page-up':scroller.scrollBy({top:-scroller.clientHeight*.4,behavior:'smooth'});break;case 'page-down':scroller.scrollBy({top:scroller.clientHeight*.4,behavior:'smooth'});break}});
 Events.On('markdown:error',({data})=>{$('error').textContent=data});
 Events.Emit('markdown:ready');

@@ -45,6 +45,7 @@ type Manager struct {
 	cancel     context.CancelFunc
 	generation uint64
 	closed     bool
+	suspended  bool
 	wg         sync.WaitGroup
 	updates    chan struct{}
 	done       chan struct{}
@@ -54,8 +55,16 @@ type Manager struct {
 func New(config Config, changed func(Snapshot)) *Manager {
 	return newManager(config, changed, ping)
 }
+
+// NewSuspended waits for the display lifecycle before starting any collectors.
+func NewSuspended(config Config, changed func(Snapshot)) *Manager {
+	return createManager(config, changed, ping, true)
+}
 func newManager(config Config, changed func(Snapshot), probe func(context.Context, string) (time.Duration, error)) *Manager {
-	m := &Manager{probe: probe, changed: changed, updates: make(chan struct{}, 1), done: make(chan struct{})}
+	return createManager(config, changed, probe, false)
+}
+func createManager(config Config, changed func(Snapshot), probe func(context.Context, string) (time.Duration, error), suspended bool) *Manager {
+	m := &Manager{suspended: suspended, probe: probe, changed: changed, updates: make(chan struct{}, 1), done: make(chan struct{})}
 	m.notifyWG.Add(1)
 	go m.dispatch()
 	m.Update(config)
@@ -107,10 +116,35 @@ func (m *Manager) notify() {
 	}
 }
 
+func (m *Manager) SetSuspended(suspended bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.closed || m.suspended == suspended {
+		return
+	}
+	m.suspended = suspended
+	if suspended {
+		if m.cancel != nil {
+			m.cancel()
+			m.cancel = nil
+		}
+		m.generation++
+	} else {
+		m.updateLocked(m.config)
+	}
+}
+
 func (m *Manager) Update(c Config) {
 	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.updateLocked(c)
+}
+func (m *Manager) updateLocked(c Config) {
 	if m.closed || (m.cancel != nil && m.config == c) {
-		m.mu.Unlock()
+		return
+	}
+	if m.suspended {
+		m.config = c
 		return
 	}
 	if m.cancel != nil {
@@ -147,7 +181,6 @@ func (m *Manager) Update(c Config) {
 		}
 	}
 	m.notify()
-	m.mu.Unlock()
 }
 func (m *Manager) Close() {
 	m.mu.Lock()

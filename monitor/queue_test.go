@@ -123,3 +123,34 @@ func TestRequestCancellation(t *testing.T) {
 		t.Fatal("request stranded")
 	}
 }
+
+func TestPausedQueueRetainsBatch(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	q := NewQueue(Policy{})
+	q.SetPaused(true)
+	ran := make(chan string, 10)
+	go q.Run(ctx, func(_ context.Context, key string) error { ran <- key; return nil })
+	for range 100 {
+		q.Notify("folder")
+	}
+	select {
+	case <-ran:
+		t.Fatal("processed while paused")
+	case <-time.After(30 * time.Millisecond):
+	}
+	q.SetPaused(false)
+	select {
+	case key := <-ran:
+		if key != "folder" {
+			t.Fatal(key)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("resume lost pending work")
+	}
+	select {
+	case <-ran:
+		t.Fatal("duplicate batch")
+	case <-time.After(30 * time.Millisecond):
+	}
+}

@@ -89,3 +89,5 @@ cancellation. Native tests cover spec events and external Git directories. Proce
 tests cover timestamp noise, liveness changes, removed records and folder scoping.
 The [native diagnostic](../cmd/watchcheck/README.md) passed all ten Prairie folders
 without cgo; it does not diagnose another app's watcher or guarantee lossless delivery.
+
+Display/system sleep pauses queues and stops event sources until screen wake; wake reconciles current state. Desktop membership changes signal watchers directly. See [energy](energy.md).

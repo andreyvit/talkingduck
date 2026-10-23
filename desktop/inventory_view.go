@@ -33,6 +33,7 @@ type inventoryCache interface {
 type inventoryView struct {
 	folderOverride  bool
 	folderMu        sync.Mutex
+	foldersChanged  chan struct{}
 	settings        *settings.Store
 	markdown        *markdownViewer
 	settingsChanged func()

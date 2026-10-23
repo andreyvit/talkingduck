@@ -51,6 +51,10 @@ func (v *inventoryView) applyFolders(data settings.Data) error {
 		if err := cache.SetPaths(data.Paths()); err != nil {
 			return err
 		}
+		select {
+		case v.foldersChanged <- struct{}{}:
+		default:
+		}
 	}
 	v.render("", true)
 	if v.settingsChanged != nil {
@@ -89,37 +93,66 @@ func (v *inventoryView) UpdateFolderMenubarItemShortcut(path, shortcut string) e
 	return v.applyFolders(data)
 }
 func (v *inventoryView) watchSettings(ctx context.Context, agents bool) {
-	go v.settings.Watch(ctx, func(settings.Data) {
-		v.folderMu.Lock()
-		defer v.folderMu.Unlock()
-		// Re-read under the mutation lock; an older watch callback cannot undo an edit.
-		data, err := v.settings.Load()
-		if err == nil {
-			err = v.applyFolders(data)
-		}
-		if err != nil {
-			v.settingsError(err)
-		}
-	}, v.settingsError)
+	watchDone := make(chan struct{})
+	defer func() { <-watchDone }()
+	go func() {
+		defer close(watchDone)
+		v.settings.Watch(ctx, func(settings.Data) {
+			v.folderMu.Lock()
+			defer v.folderMu.Unlock()
+			// Re-read under the mutation lock; an older watch callback cannot undo an edit.
+			data, err := v.settings.Load()
+			if err == nil {
+				err = v.applyFolders(data)
+			}
+			if err != nil {
+				v.settingsError(err)
+			}
+		}, v.settingsError)
+	}()
 	if !agents {
+		<-ctx.Done()
 		return
 	}
-	ticker := time.NewTicker(time.Minute)
-	defer ticker.Stop()
+	// Discovery only supplies the Settings folder picker. It need not scan every
+	// provider's session metadata while that window is hidden.
+	var timer *time.Timer
+	defer func() {
+		if timer != nil {
+			timer.Stop()
+		}
+	}()
 	for {
-		paths := inventory.DiscoverFolders("")
-		v.folderMu.Lock()
-		_, err := v.settings.Discover(paths)
-		v.folderMu.Unlock()
-		if err != nil {
-			v.settingsError(err)
-		} else if v.settingsChanged != nil {
-			v.settingsChanged()
+		if ctx.Err() != nil {
+			return
+		}
+		select {
+		case <-discoveryVisibility:
+		default:
+		}
+		var tick <-chan time.Time
+		if energyMask.Load()&8 != 0 {
+			paths := inventory.DiscoverFolders("")
+			v.folderMu.Lock()
+			_, err := v.settings.Discover(paths)
+			v.folderMu.Unlock()
+			if err != nil {
+				v.settingsError(err)
+			} else if v.settingsChanged != nil {
+				v.settingsChanged()
+			}
+			timer = time.NewTimer(time.Minute)
+			tick = timer.C
 		}
 		select {
 		case <-ctx.Done():
 			return
-		case <-ticker.C:
+		case <-discoveryVisibility:
+		case <-tick:
+		}
+		if timer != nil {
+			timer.Stop()
+			timer = nil
 		}
 	}
 }
