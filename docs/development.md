@@ -52,9 +52,9 @@ Use the local `commit` skill for commits. Review staged content, keep changes
 coherent, and describe the purpose. Push only when requested. `desktop/build.sh`
 builds and installs an ad-hoc-signed app into `~/Applications/TalkingDuck.app`;
 no distribution release or deployment commands are defined.
-Launch the installed GUI through Finder, especially its first launch after a bundle-ID change.
-Do not execute the GUI binary from an agent shell: macOS may associate its menu
-item with the agent app. See [desktop diagnostic notes](../desktop/README.md#missing-menu-bar-icon-on-macos-26).
+Launch the installed GUI with `open "$HOME/Applications/TalkingDuck.app"`; Finder also works.
+Do not launch the GUI with `go run` or execute its binary directly from the agent
+shell. See [desktop diagnostic notes](../desktop/README.md#missing-menu-bar-icon-on-macos-26).
 
 ## Validation
 

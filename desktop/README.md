@@ -9,14 +9,16 @@ From the repository root:
 
 ```sh
 ./desktop/build.sh
+open "$HOME/Applications/TalkingDuck.app"
 ```
 
 Requires Xcode Command Line Tools. The build script compiles with cgo, targets
 macOS 13+, packages the app, and signs it ad hoc for local use. It does not
 notarize or register autostart. It installs into `~/Applications/TalkingDuck.app`;
 temporary build output under `.tasks/desktop` is removed when the script exits.
-Quit the app before rebuilding, then open `~/Applications/TalkingDuck.app` in Finder.
-Use Finder for agent-driven restarts; do not execute the GUI binary from the agent shell.
+Quit the app before rebuilding, then launch the installed bundle with `open` as
+above, or through Finder. Do not launch the GUI with `go run` or execute its
+binary directly from the agent shell.
 
 The desktop executable defaults to GUI mode, including direct execution. Both
 binaries share `-gui`, `-tui`, `-status`, and `-ai`; the command-line binary defaults
@@ -234,8 +236,10 @@ The installed bundle now uses `com.andreyvit.talkingduck`, replacing the prototy
 rebuild/relaunch showed the icon while ChatGPT remained disabled. Changing only
 the NSStatusItem autosave name had not fixed the old bundle. A new bundle identity
 avoids the old association; it does not repair Control Center's protected record.
-The original association's creation was not observed, so direct agent-shell
-launching remains a suspected trigger. Avoid it rather than risk recreating the
-association. An old TalkingDuck entry may remain in macOS Menu Bar settings.
+Two subsequent restarts through `open` from the agent shell also kept the icon
+visible with ChatGPT disabled. `open` is therefore supported for normal restarts.
+The original association’s creation was not observed; direct binary launches or
+`go run` remain suspected triggers, not proven causes. Avoid those GUI launch
+methods rather than risk recreating the association. An old TalkingDuck entry may remain in macOS Menu Bar settings.
 Window placement migrates from the prototype preferences; portable settings stay
 in their existing file.
