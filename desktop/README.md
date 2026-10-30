@@ -221,7 +221,11 @@ capture as well as logs.
 
 [CodexBar issue 1440](https://github.com/steipete/CodexBar/issues/1440) reports the
 same symptom from a stale cross-app `menuItemLocations` mapping in Control
-Center's `trackedApplications` preferences. This is a candidate cause here,
-not yet verified: macOS denied access to that protected preference file.
+Center's `trackedApplications` preferences. A follow-up UI test confirmed
+cross-app filtering on this Mac: enabling ChatGPT under Allow in the Menu Bar
+immediately showed TalkingDuck; disabling ChatGPT immediately hid TalkingDuck.
+TalkingDuck's own switch stayed on throughout. ChatGPT's original off setting
+was restored after the test. The exact stored mapping remains unverified:
+macOS denied access to that protected preference file.
 Do not change bundle IDs, force visibility repeatedly, or reset unrelated
 menu-bar settings based on the native visibility flags alone.
