@@ -6,9 +6,9 @@ import (
 	"golang.org/x/text/width"
 	"io"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
+	"talkingduck/worktree"
 	"unicode"
 )
 
@@ -84,7 +84,7 @@ func tableRows(report tableReport) [][]string {
 		if repo.HideSummary && (repo.Git.Error != "" || len(repo.Specs) == 0) {
 			continue
 		}
-		name := filepath.Base(repo.Path)
+		name := worktree.DisplayName(repo.Path, repo.ParentPath)
 		g := repo.Git
 		if repo.Cache != nil && repo.Cache.ObservedAt.IsZero() && repo.Cache.Error == "" && (repo.Cache.State == "pending" || repo.Cache.State == "updating") {
 			row := make([]string, 16)

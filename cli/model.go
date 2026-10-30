@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"talkingduck/table"
+	"talkingduck/worktree"
 )
 
 var ticketID = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]*$`)
@@ -92,7 +93,7 @@ func modelTable(view TableView) table.Table {
 						cell.WrapWidth = 14
 						cell.Small = true
 					}
-					item.Text = filepath.Base(row.Group)
+					item.Text = worktree.DisplayName(row.Group, view.Parents[row.Group])
 					item.Hidden = text == ""
 					item.Bold = true
 					item.Chord = "f"

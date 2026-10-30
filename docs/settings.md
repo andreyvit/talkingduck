@@ -144,3 +144,16 @@ uses the existing Wails Carbon backend without Accessibility permission.
 Built-in Markdown Preview settings store `markdown_appearance.font` (default
 `github`) and `size` (default 16 px). Font choices come from installed macOS
 families. These fields use the same autosave behavior as Applications.
+
+## Worktree display names
+
+Linked worktrees drop trailing path components equal to the main checkout's name:
+`~/.codex/worktrees/c9e4/backend` under main checkout `backend` displays as `c9e4`.
+Ordinary checkout names and descriptive worktree names remain unchanged. Full
+paths still identify rows and drive open/copy actions; Markdown titles reuse the
+same display label.
+
+The rule also covers custom roots and repeated repository-name wrappers without
+hardcoding user home paths. Claude's [default layout](https://code.claude.com/docs/en/worktrees)
+is `<repo>/.claude/worktrees/<name>`; Grok's [documented examples](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/17-sessions.md)
+use `~/.grok/worktrees/<repo>/<worktree-name>`. Both retain the distinguishing name.

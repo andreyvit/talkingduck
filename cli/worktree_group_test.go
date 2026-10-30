@@ -32,3 +32,22 @@ func TestLinkedWorktreePresentation(t *testing.T) {
 		t.Fatal("parent stole child action")
 	}
 }
+
+func TestCodexWorktreeNameKeepsFullPathActions(t *testing.T) {
+	const root = "/home/user/.codex/worktrees/c9e4/backend"
+	view, err := BuildTable(map[string]any{"repositories": []any{
+		map[string]any{"path": "/src/backend"},
+		map[string]any{"path": root, "parent_path": "/src/backend"},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if view.Rows[1][0] != "c9e4" {
+		t.Fatalf("CLI name: %q", view.Rows[1][0])
+	}
+	row := view.Model.Rows[1]
+	item := row.Matches("o", "f")[0]
+	if item.Text != "c9e4" || item.Link.Target != root || *item.Copy != root || row.Group != root {
+		t.Fatalf("label changed identity: %+v", item)
+	}
+}
