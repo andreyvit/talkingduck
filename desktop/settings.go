@@ -110,12 +110,8 @@ func (v *inventoryView) watchSettings(ctx context.Context, agents bool) {
 			}
 		}, v.settingsError)
 	}()
-	if !agents {
-		<-ctx.Done()
-		return
-	}
-	// Discovery only supplies the Settings folder picker. It need not scan every
-	// provider's session metadata while that window is hidden.
+	// Cheap Git registry discovery keeps new/removed worktrees in sync while
+	// awake. Provider session metadata is only needed for the Settings picker.
 	var timer *time.Timer
 	defer func() {
 		if timer != nil {
@@ -131,8 +127,12 @@ func (v *inventoryView) watchSettings(ctx context.Context, agents bool) {
 		default:
 		}
 		var tick <-chan time.Time
-		if energyMask.Load()&8 != 0 {
-			paths := inventory.DiscoverFolders("")
+		mask := energyMask.Load()
+		if mask&1 != 0 {
+			var paths []string
+			if agents && mask&8 != 0 {
+				paths = inventory.DiscoverFolders("")
+			}
 			v.folderMu.Lock()
 			_, err := v.settings.Discover(paths)
 			v.folderMu.Unlock()

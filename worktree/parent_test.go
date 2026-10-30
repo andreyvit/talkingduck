@@ -22,6 +22,13 @@ func TestLinkedParentOutsideDirectory(t *testing.T) {
 	if got := Parent(child); got != want {
 		t.Fatalf("parent %q want %q", got, want)
 	}
+	for _, from := range []string{root, child} {
+		linked := Linked(from)
+		realChild, _ := filepath.EvalSymlinks(child)
+		if len(linked) != 1 || linked[0] != realChild {
+			t.Fatalf("linked from %s: %v", from, linked)
+		}
+	}
 	if Parent(root) != "" {
 		t.Fatal("ordinary checkout got a parent")
 	}

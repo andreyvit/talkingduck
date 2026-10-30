@@ -17,10 +17,30 @@ Settings has one list, with:
 - **Add Folder…:** native folder picker, adds or re-enables a Git checkout root.
   New folders default to menu bar Hide.
 
-The GUI discovers existing folder paths from Codex databases, Claude metadata,
-and Grok metadata on startup and every minute. This reads no transcripts and runs
-no Git commands. Discovered paths join the same list as Hide. Previously hidden
-entries stay hidden. Only Git checkout roots are listed or monitored. Ordinary
+While Settings is visible, the GUI discovers folder paths from Codex databases,
+Claude metadata, and Grok metadata, then repeats every minute. It also reads Git's
+worktree registry for configured and discovered checkouts, including worktrees
+outside the main checkout's directory and those without an agent session yet.
+This reads no transcripts and runs no Git commands. Missing/stale worktrees are
+ignored. A new linked worktree inherits its main checkout’s Use setting. Other
+discovered folders start unchecked. Git-registry discovery runs every minute while
+displays are awake, even with Settings closed; provider metadata scans still
+require Settings to be visible.
+
+A newly discovered linked worktree gets a menu bar shortcut when its main checkout
+has one and its assigned agent index is 1–19. A literal `AGENT_INDEX` assignment in
+that worktree's `.env.local` takes precedence over a numeric folder-name suffix.
+Optional `export`, single/double quotes, and trailing comments are supported;
+shell expressions are never evaluated. The implicit default of 1 does not qualify;
+an explicit `AGENT_INDEX=1` does. Invalid assignments and out-of-range indexes get
+no shortcut. Existing shortcuts and explicit Hide choices are never overwritten.
+Monitoring and shortcut inheritance happen only on first discovery; later changes
+to the main checkout do not overwrite the worktree’s own choices.
+Previously hidden entries stay hidden. Linked-worktree entries store `worktree_of`
+so a later discovery pass can silently remove them when their directories no
+longer exist. Existing live entries gain this metadata on discovery. Permission
+errors do not trigger removal, and missing ordinary checkouts stay configured.
+Only Git checkout roots are listed or monitored. Ordinary
 repositories, linked worktrees, and submodules qualify; non-repositories, nested
 working directories, and missing paths do not. Existing excluded entries remain
 in the settings file. Validation reads Git metadata without launching Git.

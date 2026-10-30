@@ -48,7 +48,7 @@ func observeEnergy(ctx context.Context, app *application.App, window, settingsWi
 		case <-energyChanges:
 			mask := energyMask.Load()
 			awake := mask&1 != 0
-			if previous&8 != mask&8 || previous == -1 {
+			if previous&9 != mask&9 || previous == -1 {
 				select {
 				case discoveryVisibility <- struct{}{}:
 				default:

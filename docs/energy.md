@@ -80,4 +80,4 @@ whole-app energy. Settings also defer folder/archive snapshot construction while
 covered or hidden. Native logs confirmed hide/show visibility transitions; reopening
 the dashboard and Markdown viewer rendered current content.
 
-Automatic discovery of unconfigured folders runs only while Settings is visible. It has no timer while hidden; reopening Settings scans immediately. Configured projects and menu-bar status continue monitoring while displays are awake.
+Provider-metadata discovery runs only while Settings is visible; reopening Settings scans immediately. Cheap Git-worktree registry discovery runs every minute while displays are awake, including with Settings closed, to inherit monitoring for new worktrees and remove deleted ones. Display sleep stops that timer too. Configured projects and menu-bar status continue monitoring while displays are awake.

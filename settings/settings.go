@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -19,6 +20,7 @@ type Folder struct {
 	Visible             bool   `json:"visible"`
 	MenubarItemShortcut string `json:"menubar_item_shortcut"`
 	Discovered          bool   `json:"discovered,omitempty"`
+	WorktreeOf          string `json:"worktree_of,omitempty"`
 }
 type Data struct {
 	Menubar            Menubar            `json:"menubar,omitzero"`
@@ -186,7 +188,7 @@ func (s *Store) SetVisible(path string, visible bool) (Data, error) {
 		if !visible {
 			return fmt.Errorf("folder is not configured: %s", path)
 		}
-		d.Folders = append(d.Folders, Folder{Path: path, Visible: true})
+		d.Folders = append(d.Folders, Folder{Path: path, Visible: true, WorktreeOf: worktree.Parent(path)})
 		return nil
 	})
 }
@@ -211,16 +213,58 @@ func (s *Store) SetShortcut(path, shortcut string) (Data, error) {
 func (s *Store) Discover(paths []string) (Data, error) {
 	return s.update(func(d *Data) error {
 		seen := map[string]bool{}
+		parents := map[string]Folder{}
+		retained := d.Folders[:0]
+		for _, f := range d.Folders {
+			if f.WorktreeOf != "" {
+				if _, err := os.Stat(f.Path); os.IsNotExist(err) {
+					continue
+				}
+			}
+			if parent := worktree.Parent(f.Path); parent != "" {
+				f.WorktreeOf = parent
+			}
+			retained = append(retained, f)
+		}
+		d.Folders = retained
+		candidates := append([]string(nil), paths...)
 		for _, f := range d.Folders {
 			seen[f.Path] = true
+			parents[f.Path] = f
+			candidates = append(candidates, f.Path)
 		}
-		for _, p := range paths {
+		// Include registered worktrees even before an agent has opened them.
+		roots := append([]string(nil), candidates...)
+		expanded := map[string]bool{}
+		for _, root := range roots {
+			root, err := NormalizePath(root)
+			if err != nil {
+				continue
+			}
+			main := worktree.Parent(root)
+			if main == "" {
+				main = root
+			}
+			if !expanded[main] {
+				expanded[main] = true
+				candidates = append(candidates, worktree.Linked(main)...)
+			}
+		}
+		for _, p := range candidates {
 			p, e := NormalizePath(p)
 			if e != nil || seen[p] || !worktree.IsGit(p) {
 				continue
 			}
 			seen[p] = true
-			d.Folders = append(d.Folders, Folder{Path: p, Discovered: true})
+			folder := Folder{Path: p, Discovered: true, WorktreeOf: worktree.Parent(p)}
+			parent := parents[folder.WorktreeOf]
+			folder.Visible = parent.Visible
+			if parent.MenubarItemShortcut != "" {
+				if index, ok := worktree.AgentIndex(p); ok && index <= 19 {
+					folder.MenubarItemShortcut = strconv.Itoa(index)
+				}
+			}
+			d.Folders = append(d.Folders, folder)
 		}
 		return nil
 	})
