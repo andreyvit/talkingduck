@@ -9,6 +9,7 @@ package main
 #import <objc/runtime.h>
 
 static char tdMenuMonitorKey;
+static char tdTrayDiagnosticKey;
 
 // Consume right-down before NSStatusBarButton enters its own tracking loop.
 // Keep the Wails-created menu and its item callbacks, but avoid showMenu's
@@ -41,13 +42,15 @@ static void tdInstallMenuMonitor(void *handle, void *menuHandle) {
     });
 }
 
-// Called off the main thread; the block follows Wails' queued image assignment.
-static double tdWidenTray(void *handle, double width, double height, double padding, double prefix, int tintPing) {
+// Decode, assign, and size in one main-queue operation.
+static double tdWidenTray(void *handle, const void *bytes, int length, double width, double height, double padding, double prefix, int tintPing) {
     __block double actual = -1;
     dispatch_sync(dispatch_get_main_queue(), ^{
     NSStatusItem *item = (NSStatusItem *)handle;
-    if (![item isKindOfClass:[NSStatusItem class]] || !item.button.image) return;
-    NSImage *image = [item.button.image copy];
+    if (![item isKindOfClass:[NSStatusItem class]]) return;
+    NSData *data = [NSData dataWithBytes:bytes length:length];
+    NSImage *image = [[NSImage alloc] initWithData:data];
+    if (!image) return;
     image.size = NSMakeSize(width, height);
     if (prefix > 0) {
         NSImage *colored = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
@@ -72,6 +75,11 @@ static double tdWidenTray(void *handle, double width, double height, double padd
     [image release];
     actual = item.button.image.size.width;
     if (item.length != width + padding || item.button.image.size.height != height) actual = -2;
+    NSString *diagnostic = [NSString stringWithFormat:@"visible=%d windowVisible=%d occluded=%d length=%.0f image=%@ frame=%@ screen=%@", item.visible, item.button.window.visible, !(item.button.window.occlusionState & NSWindowOcclusionStateVisible), item.length, NSStringFromSize(item.button.image.size), NSStringFromRect(item.button.window.frame), NSStringFromRect(item.button.window.screen.frame)];
+    if (![diagnostic isEqual:objc_getAssociatedObject(item, &tdTrayDiagnosticKey)]) {
+        objc_setAssociatedObject(item, &tdTrayDiagnosticKey, diagnostic, OBJC_ASSOCIATION_COPY_NONATOMIC);
+        NSLog(@"TalkingDuck tray: %@", diagnostic);
+    }
     });
     return actual;
 }
@@ -121,9 +129,8 @@ func nativeTrayHandle(tray *application.SystemTray) (unsafe.Pointer, error) {
 	return field.UnsafePointer(), nil
 }
 
-// updateWideTray runs off the AppKit main thread. Wails enqueues image assignment
-// on dispatch_get_main_queue, whereas InvokeSync uses another dispatch mechanism.
-// Dispatching our resize synchronously onto that SAME queue establishes ordering.
+// updateWideTray runs off the AppKit main thread. Do not call Wails image setters:
+// their run-loop callback can enqueue a square image after our sizing operation.
 type trayMonitorStyle struct {
 	Width    int
 	TintPing bool
@@ -144,16 +151,17 @@ func updateWideTray(tray *application.SystemTray, data []byte, width, height, pa
 		prefix = monitorOptions[0].Width
 		tintPing = monitorOptions[0].TintPing
 	}
-	if prefix > 0 {
-		tray.SetIcon(data)
-	} else {
-		tray.SetTemplateIcon(data)
-	}
+
 	tint := 0
 	if tintPing {
 		tint = 1
 	}
-	actual := float64(C.tdWidenTray(handle, C.double(width), C.double(height), C.double(padding), C.double(prefix), C.int(tint)))
+	if len(data) == 0 {
+		return fmt.Errorf("empty tray image")
+	}
+	bytes := C.CBytes(data)
+	defer C.free(bytes)
+	actual := float64(C.tdWidenTray(handle, bytes, C.int(len(data)), C.double(width), C.double(height), C.double(padding), C.double(prefix), C.int(tint)))
 	if actual != float64(width) {
 		return fmt.Errorf("native image width %.0f; expected %d", actual, width)
 	}

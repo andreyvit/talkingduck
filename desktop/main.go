@@ -29,17 +29,6 @@ import (
 //go:embed frontend/*
 var frontend embed.FS
 
-func icon(cells []menubarimage.Cell, mode menubarimage.Mode) ([]byte, error) {
-	im := trayImage(cells, mode)
-	// Agent motifs use four backing pixels per logical point.
-	var b bytes.Buffer
-	// The tray adapter sets the logical image size explicitly.
-	if err := menubarimage.EncodePNG(&b, im); err != nil {
-		return nil, err
-	}
-	return b.Bytes(), nil
-}
-
 func main() {
 	log.SetFlags(0)
 	opts := cli.RegisterFlags(flag.CommandLine)
@@ -239,11 +228,9 @@ func run(opts *cli.Options, mcpPort int) error {
 	}
 	cells := trayCells(cache.Snapshot())
 	tray := app.SystemTray.New()
-	data, err := icon(cells, menubarimage.Standard)
-	if err != nil {
-		return err
-	}
-	tray.SetTemplateIcon(data)
+	// The first native update supplies the image after startup. Never enqueue
+	// a Wails image setter that can later overwrite the atomic native update.
+
 	toggleOverview := func() {
 		if window.IsVisible() && window.IsFocused() {
 			log.Print("tray: hide overview")

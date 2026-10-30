@@ -96,12 +96,14 @@ kinds before reading the pointer. The menu adapter also reads `nsMenu`; its
 monitor lives for the app process (this prototype does not recreate trays).
 Revalidate both adapters before upgrading Wails.
 
-Wails assigns the image asynchronously on the main dispatch queue. Its Go
-`InvokeSync` uses a different scheduling mechanism; simply calling it again was
-not sufficient at startup. After `SetTemplateIcon`, the shim dispatches its resize
-synchronously onto the same native queue. Call `updateWideTray` off the AppKit
-main thread, as the Wails event/menu callbacks here do. All image updates are
-serialized. Native checks verify image width, height, and item length.
+Tray updates decode the PNG, apply colors, assign the image and set its logical
+size in one native main-queue operation. Do not use Wails' image setters:
+ they first schedule a run-loop callback, which then enqueues another
+image assignment. The old adapter's separate resize could run before that
+assignment and be overwritten with a square image. Call `updateWideTray` off the
+AppKit main thread. Updates are serialized and native checks verify dimensions.
+Geometry/visibility changes are logged as `TalkingDuck tray:` to help distinguish
+image failures from macOS menu-bar placement or visibility settings.
 
 Always update images through this adapter: calling Wails' setter alone restores
 the square. An unknown Wails version fails visibly instead of silently reading
