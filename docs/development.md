@@ -52,6 +52,9 @@ Use the local `commit` skill for commits. Review staged content, keep changes
 coherent, and describe the purpose. Push only when requested. `desktop/build.sh`
 builds and installs an ad-hoc-signed app into `~/Applications/TalkingDuck.app`;
 no distribution release or deployment commands are defined.
+Launch the installed GUI with `open "$HOME/Applications/TalkingDuck.app"`.
+For missing menu-bar icons, see [desktop diagnostic notes](../desktop/README.md#missing-menu-bar-icon-on-macos-26);
+changing launch method alone did not resolve the observed Control Center block.
 
 ## Validation
 

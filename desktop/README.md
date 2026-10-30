@@ -10,20 +10,19 @@ From the repository root:
 ```sh
 ./desktop/build.sh
 open "$HOME/Applications/TalkingDuck.app"
-# Or launch the built executable directly:
-"$HOME/Applications/TalkingDuck.app/Contents/MacOS/talkingduck-desktop" --gui
 ```
 
 Requires Xcode Command Line Tools. The build script compiles with cgo, targets
 macOS 13+, packages the app, and signs it ad hoc for local use. It does not
 notarize or register autostart. It installs into `~/Applications/TalkingDuck.app`;
 temporary build output under `.tasks/desktop` is removed when the script exits.
-Quit the app before rebuilding, then run the launch command again. Finder and
-Spotlight can also launch the installed app.
+Quit the app before rebuilding, then launch with `open "$HOME/Applications/TalkingDuck.app"`.
+Finder and Spotlight can also launch the installed app.
+
 The desktop executable defaults to GUI mode, including direct execution. Both
 binaries share `-gui`, `-tui`, `-status`, and `-ai`; the command-line binary defaults
-to TUI. Explicit modes override the default and cannot be combined. Use the
-executable path above with `-tui` to open its TUI in a terminal. The standalone CLI remains cgo-free. The GUI creates one in-memory cache and
+to TUI. Explicit modes override the default and cannot be combined. Use
+`~/Applications/TalkingDuck.app/Contents/MacOS/talkingduck-desktop -tui` to open its TUI in a terminal. The standalone CLI remains cgo-free. The GUI creates one in-memory cache and
 updates folders through independent cheap and expensive queues, while hidden, but pause when displays sleep. Covered windows defer rendering; see [energy behavior](../docs/energy.md).
 Native filesystem events, changed process statuses (checked every 30 seconds),
 and ten-minute recovery feed those queues. Cheap cooldown is 1–5 seconds with a
@@ -208,3 +207,21 @@ and the total changed-file count otherwise. There are no separate New or .md
 columns. Known positive Q/S totals use a filled badge; zero is a muted dash.
 Ready (`✓`) and input-blocked (`!`) rows have a soft amber background; running
 rows use cyan and pushed rows use muted text. See [table model](../docs/table-model.md).
+
+## Missing menu-bar icon on macOS 26
+
+A controlled local test found the icon missing with both direct executable
+launches and Launch Services (`open`), using both Wails' default `Item-0` and a
+custom `TalkingDuckStatus` autosave name. A brief appearance did not survive
+relaunch. Neither launch method nor item identity was a reliable fix.
+Control Center logged `Moving host to blocked list`, followed by hiding the
+status item, in all four cases. Native `visible` and `window.visible` values
+remained true, so they do not prove onscreen visibility. Verify with a screen
+capture as well as logs.
+
+[CodexBar issue 1440](https://github.com/steipete/CodexBar/issues/1440) reports the
+same symptom from a stale cross-app `menuItemLocations` mapping in Control
+Center's `trackedApplications` preferences. This is a candidate cause here,
+not yet verified: macOS denied access to that protected preference file.
+Do not change bundle IDs, force visibility repeatedly, or reset unrelated
+menu-bar settings based on the native visibility flags alone.
