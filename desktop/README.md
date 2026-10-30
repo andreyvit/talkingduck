@@ -33,8 +33,10 @@ completion throttle. Manual/MCP refreshes join the expensive queue. See
 Previous rows remain visible during refresh; failed folders retain their last
 successful data and show a warning. Unscanned folders show explicit placeholders.
 Refreshing rows show a small activity overlay in the first column, over the agent
-icon when present, without changing layout. The bottom bar keeps action notices
-and connection status at the right. Quit stops scheduling; an in-flight collector
+icon when present, without changing layout. The bottom bar contains only keyboard hints. Notices
+appear in a separate full-width bar above the limits panel and bottom controls.
+Action notices clear after four seconds; connection status, errors and warnings
+remain until cleared by their source. The message bar disappears when empty. Quit stops scheduling; an in-flight collector
 call has its own timeouts and cannot be cancelled midway.
 `--gui=false` overrides the bundle environment when needed.
 
