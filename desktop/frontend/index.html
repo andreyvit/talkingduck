@@ -26,7 +26,8 @@ tr.refreshing td:first-child::after{content:"";position:absolute;pointer-events:
 @media(prefers-reduced-motion:reduce){tr.refreshing td:first-child::after{animation:none}}
 .cell-line{min-height:1.6em}.single-item:hover .copy-button{visibility:visible}
 footer{flex:none;border-top:1px solid #8884;padding:5px 8px;background:var(--bg)}
-#keys{display:flex;gap:2px 8px;flex-wrap:wrap}
+#keys{display:flex;gap:2px 8px;flex-wrap:nowrap;overflow:hidden;white-space:nowrap}
+#keys>*{flex:none}
 #messages{flex:none;min-width:0;max-height:25vh;overflow:auto;padding:5px 8px;border-top:1px solid #8884;background:light-dark(#edf0f4,#292d34);overflow-wrap:anywhere}
 #messages:not(:has(> :not(:empty))){display:none}
 .key-hint{font:12px/normal -apple-system,BlinkMacSystemFont,sans-serif;border:0;background:none;padding:2px 0;border-radius:0;color:var(--muted)}
