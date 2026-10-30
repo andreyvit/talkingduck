@@ -12,6 +12,8 @@ screen's visible area. A missing display falls back to the current main screen.
 Old installations without a display entry migrate the existing AppKit saved frame.
 
 These are local macOS window preferences, separate from portable Zoo settings.
+The current bundle imports missing window placement and legacy frame keys from
+`com.andreyvit.talkingduck.mock`; it preserves current values and skips tray state.
 
 Native regression check (requires macOS):
 

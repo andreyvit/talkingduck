@@ -9,15 +9,14 @@ From the repository root:
 
 ```sh
 ./desktop/build.sh
-open "$HOME/Applications/TalkingDuck.app"
 ```
 
 Requires Xcode Command Line Tools. The build script compiles with cgo, targets
 macOS 13+, packages the app, and signs it ad hoc for local use. It does not
 notarize or register autostart. It installs into `~/Applications/TalkingDuck.app`;
 temporary build output under `.tasks/desktop` is removed when the script exits.
-Quit the app before rebuilding, then launch with `open "$HOME/Applications/TalkingDuck.app"`.
-Finder and Spotlight can also launch the installed app.
+Quit the app before rebuilding, then open `~/Applications/TalkingDuck.app` in Finder.
+Use Finder for agent-driven restarts; do not execute the GUI binary from the agent shell.
 
 The desktop executable defaults to GUI mode, including direct execution. Both
 binaries share `-gui`, `-tui`, `-status`, and `-ai`; the command-line binary defaults
@@ -229,3 +228,14 @@ was restored after the test. The exact stored mapping remains unverified:
 macOS denied access to that protected preference file.
 Do not change bundle IDs, force visibility repeatedly, or reset unrelated
 menu-bar settings based on the native visibility flags alone.
+
+The installed bundle now uses `com.andreyvit.talkingduck`, replacing the prototype
+`com.andreyvit.talkingduck.mock`. Its first launch through Finder and a subsequent
+rebuild/relaunch showed the icon while ChatGPT remained disabled. Changing only
+the NSStatusItem autosave name had not fixed the old bundle. A new bundle identity
+avoids the old association; it does not repair Control Center's protected record.
+The original association's creation was not observed, so direct agent-shell
+launching remains a suspected trigger. Avoid it rather than risk recreating the
+association. An old TalkingDuck entry may remain in macOS Menu Bar settings.
+Window placement migrates from the prototype preferences; portable settings stay
+in their existing file.

@@ -14,6 +14,20 @@
 @end
 
 int main() { @autoreleasepool {
+ NSString *suite = [@"TalkingDuckMigrationTest." stringByAppendingString:NSUUID.UUID.UUIDString];
+ NSUserDefaults *migration = [[NSUserDefaults alloc] initWithSuiteName:suite];
+ NSDictionary *legacy = @{@"TalkingDuck Placement Inventory": @{@"frame": @"old"},
+                          @"NSWindow Frame Inventory": @"legacy frame",
+                          @"NSStatusItem Visible Item-0": @NO};
+ tdMigrateWindowPreferences(migration, legacy, @"Inventory");
+ NSCAssert([[migration dictionaryForKey:@"TalkingDuck Placement Inventory"] isEqual:legacy[@"TalkingDuck Placement Inventory"]], @"Migrate placement");
+ NSCAssert([[migration stringForKey:@"NSWindow Frame Inventory"] isEqual:@"legacy frame"], @"Migrate legacy frame");
+ NSCAssert(![migration objectForKey:@"NSStatusItem Visible Item-0"], @"Do not migrate tray state");
+ [migration setObject:@{@"frame": @"new"} forKey:@"TalkingDuck Placement Inventory"];
+ tdMigrateWindowPreferences(migration, legacy, @"Inventory");
+ NSCAssert([[migration dictionaryForKey:@"TalkingDuck Placement Inventory"][@"frame"] isEqual:@"new"], @"Keep current placement");
+ [migration removePersistentDomainForName:suite];
+ NSLog(@"PASS bundle preference migration");
  [NSApplication sharedApplication];
  NSScreen *screen = NSScreen.screens.lastObject;
  NSString *name = @"TalkingDuckPlacementTest";

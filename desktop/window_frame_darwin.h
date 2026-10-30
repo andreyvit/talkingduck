@@ -21,11 +21,24 @@ static void tdSavePlacement(NSWindow *window, NSString *key) {
     } forKey:key];
 }
 
+// Preserve window positions when upgrading from the prototype bundle identity.
+static void tdMigrateWindowPreferences(NSUserDefaults *defaults, NSDictionary *legacy, NSString *name) {
+    for (NSString *prefix in @[@"TalkingDuck Placement ", @"NSWindow Frame "]) {
+        NSString *key = [prefix stringByAppendingString:name];
+        if (![defaults objectForKey:key] && legacy[key]) {
+            [defaults setObject:legacy[key] forKey:key];
+        }
+    }
+}
+
 static int tdRememberWindowFrame(void *handle, const char *name) {
     __block BOOL saved = NO;
     void (^configure)(void) = ^{
         NSWindow *window = (NSWindow *)handle;
         NSString *key = [NSString stringWithUTF8String:name];
+        NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+        tdMigrateWindowPreferences(defaults,
+            [defaults persistentDomainForName:@"com.andreyvit.talkingduck.mock"], key);
         NSString *placementKey = [@"TalkingDuck Placement " stringByAppendingString:key];
         NSDictionary *placement = [[NSUserDefaults standardUserDefaults] dictionaryForKey:placementKey];
         // AppKit's autosaved tiling metadata can replace the exact frame with an

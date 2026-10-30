@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>CFBundleExecutable</key><string>talkingduck-desktop</string>
-<key>CFBundleIdentifier</key><string>com.andreyvit.talkingduck.mock</string>
+<key>CFBundleIdentifier</key><string>com.andreyvit.talkingduck</string>
 <key>CFBundleName</key><string>TalkingDuck</string>
 <key>CFBundleDocumentTypes</key><array><dict>
 <key>CFBundleTypeName</key><string>Markdown document</string>
