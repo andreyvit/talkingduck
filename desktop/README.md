@@ -32,7 +32,9 @@ completion throttle. Manual/MCP refreshes join the expensive queue. See
 [event-driven refresh](../docs/live-refresh.md). Collection flags and paths apply.
 Previous rows remain visible during refresh; failed folders retain their last
 successful data and show a warning. Unscanned folders show explicit placeholders.
-The bottom bar shows short refresh/action status at the right. Quit stops scheduling; an in-flight collector
+Refreshing rows show a small activity overlay in the first column, over the agent
+icon when present, without changing layout. The bottom bar keeps action notices
+and connection status at the right. Quit stops scheduling; an in-flight collector
 call has its own timeouts and cannot be cancelled midway.
 `--gui=false` overrides the bundle environment when needed.
 

@@ -93,7 +93,7 @@ func (v *inventoryView) render(path string, complete bool) {
 	v.state.Loading = !complete
 	v.state.RefreshingPath = ""
 	if path != "" {
-		v.state.RefreshingPath = filepath.Base(path)
+		v.state.RefreshingPath = path
 	}
 	if complete {
 		v.state.UpdatedAt = time.Now().UTC().Format(time.RFC3339)

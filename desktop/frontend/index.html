@@ -18,6 +18,12 @@ th[data-column=revision]{color:light-dark(#8052a6,#ba96df)}th[data-column=tracke
 td:first-child{position:relative;padding-left:16px}th:first-child{padding-left:16px}
 tbody tr.keyboard-selected:nth-child(n){background:light-dark(#d2eaf3,#254862)}
 tbody tr.keyboard-selected td:first-child::before{content:"▸";position:absolute;left:2px;color:light-dark(#087b99,#62cce9)}
+/* Refresh overlays never participate in table sizing or intercept agent links. */
+tr.refreshing td:first-child>.cell-line{opacity:.2}
+tr.refreshing td:first-child::after{content:"";position:absolute;pointer-events:none;left:calc(50% - 7px);top:8px;width:14px;height:14px;border:2px dotted light-dark(#087b99,#62cce9);border-right-color:transparent;border-radius:50%;animation:refresh-spin 1s steps(8,end) infinite}
+@keyframes refresh-spin{to{transform:rotate(360deg)}}
+.view-obscured tr.refreshing td:first-child::after{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){tr.refreshing td:first-child::after{animation:none}}
 .cell-line{min-height:1.6em}.single-item:hover .copy-button{visibility:visible}
 footer{flex:none;border-top:1px solid #8884;padding:5px 8px;background:var(--bg)}
 #keys{display:flex;gap:2px 8px;flex-wrap:wrap;flex:1}.statusbar{display:flex;align-items:center;gap:12px}.status-messages{min-width:0;max-width:40%;text-align:right}.status-messages>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

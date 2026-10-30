@@ -79,3 +79,16 @@ func TestTargetedRefreshWaitsForScannerAndPublishesFailure(t *testing.T) {
 	default:
 	}
 }
+
+func TestRefreshPublishesFullCheckoutPathAndClearsOnCompletion(t *testing.T) {
+	var state inventoryState
+	v := &inventoryView{cache: &testCache{}, emit: func(s inventoryState) { state = s }}
+	v.render("/one/back9", false)
+	if !state.Loading || state.RefreshingPath != "/one/back9" {
+		t.Fatalf("wrong refresh identity: %+v", state)
+	}
+	v.render("", true)
+	if state.Loading || state.RefreshingPath != "" {
+		t.Fatalf("refresh remained active: %+v", state)
+	}
+}

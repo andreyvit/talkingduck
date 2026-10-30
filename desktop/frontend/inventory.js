@@ -1,3 +1,4 @@
+import {rowRefreshing} from './refresh-model.mjs';
 import {viewVisible} from './visibility.js';
 import {Events,Clipboard} from '/wails/runtime.js';
 import {USE_AGENT_ICONS,agentIdentity,agentIcon} from './agent-icons.mjs';
@@ -108,13 +109,14 @@ function render(data) {
   const th=document.createElement('th');th.textContent=USE_AGENT_ICONS&&col.id==='agent'?'':col.label;if(col.id==='agent')th.setAttribute('aria-label','Agent');th.style.textAlign=col.align||'left';
   th.dataset.column=col.id;return th;
  }));
- $('status').textContent=data.noInternet?'No internet':data.loading?'Refreshing '+(data.refreshingPath||'inventory')+'…':'';
+ $('status').textContent=data.noInternet?'No internet':'';
  $('error').textContent=data.error||'';
  $('warnings').textContent=(data.warnings||[]).join('\n');
  $('empty').hidden=model.rows.length>0;
  $('empty').textContent=data.loading?'Collecting worktrees and agent sessions…':data.error?'Refresh failed. Try again.':'No worktrees to display.';
  $('rows').replaceChildren(...model.rows.map(row=>{
   const tr=document.createElement('tr');tr.className=row.state||'';tr.dataset.rowId=row.id;
+  if(rowRefreshing(row,data)){tr.classList.add('refreshing');tr.setAttribute('aria-busy','true');}
   tr.addEventListener('pointermove',event=>mouseRow(event,row.id));
   tr.addEventListener('pointerdown',event=>mouseRow(event,row.id));
   row.cells.forEach((cell,column)=>{
@@ -152,7 +154,8 @@ function paintSnapshot(){
  const data=pendingSnapshot;pendingSnapshot=null;
  try {render(data);if(previewSelection)selectPreviewRow(previewSelection);} catch(error) {$('error').textContent='Could not render inventory: '+error.message;}
 }
-window.addEventListener('viewvisibility',paintSnapshot);
+window.addEventListener('viewvisibility',()=>{document.body.classList.toggle('view-obscured',!viewVisible());paintSnapshot();});
+document.body.classList.toggle('view-obscured',!viewVisible());
 Events.On('inventory:snapshot',event=>{pendingSnapshot=event.data;paintSnapshot();});
 Events.On('inventory:archived',()=>notice('Archived'));
 Events.On('inventory:open-error',event=>{$('error').textContent=event.data;});
