@@ -80,7 +80,10 @@ const backHint=$('keys').querySelector('[data-key="ArrowLeft"]'),forwardHint=$('
 backHint.before(historyHints);historyHints.append(backHint,forwardHint);
 backHint.setAttribute('aria-label','Back');backHint.title='Back';forwardHint.setAttribute('aria-label','Forward');forwardHint.title='Forward';
 document.addEventListener('keydown',e=>{if(handleLeap(e))return;if(e.metaKey||e.ctrlKey||e.altKey||e.target.closest('input,textarea,select,[contenteditable=true]'))return;if(e.key==='Tab'&&!e.shiftKey){e.preventDefault();finishLeap();send('dashboard');return;}if(!['Escape',' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','r','R','c','C','h','H'].includes(e.key))return;e.preventDefault();cancelRestore();send('',{key:e.key,shift:e.shiftKey})});
-article.addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;e.preventDefault();const href=a.getAttribute('href')||'';if(href.startsWith('#')){try{jump(decodeURIComponent(href.slice(1)))}catch{}}else send('link',{link:href})});
+article.addEventListener('click',e=>{
+ const diagram=e.target.closest('.mermaid-diagram img')?.parentElement;
+ if(diagram){diagram.classList.toggle('expanded');return}
+ const a=e.target.closest('a');if(!a)return;e.preventDefault();const href=a.getAttribute('href')||'';if(href.startsWith('#')){try{jump(decodeURIComponent(href.slice(1)))}catch{}}else send('link',{link:href})});
 let pendingSnapshot;
 Events.On('markdown:snapshot',({data})=>{pendingSnapshot=data;paintSnapshot()});
 window.addEventListener('viewvisibility',paintSnapshot);

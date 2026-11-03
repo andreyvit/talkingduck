@@ -15,6 +15,8 @@ dialog{color:#f0f6fc;background:#151b23;border:1px solid #3d444d;border-radius:1
 
 .history-hints{display:inline-flex;gap:0}
 
-/* Keep labels readable in wide left-to-right diagrams. */
+/* The document scrolls vertically in both modes. */
 .markdown-body .mermaid-diagram{margin:0 0 16px;overflow-x:auto}
-.markdown-body .mermaid-diagram img{display:block;max-width:none;background:transparent}
+.markdown-body .mermaid-diagram img{display:block;max-width:100%;background:transparent;cursor:zoom-in}
+
+.markdown-body .mermaid-diagram.expanded img{max-width:none;cursor:zoom-out}

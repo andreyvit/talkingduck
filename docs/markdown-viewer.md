@@ -87,6 +87,6 @@ real current specs; synthetic fixtures cover repeatable file mutations.
 
 Mermaid fences render offline as dark SVG images using the pure-Go
 [go-mermaid renderer](https://github.com/zkrebbekx/go-mermaid).
-Wide diagrams scroll horizontally to keep labels readable. Unsupported or invalid
+Diagrams fit the page width. Click to toggle natural size with horizontal scrolling. Unsupported or invalid
 diagrams retain their source and show a warning. Each fence accepts up to 32 KiB
 and 256 lines.
