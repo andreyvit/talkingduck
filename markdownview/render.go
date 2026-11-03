@@ -31,7 +31,32 @@ type Heading struct {
 	Title string `json:"title"`
 	Level int    `json:"level"`
 }
+type Image struct {
+	Src     string `json:"src"`
+	Alt     string `json:"alt"`
+	Path    string `json:"-"`
+	Mermaid string `json:"-"`
+	Menu    string `json:"menu"`
+}
+
+var ImageFormats = []string{"PNG", "JPEG", "GIF", "WebP", "TIFF", "HEIC", "HEIF", "AVIF", "BMP", "SVG"}
+
+func imageFormat(src string) string {
+	header, _, _ := strings.Cut(src, ";")
+	for _, format := range ImageFormats {
+		subtype := strings.ToLower(format)
+		if format == "SVG" {
+			subtype = "svg+xml"
+		}
+		if strings.EqualFold(header, "data:image/"+subtype) {
+			return format
+		}
+	}
+	return ""
+}
+
 type Document struct {
+	Images   []Image   `json:"-"`
 	HTML     string    `json:"html"`
 	Headings []Heading `json:"headings"`
 	Warnings []string  `json:"warnings"`
@@ -98,12 +123,34 @@ func Render(source []byte, path string) (Document, error) {
 	}
 	used := map[string]bool{}
 	imageBytes := 0
+	recordImage := func(n *nethtml.Node, path, source string) {
+		img := Image{Src: attr(n, "src"), Alt: attr(n, "alt"), Path: path, Mermaid: source}
+		kind := "embedded"
+		if source != "" {
+			kind = "mermaid"
+		} else if path != "" {
+			kind = "file"
+		}
+		format := imageFormat(img.Src)
+		if format == "" {
+			format = "PNG"
+		}
+		img.Menu = "image-" + kind + "-" + format
+		setAttr(n, "data-image-menu", img.Menu)
+		if path != "" {
+			setAttr(n, "data-drag-filename", filepath.Base(path))
+		}
+		d.Images = append(d.Images, img)
+	}
 	var walk func(*nethtml.Node)
 	walk = func(n *nethtml.Node) {
 		if n.Type == nethtml.ElementNode {
 			if n.Data == "pre" && n.FirstChild != nil && n.FirstChild == n.LastChild && n.FirstChild.Data == "code" && attr(n.FirstChild, "class") == "language-mermaid" {
+				source := nodeText(n.FirstChild)
 				if err := renderDiagram(n, &imageBytes); err != nil {
 					d.Warnings = append(d.Warnings, "Mermaid: "+err.Error())
+				} else {
+					recordImage(n.FirstChild, "", source)
 				}
 				return
 			}
@@ -134,6 +181,7 @@ func Render(source []byte, path string) (Document, error) {
 				d.Headings = append(d.Headings, Heading{id, title, int(n.Data[1] - '0')})
 			}
 			if n.Data == "img" {
+				localPath := ""
 				src := attr(n, "src")
 				u, e := url.Parse(src)
 				if e == nil && (u.Scheme == "" || u.Scheme == "file") && u.Host == "" {
@@ -144,6 +192,16 @@ func Render(source []byte, path string) (Document, error) {
 					b, e := ReadFile(p, MaxImage)
 					if e == nil {
 						mime := http.DetectContentType(b)
+						if len(b) >= 12 && string(b[4:8]) == "ftyp" {
+							switch string(b[8:12]) {
+							case "heic", "heix", "hevc", "hevx":
+								mime = "image/heic"
+							case "mif1", "msf1":
+								mime = "image/heif"
+							case "avif", "avis":
+								mime = "image/avif"
+							}
+						}
 						if strings.EqualFold(filepath.Ext(p), ".svg") {
 							mime = "image/svg+xml"
 						}
@@ -152,6 +210,7 @@ func Render(source []byte, path string) (Document, error) {
 						} else if imageBytes+len(b) > 40<<20 {
 							e = fmt.Errorf("local images exceed 40 MiB")
 						} else {
+							localPath, _ = filepath.Abs(p)
 							imageBytes += len(b)
 							setAttr(n, "src", "data:"+mime+";base64,"+base64.StdEncoding.EncodeToString(b))
 						}
@@ -163,6 +222,7 @@ func Render(source []byte, path string) (Document, error) {
 				} else if e != nil || !(u.Scheme == "https" || u.Scheme == "http" || u.Scheme == "data") {
 					setAttr(n, "src", "")
 				}
+				recordImage(n, localPath, "")
 			}
 		}
 		for c := n.FirstChild; c != nil; c = c.NextSibling {

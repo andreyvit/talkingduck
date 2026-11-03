@@ -14,6 +14,18 @@ function hover(e){
  lens.hidden=false;
 }
 export function installImageControls(article){
+ article.addEventListener('dragstart',e=>{
+  const img=e.target.closest('img');
+  if(!img)return;
+  lens.hidden=true;
+  const filename=img.dataset.dragFilename || (img.closest('.mermaid-diagram')?'diagram.svg':'');
+  if(!filename || !e.dataTransfer?.items || !img.src.startsWith('data:'))return;
+  // Preserve WebKit's native image/file promise and offer the named File as well.
+  const comma=img.src.indexOf(',');
+  const mime=img.src.slice(5,comma).split(';')[0];
+  const bytes=Uint8Array.from(atob(img.src.slice(comma+1)),c=>c.charCodeAt(0));
+  e.dataTransfer.items.add(new File([bytes],filename,{type:mime}));
+ });
  document.addEventListener('pointermove',hover);
  article.addEventListener('pointerover',hover);
  article.addEventListener('pointerout',()=>{lens.hidden=true});
@@ -37,6 +49,8 @@ export function prepareImages(article,generation){
  for(const [index,img] of [...article.querySelectorAll('img')].entries()){
   const key=generation+'/'+index;
   img.dataset.previewKey=key;
+  img.draggable=true;
+  img.style.setProperty('--custom-contextmenu',img.dataset.imageMenu);
   img.style.setProperty('--custom-contextmenu-data',key);
   if(img.closest('a,.image-frame,.mermaid-diagram'))continue;
   const frame=document.createElement('span');

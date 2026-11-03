@@ -98,3 +98,10 @@ from its context menu. The preview opens on the Markdown viewer’s display, cen
 at 94% of its usable dimensions or the viewer’s size, whichever is larger. Scroll
 the wheel to zoom around the pointer and drag to pan. The bottom bar offers Fit,
 100%, zoom controls and Esc to return to the document.
+
+Right-click an image in either window to copy its image data. Mermaid diagrams
+offer **Copy Mermaid Source**, **Copy Image as SVG**, and **Copy Image as PNG**.
+Local images offer **Open**, **Reveal in Finder**, and **Copy Path** (absolute).
+The original format is preserved when copying local images, with an additional
+PNG option for other supported formats. Drag a local image from the document
+to another app to offer its original file. Dragging in the separate preview pans.

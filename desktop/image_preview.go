@@ -8,56 +8,16 @@ import (
 	"strings"
 	"sync"
 
+	"fmt"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
-	html "golang.org/x/net/html"
+	"talkingduck/markdownview"
 )
-
-type previewImage struct {
-	Src string `json:"src"`
-	Alt string `json:"alt"`
-}
-
-func documentImage(markup string, index int) (previewImage, bool) {
-	if index < 0 {
-		return previewImage{}, false
-	}
-	tokens := html.NewTokenizer(strings.NewReader(markup))
-	for {
-		kind := tokens.Next()
-		if kind == html.ErrorToken {
-			return previewImage{}, false
-		}
-		if kind != html.StartTagToken && kind != html.SelfClosingTagToken {
-			continue
-		}
-		name, hasAttrs := tokens.TagName()
-		if string(name) != "img" {
-			continue
-		}
-		if index > 0 {
-			index--
-			continue
-		}
-		var img previewImage
-		for hasAttrs {
-			key, val, more := tokens.TagAttr()
-			hasAttrs = more
-			switch string(key) {
-			case "src":
-				img.Src = string(val)
-			case "alt":
-				img.Alt = string(val)
-			}
-		}
-		return img, img.Src != ""
-	}
-}
 
 func installImagePreview(v *markdownViewer) {
 	w := v.app.Window.NewWithOptions(application.WebviewWindowOptions{Title: "Image Preview", Width: 960, Height: 720, Hidden: true, URL: "/image-preview.html"})
 	var mu sync.Mutex
-	var current previewImage
+	var current markdownview.Image
 	var ready bool
 	publish := func() {
 		if ready && current.Src != "" {
@@ -65,27 +25,25 @@ func installImagePreview(v *markdownViewer) {
 			w.ExecJS("window.showImage(" + string(data) + ")")
 		}
 	}
-	open := func(key string) {
-		gen, idx, ok := strings.Cut(key, "/")
-		if !ok {
-			return
+	resolve := func(key string) (markdownview.Image, bool) {
+		if key == "preview" {
+			mu.Lock()
+			defer mu.Unlock()
+			return current, current.Src != ""
 		}
-		generation, err := strconv.ParseUint(gen, 10, 64)
-		if err != nil {
-			return
-		}
-		index, err := strconv.Atoi(idx)
-		if err != nil {
-			return
-		}
+		gen, idx, ok := strings.Cut(strings.TrimSpace(key), "/")
+		generation, e1 := strconv.ParseUint(gen, 10, 64)
+		index, e2 := strconv.Atoi(idx)
 		v.mu.Lock()
-		if generation != v.generation {
-			v.mu.Unlock()
-			return
+		defer v.mu.Unlock()
+		if !ok || e1 != nil || e2 != nil || generation != v.generation || index < 0 || index >= len(v.document.Images) {
+			return markdownview.Image{}, false
 		}
-		markup := v.document.HTML
-		v.mu.Unlock()
-		img, ok := documentImage(markup, index)
+		img := v.document.Images[index]
+		return img, img.Src != ""
+	}
+	open := func(key string) {
+		img, ok := resolve(key)
 		if !ok {
 			return
 		}
@@ -106,7 +64,7 @@ func installImagePreview(v *markdownViewer) {
 	closePreview := func() {
 		w.Hide()
 		mu.Lock()
-		current = previewImage{}
+		current = markdownview.Image{}
 		if ready {
 			w.ExecJS("window.clearImage()")
 		}
@@ -122,7 +80,45 @@ func installImagePreview(v *markdownViewer) {
 			go open(key)
 		}
 	})
-	menu := v.app.ContextMenu.New()
-	menu.Add("Open Image in Separate Window").OnClick(func(c *application.Context) { key := c.ContextMenuData(); go open(key) })
-	v.app.ContextMenu.Add("markdown-image", menu)
+	register := func(kind, format string) {
+		menu := v.app.ContextMenu.New()
+		action := func(label string, fn func(markdownview.Image) error) {
+			menu.Add(label).OnClick(func(c *application.Context) {
+				img, ok := resolve(c.ContextMenuData())
+				if !ok {
+					return
+				}
+				go func() {
+					if err := fn(img); err != nil {
+						v.app.Dialog.Error().SetTitle(label).SetMessage(err.Error()).Show()
+					}
+				}()
+			})
+		}
+		copyText := func(text string) error {
+			if !v.app.Clipboard.SetText(text) {
+				return fmt.Errorf("could not write clipboard")
+			}
+			return nil
+		}
+		menu.Add("Open Image in Separate Window").OnClick(func(c *application.Context) { key := c.ContextMenuData(); go open(key) })
+		if kind == "file" {
+			action("Open", func(i markdownview.Image) error { return openImageFile(i.Path, false) })
+			action("Reveal in Finder", func(i markdownview.Image) error { return openImageFile(i.Path, true) })
+			action("Copy Path", func(i markdownview.Image) error { return copyText(i.Path) })
+		}
+		if kind == "mermaid" {
+			action("Copy Mermaid Source", func(i markdownview.Image) error { return copyText(i.Mermaid) })
+		}
+		action("Copy Image as "+format, func(i markdownview.Image) error { return copyImage(i, format) })
+		if format != "PNG" {
+			action("Copy Image as PNG", func(i markdownview.Image) error { return copyImage(i, "PNG") })
+		}
+		v.app.ContextMenu.Add("image-"+kind+"-"+format, menu)
+	}
+	register("mermaid", "SVG")
+	for _, f := range markdownview.ImageFormats {
+		register("file", f)
+		register("embedded", f)
+	}
 }

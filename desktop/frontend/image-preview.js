@@ -23,7 +23,10 @@ function fit(){
 }
 function zoom(next,x,y){fitting=false;resize(Math.min(16,Math.max(.01,next)),x,y)}
 window.clearImage=()=>{img.removeAttribute('src');label.value=''};
-window.showImage=({src,alt})=>{fitting=true;img.alt=alt;img.src=src;if(img.complete)fit()};
+window.showImage=({src,alt,menu})=>{
+ img.style.setProperty('--custom-contextmenu',menu);
+ img.style.setProperty('--custom-contextmenu-data','preview');
+ fitting=true;img.alt=alt;img.src=src;if(img.complete)fit()};
 img.onload=fit;
 img.onerror=()=>{label.value='Image unavailable'};
 new ResizeObserver(()=>{if(fitting&&port.clientWidth&&port.clientHeight)fit()}).observe(port);

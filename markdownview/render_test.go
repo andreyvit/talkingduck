@@ -98,3 +98,23 @@ func TestMermaidFences(t *testing.T) {
 		t.Fatalf("fallback: %+v %v", doc, err)
 	}
 }
+
+func TestImageActionsFollowRenderedImageOrder(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "a b.png")
+	if err := os.WriteFile(path, []byte("\x89PNG\r\n\x1a\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	const diagram = "flowchart LR\n A --> B\n"
+	doc, err := Render([]byte("![Local](a%20b.png)\n\n```mermaid\n"+diagram+"```\n"), filepath.Join(dir, "readme.md"))
+	if err != nil || len(doc.Images) != 2 {
+		t.Fatalf("images: %d, %v", len(doc.Images), err)
+	}
+	local, svg := doc.Images[0], doc.Images[1]
+	if local.Path != path || local.Menu != "image-file-PNG" {
+		t.Errorf("local image: %q %q", local.Path, local.Menu)
+	}
+	if svg.Path != "" || svg.Mermaid != diagram || svg.Menu != "image-mermaid-SVG" {
+		t.Errorf("diagram: %q %q", svg.Mermaid, svg.Menu)
+	}
+}
