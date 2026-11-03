@@ -25,8 +25,28 @@ for(const [key,label,action] of [['↑↓','Matches',()=>{leap.move(1);applyLeap
  const button=document.createElement('button'),kbd=document.createElement('kbd');button.className='key-hint';kbd.textContent=key;button.append(kbd,' '+label);button.onclick=()=>{if(leap)action()};leapBar.append(button);
 }
 leapQuery.className='leap-query';leapBar.prepend(leapQuery);$('keys').after(leapBar);
+let exportingChord=false;
+const exportBar=document.createElement('nav'),shiftHints=document.createElement('span');
+exportBar.className='export-bar';exportBar.hidden=true;leapBar.after(exportBar);
+shiftHints.className='shift-hints';leapBar.append(shiftHints);
+function commandButton(parent,key,label,action){
+ const button=document.createElement('button'),kbd=document.createElement('kbd');
+ button.className='key-hint';kbd.textContent=key;button.append(kbd,' '+label);
+ button.onclick=action;parent.append(button);
+}
+function setExportChord(active){
+ finishLeap();exportingChord=active;exportBar.hidden=!active;renderLeapBar();
+}
+function exportEdition(printable){setExportChord(false);send(printable?'pdf-print':'pdf-ebook')}
+commandButton(shiftHints,'Shift-Space','Page up',()=>{finishLeap();send('page-up')});
+commandButton(shiftHints,'E','Export',()=>setExportChord(true));
+exportBar.append('Export ');
+commandButton(exportBar,'p','Ebook PDF',()=>exportEdition(false));
+commandButton(exportBar,'P','Printable PDF',()=>exportEdition(true));
+commandButton(exportBar,'Esc','Cancel',()=>setExportChord(false));
+window.addEventListener('blur',()=>setExportChord(false));
 function renderLeapBar(){
- $('keys').hidden=!!leap;leapBar.hidden=!leap;
+ $('keys').hidden=!!leap||exportingChord;leapBar.hidden=!leap||exportingChord;shiftHints.hidden=!!leap?.query;
  leapQuery.textContent='Type to search: '+(leap?.query||'');
  leapQuery.classList.toggle('no-match',!!leap?.query&&!leap.match);
 }
@@ -80,7 +100,16 @@ const historyHints=document.createElement('span');historyHints.className='histor
 const backHint=$('keys').querySelector('[data-key="ArrowLeft"]'),forwardHint=$('keys').querySelector('[data-key="ArrowRight"]');
 backHint.before(historyHints);historyHints.append(backHint,forwardHint);
 backHint.setAttribute('aria-label','Back');backHint.title='Back';forwardHint.setAttribute('aria-label','Forward');forwardHint.title='Forward';
-document.addEventListener('keydown',e=>{if(handleLeap(e))return;if(e.metaKey||e.ctrlKey||e.altKey||e.target.closest('input,textarea,select,[contenteditable=true]'))return;if(e.key==='Tab'&&!e.shiftKey){e.preventDefault();finishLeap();send('dashboard');return;}if(!['Escape',' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','r','R','c','C','h','H'].includes(e.key))return;e.preventDefault();cancelRestore();send('',{key:e.key,shift:e.shiftKey})});
+document.addEventListener('keydown',e=>{if(!e.metaKey&&!e.ctrlKey&&!e.altKey&&!$('history').open&&!e.target.closest('input,textarea,select,[contenteditable=true]')){
+ if(exportingChord){
+  if(e.key==='Shift')return;
+  e.preventDefault();
+  if(e.key==='p'||e.key==='P')exportEdition(e.key==='P');else setExportChord(false);
+  return;
+ }
+ if(e.shiftKey&&e.key==='E'&&!leap?.query){e.preventDefault();setExportChord(true);return}
+ }
+ if(handleLeap(e))return;if(e.metaKey||e.ctrlKey||e.altKey||e.target.closest('input,textarea,select,[contenteditable=true]'))return;if(e.key==='Tab'&&!e.shiftKey){e.preventDefault();finishLeap();send('dashboard');return;}if(!['Escape',' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','r','R','c','C','h','H'].includes(e.key))return;e.preventDefault();cancelRestore();send('',{key:e.key,shift:e.shiftKey})});
 installImageControls(article);
 article.addEventListener('click',e=>{
  const a=e.target.closest('a');if(!a)return;e.preventDefault();const href=a.getAttribute('href')||'';if(href.startsWith('#')){try{jump(decodeURIComponent(href.slice(1)))}catch{}}else send('link',{link:href})});

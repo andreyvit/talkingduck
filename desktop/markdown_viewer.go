@@ -24,6 +24,7 @@ import (
 )
 
 type markdownViewer struct {
+	exporting         bool
 	mu                sync.Mutex
 	app               *application.App
 	window, main      *application.WebviewWindow
@@ -92,6 +93,11 @@ func newMarkdownViewer(ctx context.Context, app *application.App, main *applicat
 				return
 			}
 			switch action {
+			case "pdf-ebook", "pdf-print":
+				if !v.exporting && req.Path != "" && v.document.HTML != "" {
+					v.exporting = true
+					go v.export(req.Path, v.document, action == "pdf-print")
+				}
 			case "dashboard":
 				v.save()
 				v.main.UnMinimise()

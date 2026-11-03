@@ -1,0 +1,15 @@
+/* This document contains only the rendered article. */
+:root,body{margin:0;background:#0d1117;color:#f0f6fc;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.markdown-body{padding:0 32px;font-family:var(--font);font-size:var(--size);overflow-wrap:anywhere}
+.markdown-body img{max-width:100%;height:auto}
+.markdown-body table{display:table;width:auto;max-width:100%}
+.markdown-body pre,.markdown-body pre code{white-space:pre-wrap;overflow-wrap:anywhere;overflow:visible}
+.markdown-body h1,.markdown-body h2,.markdown-body h3{break-after:avoid}
+.markdown-body tr,.mermaid-diagram{break-inside:avoid}
+.markdown-body .frontmatter th{text-align:left}
+.printable,.printable body,.printable .markdown-body,.printable .markdown-body *{color-scheme:light;background-color:white!important;color:black!important;border-color:#bbb!important;box-shadow:none!important;text-shadow:none!important}
+.printable .markdown-body a{text-decoration:underline}
+.pdf-toc{margin:1.4em 0 2em}
+.pdf-toc div{break-inside:avoid;padding-right:4em;margin:.18em 0}
+.pdf-toc a{text-decoration:none!important}
+.markdown-body a.pdf-target{position:absolute;font-size:1px;color:transparent!important;background:transparent!important;text-decoration:none}

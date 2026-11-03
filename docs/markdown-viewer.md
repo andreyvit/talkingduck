@@ -105,3 +105,11 @@ Local images offer **Open**, **Reveal in Finder**, and **Copy Path** (absolute).
 The original format is preserved when copying local images, with an additional
 PNG option for other supported formats. Drag a local image from the document
 to another app to offer its original file. Dragging in the separate preview pans.
+
+Hold Shift with an empty search to see **Shift-Space Page up** and **E Export**.
+Press Shift-E, then **p** for a dark ebook PDF or **P** for a white printable PDF.
+Both export the whole document and reveal the result in Finder. The files sit
+beside the Markdown as `name.pdf` and `name-print.pdf`. Repeated exports add
+a number to preserve existing files.
+
+Both editions use 13 px body text and a numbered, clickable contents section below the title. The ebook has 28 pt dark top and bottom margins on every page. Printable pages use white backgrounds, black type and neutral Mermaid diagrams.
