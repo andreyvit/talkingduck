@@ -117,3 +117,5 @@ Both editions use 13 px body text and a numbered, clickable contents section bel
 Leap reads the physical left/right Shift flags from AppKit while the Markdown
 window is key. Tapping the free Shift advances once per tap. Releasing the last
 held Shift commits the match and closes the search bar.
+
+Screen and PDF tables fill the text column, use horizontal rules, and align the first cell with the document margin. Headers up to 12 display columns wide stay on one line.

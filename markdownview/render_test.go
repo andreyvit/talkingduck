@@ -14,7 +14,7 @@ func TestRenderGFMAndZoo(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	for _, want := range []string{`class="frontmatter"`, `<th>status</th>`, `answer: 42`, `&lt;script&gt;`, `<table>`, `<del>gone</del>`, `href="https://example.com"`, `type="checkbox"`, `checked=""`, `task-status running`, `- [&gt;] literal`} {
+	for _, want := range []string{`class="frontmatter"`, `<th class="short-heading">status</th>`, `answer: 42`, `&lt;script&gt;`, `<table>`, `<del>gone</del>`, `href="https://example.com"`, `type="checkbox"`, `checked=""`, `task-status running`, `- [&gt;] literal`} {
 		if !strings.Contains(d.HTML, want) {
 			t.Errorf("missing %q in %s", want, d.HTML)
 		}

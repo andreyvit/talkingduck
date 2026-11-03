@@ -17,6 +17,7 @@ import (
 	"unicode"
 
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/rivo/uniseg"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	gmhtml "github.com/yuin/goldmark/renderer/html"
@@ -145,6 +146,12 @@ func Render(source []byte, path string) (Document, error) {
 	var walk func(*nethtml.Node)
 	walk = func(n *nethtml.Node) {
 		if n.Type == nethtml.ElementNode {
+			if n.Data == "th" {
+				title := strings.Join(strings.Fields(nodeText(n)), " ")
+				if uniseg.StringWidth(title) <= 12 {
+					setAttr(n, "class", "short-heading")
+				}
+			}
 			if n.Data == "pre" && n.FirstChild != nil && n.FirstChild == n.LastChild && n.FirstChild.Data == "code" && attr(n.FirstChild, "class") == "language-mermaid" {
 				source := nodeText(n.FirstChild)
 				if err := renderDiagram(n, &imageBytes); err != nil {
