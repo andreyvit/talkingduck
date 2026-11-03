@@ -48,6 +48,7 @@ func newMarkdownViewer(ctx context.Context, app *application.App, main *applicat
 		log.Printf("Markdown history: %v", err)
 	}
 	v.window = app.Window.NewWithOptions(application.WebviewWindowOptions{Title: "Markdown Preview", Width: 1060, Height: 780, MinWidth: 540, MinHeight: 320, URL: "/markdown.html", Hidden: true})
+	installImagePreview(v)
 	var once sync.Once
 	v.window.OnWindowEvent(events.Common.WindowRuntimeReady, func(*application.WindowEvent) {
 		once.Do(func() {

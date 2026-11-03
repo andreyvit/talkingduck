@@ -90,3 +90,11 @@ Mermaid fences render offline as dark SVG images using the pure-Go
 Diagrams fit the page width. Click to toggle natural size with horizontal scrolling. Unsupported or invalid
 diagrams retain their source and show a warning. Each fence accepts up to 32 KiB
 and 256 lines.
+
+Click a diagram or unlinked image to toggle fit width and natural size. A magnifier
+follows the pointer and shows plus or minus for the next click. Linked images keep
+their link action. Shift-click any image or choose **Open Image in Separate Window**
+from its context menu. The preview opens on the Markdown viewer’s display, centered
+at 94% of its usable dimensions or the viewer’s size, whichever is larger. Scroll
+the wheel to zoom around the pointer and drag to pan. The bottom bar offers Fit,
+100%, zoom controls and Esc to return to the document.

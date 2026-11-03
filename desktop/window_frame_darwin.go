@@ -29,3 +29,7 @@ func rememberWindowFrame(window *application.WebviewWindow, name string) error {
 	}
 	return nil
 }
+
+func placeImagePreview(preview, viewer *application.WebviewWindow) {
+	C.tdPlaceImagePreview(preview.NativeWindow(), viewer.NativeWindow())
+}

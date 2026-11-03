@@ -75,3 +75,15 @@ static int tdRememberWindowFrame(void *handle, const char *name) {
     else dispatch_sync(dispatch_get_main_queue(), configure);
     return saved;
 }
+
+static void tdPlaceImagePreview(void *preview, void *viewer) {
+    void (^place)(void) = ^{
+        NSWindow *parent = (NSWindow *)viewer;
+        NSRect area = (parent.screen ?: NSScreen.mainScreen).visibleFrame;
+        NSSize size = NSMakeSize(MIN(area.size.width, MAX(parent.frame.size.width, area.size.width * .94)),
+                                 MIN(area.size.height, MAX(parent.frame.size.height, area.size.height * .94)));
+        [(NSWindow *)preview setFrame:NSMakeRect(NSMidX(area)-size.width/2, NSMidY(area)-size.height/2,
+                                                 size.width, size.height) display:YES];
+    };
+    if ([NSThread isMainThread]) place(); else dispatch_sync(dispatch_get_main_queue(), place);
+}

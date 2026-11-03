@@ -1,3 +1,4 @@
+import {installImageControls,prepareImages} from './markdown-images.js';
 import {viewVisible} from './visibility.js';
 import {LeapSearch,HeldShifts} from './markdown-leap.mjs';
 import {Events} from '/wails/runtime.js';
@@ -80,9 +81,8 @@ const backHint=$('keys').querySelector('[data-key="ArrowLeft"]'),forwardHint=$('
 backHint.before(historyHints);historyHints.append(backHint,forwardHint);
 backHint.setAttribute('aria-label','Back');backHint.title='Back';forwardHint.setAttribute('aria-label','Forward');forwardHint.title='Forward';
 document.addEventListener('keydown',e=>{if(handleLeap(e))return;if(e.metaKey||e.ctrlKey||e.altKey||e.target.closest('input,textarea,select,[contenteditable=true]'))return;if(e.key==='Tab'&&!e.shiftKey){e.preventDefault();finishLeap();send('dashboard');return;}if(!['Escape',' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','r','R','c','C','h','H'].includes(e.key))return;e.preventDefault();cancelRestore();send('',{key:e.key,shift:e.shiftKey})});
+installImageControls(article);
 article.addEventListener('click',e=>{
- const diagram=e.target.closest('.mermaid-diagram img')?.parentElement;
- if(diagram){diagram.classList.toggle('expanded');return}
  const a=e.target.closest('a');if(!a)return;e.preventDefault();const href=a.getAttribute('href')||'';if(href.startsWith('#')){try{jump(decodeURIComponent(href.slice(1)))}catch{}}else send('link',{link:href})});
 let pendingSnapshot;
 Events.On('markdown:snapshot',({data})=>{pendingSnapshot=data;paintSnapshot()});
@@ -100,6 +100,7 @@ function paintSnapshot(){
  article.style.setProperty('--viewer-font',data.appearance.font==='github'?'var(--github-font)':JSON.stringify(data.appearance.font)+', var(--github-font)');article.style.setProperty('--viewer-size',data.appearance.size+'px');
  $('keys').querySelector('[data-key="ArrowLeft"]').disabled=!data.back;$('keys').querySelector('[data-key="ArrowRight"]').disabled=!data.forward;
  if(changed){article.innerHTML=data.document.html||'';headings=[...article.querySelectorAll('h1,h2,h3,h4,h5,h6')];$('toc').replaceChildren();for(const h of data.document.headings||[]){const a=document.createElement('a');a.href='#'+h.id;a.textContent=h.title;a.style.paddingLeft=(8+(h.level-1)*12)+'px';a.onclick=e=>{e.preventDefault();jump(h.id)};$('toc').append(a)}if(!headings.length){const empty=document.createElement('span');empty.className='empty';empty.textContent='No headings';$('toc').append(empty)}}
+ prepareImages(article,data.generation);
  const token=++renderToken;restoreTarget=keep||{top:0};
  const apply=()=>{if(token===renderToken&&restoreTarget)restore(restoreTarget)};
  requestAnimationFrame(apply);

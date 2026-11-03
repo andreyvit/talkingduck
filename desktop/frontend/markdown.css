@@ -20,3 +20,11 @@ dialog{color:#f0f6fc;background:#151b23;border:1px solid #3d444d;border-radius:1
 .markdown-body .mermaid-diagram img{display:block;max-width:100%;background:transparent;cursor:zoom-in}
 
 .markdown-body .mermaid-diagram.expanded img{max-width:none;cursor:zoom-out}
+
+.markdown-body img{--custom-contextmenu:markdown-image}
+.markdown-body .image-frame{display:inline-block;max-width:100%;overflow-x:auto;vertical-align:middle}
+.markdown-body .image-frame img{display:block;max-width:100%}
+.markdown-body .image-frame.expanded img{max-width:none}
+.markdown-body :is(.image-frame,.mermaid-diagram) img:hover{cursor:none}
+.image-hover-lens{position:fixed;top:-7px;left:-7px;z-index:100;pointer-events:none;width:16px;height:16px;border:2px solid white;border-radius:50%;background:#17212b;color:white;text-align:center;font:bold 13px/12px sans-serif;box-shadow:0 0 1px 1px #111}
+.image-hover-lens::after{content:"";position:absolute;top:12px;left:11px;width:9px;height:3px;background:white;border:1px solid #17212b;transform:rotate(45deg);transform-origin:left center}

@@ -1,0 +1,16 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src data: https: http: 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'">
+<title>Image Preview</title><link rel="stylesheet" href="/markdown.css">
+<style>
+#viewport{flex:1;min-height:0;overflow:auto;touch-action:none}
+#canvas{display:grid;place-items:center;width:max-content;height:max-content;min-width:100%;min-height:100%}
+#picture{display:block;user-select:none;-webkit-user-drag:none;cursor:grab}
+#viewport.dragging #picture{cursor:grabbing}
+#zoom{margin-left:auto;color:var(--muted);font:12px ui-monospace,monospace}
+</style>
+<main id="viewport"><div id="canvas"><img id="picture" alt=""></div></main>
+<footer class="statusbar"><nav id="keys" aria-label="Image controls">
+<button id="close" class="key-hint"><kbd>Esc</kbd> Close</button>
+<button id="fit" class="key-hint">Fit</button><button id="actual" class="key-hint">100%</button>
+<button id="out" class="key-hint" aria-label="Zoom out">−</button><button id="in" class="key-hint" aria-label="Zoom in">+</button>
+</nav><output id="zoom"></output></footer><script type="module" src="/image-preview.js"></script></html>
