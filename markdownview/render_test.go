@@ -85,3 +85,16 @@ func TestReadFileLimits(t *testing.T) {
 		t.Fatal("accepted directory")
 	}
 }
+
+func TestMermaidFences(t *testing.T) {
+	for _, source := range []string{"flowchart LR\nA[Host] --> B[Guest]", "sequenceDiagram\nA->>B: hello"} {
+		doc, err := Render([]byte("```mermaid\n"+source+"\n```"), "test.md")
+		if err != nil || len(doc.Warnings) > 0 || !strings.Contains(doc.HTML, "data:image/svg+xml;base64,") || strings.Contains(doc.HTML, "<svg") {
+			t.Fatalf("render: %v %v %s", err, doc.Warnings, doc.HTML)
+		}
+	}
+	doc, err := Render([]byte("```mermaid\nunknownDiagram\n```"), "test.md")
+	if err != nil || len(doc.Warnings) == 0 || !strings.Contains(doc.HTML, "unknownDiagram") || !strings.Contains(doc.HTML, "<pre>") {
+		t.Fatalf("fallback: %+v %v", doc, err)
+	}
+}

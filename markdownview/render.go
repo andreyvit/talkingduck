@@ -20,8 +20,10 @@ import (
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	gmhtml "github.com/yuin/goldmark/renderer/html"
+	"github.com/zkrebbekx/go-mermaid"
 	"go.yaml.in/yaml/v3"
 	nethtml "golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 type Heading struct {
@@ -86,6 +88,7 @@ func Render(source []byte, path string) (Document, error) {
 	policy.AllowAttrs("disabled", "checked").OnElements("input")
 	policy.AllowAttrs("class").Matching(regexp.MustCompile(`^frontmatter$`)).OnElements("table")
 	policy.AllowAttrs("id").OnElements("a")
+	policy.AllowAttrs("class").Matching(regexp.MustCompile(`^language-mermaid$`)).OnElements("code")
 	// URLs are classified below, before any markup reaches the privileged webview.
 	policy.AllowURLSchemes("file")
 	policy.AllowDataURIImages()
@@ -98,6 +101,12 @@ func Render(source []byte, path string) (Document, error) {
 	var walk func(*nethtml.Node)
 	walk = func(n *nethtml.Node) {
 		if n.Type == nethtml.ElementNode {
+			if n.Data == "pre" && n.FirstChild != nil && n.FirstChild == n.LastChild && n.FirstChild.Data == "code" && attr(n.FirstChild, "class") == "language-mermaid" {
+				if err := renderDiagram(n, &imageBytes); err != nil {
+					d.Warnings = append(d.Warnings, "Mermaid: "+err.Error())
+				}
+				return
+			}
 			if n.Data == "input" {
 				checked := false
 				for _, a := range n.Attr {
@@ -179,6 +188,30 @@ func Render(source []byte, path string) (Document, error) {
 	}
 	d.HTML = out.String()
 	return d, nil
+}
+
+// Render SVG as an image, keeping its markup outside the webview document.
+func renderDiagram(pre *nethtml.Node, imageBytes *int) error {
+	source := nodeText(pre.FirstChild)
+	if len(source) > 32<<10 || strings.Count(source, "\n") > 256 {
+		return fmt.Errorf("diagram exceeds preview size limit")
+	}
+	svg, err := mermaid.Render(source, mermaid.WithTheme(mermaid.Dark))
+	if err != nil {
+		return err
+	}
+	if len(svg) > MaxImage || *imageBytes+len(svg) > 40<<20 {
+		return fmt.Errorf("diagram exceeds image budget")
+	}
+	*imageBytes += len(svg)
+	pre.RemoveChild(pre.FirstChild)
+	pre.Data, pre.DataAtom = "div", atom.Div
+	setAttr(pre, "class", "mermaid-diagram")
+	img := &nethtml.Node{Type: nethtml.ElementNode, Data: "img", DataAtom: atom.Img}
+	setAttr(img, "alt", "Mermaid diagram")
+	setAttr(img, "src", "data:image/svg+xml;base64,"+base64.StdEncoding.EncodeToString(svg))
+	pre.AppendChild(img)
+	return nil
 }
 
 func attr(n *nethtml.Node, key string) string {

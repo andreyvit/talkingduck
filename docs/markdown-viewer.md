@@ -84,3 +84,9 @@ Go tests cover rendering, frontmatter, unsafe HTML, images, task states, heading
 IDs, history/positions, refresh timing and key actions. Desktop tests cover atomic
 save detection and hotkey routing. Native checks use the installed main app and
 real current specs; synthetic fixtures cover repeatable file mutations.
+
+Mermaid fences render offline as dark SVG images using the pure-Go
+[go-mermaid renderer](https://github.com/zkrebbekx/go-mermaid).
+Wide diagrams scroll horizontally to keep labels readable. Unsupported or invalid
+diagrams retain their source and show a warning. Each fence accepts up to 32 KiB
+and 256 lines.

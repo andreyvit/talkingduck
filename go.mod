@@ -10,8 +10,9 @@ require (
 	github.com/rivo/uniseg v0.4.7
 	github.com/wailsapp/wails/v3 v3.0.0-beta.27
 	github.com/yuin/goldmark v1.8.6
+	github.com/zkrebbekx/go-mermaid v0.1.6
 	go.yaml.in/yaml/v3 v3.0.5
-	golang.org/x/net v0.56.0
+	golang.org/x/net v0.58.0
 	golang.org/x/term v0.46.0
 	golang.org/x/text v0.42.0
 	modernc.org/sqlite v1.60.1
