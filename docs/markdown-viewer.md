@@ -113,3 +113,7 @@ beside the Markdown as `name.pdf` and `name-print.pdf`. Repeated exports add
 a number to preserve existing files.
 
 Both editions use 13 px body text and a numbered, clickable contents section below the title. The ebook has 28 pt dark top and bottom margins on every page. Printable pages use white backgrounds, black type and neutral Mermaid diagrams.
+
+Leap reads the physical left/right Shift flags from AppKit while the Markdown
+window is key. Tapping the free Shift advances once per tap. Releasing the last
+held Shift commits the match and closes the search bar.

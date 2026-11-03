@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {LeapSearch,HeldShifts} from '../frontend/markdown-leap.mjs';
+import {LeapSearch,shiftTransition} from '../frontend/markdown-leap.mjs';
 test('edits always search from top, arrows cycle only matching headings',()=>{
  const s=new LeapSearch(['Scope','Code overview','Code changes','Other'],{main:100,toc:50});
  assert.equal(s.edit('CO').index,0);
@@ -31,18 +31,15 @@ test('space-insensitive matches preserve offsets after non-ASCII characters',()=
  assert.deepEqual(s.edit('uich'),{index:0,start:3,length:5});
 });
 
-test('the other Shift advances once, in either order, and can be tapped again',()=>{
- for(const [first,second] of [['ShiftLeft','ShiftRight'],['ShiftRight','ShiftLeft']]){
-  const held=new HeldShifts(),search=new LeapSearch(['One match','Another match'],{});
-  search.edit('match');
-  const press=code=>{if(held.press(code))search.move(1)};
-  press(first);assert.equal(search.match.index,0);
-  press(first);assert.equal(search.match.index,0);
-  press(second);assert.equal(search.match.index,1);
-  press(second);assert.equal(search.match.index,1);
-  held.delete(second);assert.equal(held.size,1);
-  press(second);assert.equal(search.match.index,0);
-  held.delete(first);assert.equal(held.size,1);
-  held.delete(second);assert.equal(held.size,0);
+test('repeated second-Shift taps advance once each, then either release order exits',()=>{
+ for(const first of [1,2]){
+  for(const last of [1,2]){
+   const masks=[first,3,3,first,3,first,3,last,0];
+   let previous=0;
+   const actions=masks.map(mask=>{
+    const action=shiftTransition(previous,mask);previous=mask;return action;
+   });
+   assert.deepEqual(actions,['hold','next','hold','hold','next','hold','next','hold','finish']);
+  }
  }
 });

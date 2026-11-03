@@ -16,13 +16,11 @@ export class LeapSearch {
  get match() { return this.matches[this.cursor] || null; }
 }
 
-// Distinguish the two physical keys; key repeats must not advance the search.
-export class HeldShifts extends Set {
- press(code) {
-  const second=this.size>0&&!this.has(code);
-  this.add(code);
-  return second;
- }
+// AppKit reports both physical Shift bits on every flagsChanged event.
+export function shiftTransition(previous,current){
+ if(current===0)return 'finish';
+ if(current===3 && previous!==3)return 'next';
+ return 'hold';
 }
 
 // Keep original UTF-16 offsets for highlighting after whitespace removal/case folding.

@@ -53,6 +53,7 @@ func newMarkdownViewer(ctx context.Context, app *application.App, main *applicat
 	var once sync.Once
 	v.window.OnWindowEvent(events.Common.WindowRuntimeReady, func(*application.WindowEvent) {
 		once.Do(func() {
+			observeMarkdownShift(v.window)
 			if err := rememberWindowFrame(v.window, "Markdown"); err != nil {
 				log.Print(err)
 			}

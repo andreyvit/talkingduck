@@ -1,6 +1,6 @@
 import {installImageControls,prepareImages} from './markdown-images.js';
 import {viewVisible} from './visibility.js';
-import {LeapSearch,HeldShifts} from './markdown-leap.mjs';
+import {LeapSearch,shiftTransition} from './markdown-leap.mjs';
 import {Events} from '/wails/runtime.js';
 const elements=new Map([...document.querySelectorAll("[id]")].map(e=>[e.id,e]));
 const $=id=>elements.get(id),scroller=$("scroller"),article=$("document");
@@ -18,7 +18,7 @@ scroller.addEventListener('wheel',cancelRestore,{passive:true});scroller.addEven
 scroller.addEventListener('scroll',()=>{highlight();clearTimeout(positionTimer);positionTimer=setTimeout(savePosition,300)},{passive:true});
 window.addEventListener('blur',()=>{finishLeap();savePosition()});
 let leap=null;
-const heldShifts=new HeldShifts();
+let shiftMask=0;
 const leapBar=document.createElement('nav'),leapQuery=document.createElement('span');
 leapBar.className='leap-bar';leapBar.hidden=true;leapBar.setAttribute('aria-label','Search actions');
 for(const [key,label,action] of [['↑↓','Matches',()=>{leap.move(1);applyLeap()}],['Esc','Reset',()=>{leap.edit('');applyLeap()}],['⌫','Delete',()=>{leap.edit([...leap.query].slice(0,-1).join(''));applyLeap()}]]){
@@ -72,11 +72,11 @@ function applyLeap(){
 function finishLeap(){
  if(!leap)return;
  if(!leap.match){scroller.scrollTop=leap.origin.main;$('toc').scrollTop=leap.origin.toc}
- leap=null;heldShifts.clear();renderLeapBar();paintLeap();highlight();savePosition();
+ leap=null;shiftMask=0;renderLeapBar();paintLeap();highlight();savePosition();
 }
 function handleLeap(e){
  if(e.metaKey||e.ctrlKey||e.altKey||$('history').open||e.target.closest('input,textarea,select,[contenteditable=true]'))return false;
- if(e.key==='Shift'){const next=heldShifts.press(e.code);beginLeap();if(next){e.preventDefault();leap.move(1);applyLeap()}return true}
+ if(e.key==='Shift')return true;
  if(!e.shiftKey){finishLeap();return false;}
  if(e.key===' '&&!leap?.query){finishLeap();return false;}
  if(e.key==='Escape'){beginLeap();e.preventDefault();leap.edit('');applyLeap();return true}
@@ -88,11 +88,14 @@ function handleLeap(e){
  }
  return false;
 }
-document.addEventListener('keyup',e=>{
- if(e.key!=='Shift')return;
- heldShifts.delete(e.code);
- if(!heldShifts.size)finishLeap();
-});
+window.tdMarkdownShift=mask=>{
+ const transition=shiftTransition(shiftMask,mask);
+ shiftMask=mask;
+ if(transition==='finish'){finishLeap();return}
+ if(!document.hasFocus()||exportingChord||$('history').open||document.activeElement?.closest('input,textarea,select,[contenteditable=true]'))return;
+ beginLeap();
+ if(transition==='next'){leap.move(1);applyLeap()}
+};
 const hints=[['Escape','Esc','Close'],['Tab','Tab','Dashboard'],[' ','Space','Scroll'],['ArrowDown','↑↓','ToC'],['ArrowLeft','←',''],['ArrowRight','→','History'],['r','r','Refresh'],['c','c','ToC'],['h','h','History'],['Shift','Shift','Hold to search']];
 for(const [key,label,title] of hints){const button=document.createElement('button');button.className='key-hint';button.dataset.key=key;const k=document.createElement('kbd');k.textContent=label;button.append(k);if(title)button.append(' '+title);button.onclick=e=>{if(key==='Shift')return;cancelRestore();if(key==='Tab'){finishLeap();send('dashboard')}else send('',{key,shift:e.shiftKey})};$('keys').append(button)}
 $('keys').querySelector('[data-key=" "]').title='Space: 2/5 page down; Shift-Space: 2/5 page up before typing a search';

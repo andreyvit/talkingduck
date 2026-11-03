@@ -6,6 +6,7 @@ package main
 #cgo CFLAGS: -x objective-c
 #cgo LDFLAGS: -framework Cocoa
 #include "window_frame_darwin.h"
+void tdObserveMarkdownShift(void *);
 */
 import "C"
 
@@ -32,4 +33,8 @@ func rememberWindowFrame(window *application.WebviewWindow, name string) error {
 
 func placeImagePreview(preview, viewer *application.WebviewWindow) {
 	C.tdPlaceImagePreview(preview.NativeWindow(), viewer.NativeWindow())
+}
+
+func observeMarkdownShift(window *application.WebviewWindow) {
+	C.tdObserveMarkdownShift(window.NativeWindow())
 }
