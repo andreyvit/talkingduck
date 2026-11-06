@@ -7,7 +7,7 @@ import './settings-hotkeys.js';
 import './settings-menubar.js';
 import {copyable} from './copy.js';
 const $=id=>document.getElementById(id);
-let folderSnapshot=[],folderSignature='',addressValue=null;
+let folderSnapshot=[],addressValue=null;
 function select(values,value,label,onchange){
  const el=document.createElement('select');el.setAttribute('aria-label',label);
  for(const [v,text] of values){const option=document.createElement('option');option.value=v;option.textContent=text;el.append(option)}
@@ -27,12 +27,14 @@ Events.On('settings:snapshot',({data})=>{
  folderSnapshot=data.folders||[];renderFolders();
 });
 function renderFolders(){
- const signature=JSON.stringify(folderSnapshot);
- if(signature===folderSignature||$('folders').contains(document.activeElement))return;
- folderSignature=signature;
+ const table=$('folders'),existing=new Map([...table.children].map(row=>[row.dataset.path,row]));
  const rows=[];
- for(const folder of folderSnapshot){
+ const sorted=[...folderSnapshot].sort((a,b)=>a.path.localeCompare(b.path,undefined,{numeric:true}));
+ for(const folder of sorted){
+  const signature=JSON.stringify(folder),previous=existing.get(folder.path);
+  if(previous&&(previous.dataset.signature===signature||previous.contains(document.activeElement))){rows.push(previous);continue}
   const row=document.createElement('tr'),path=document.createElement('td'),visibility=document.createElement('td'),shortcut=document.createElement('td');
+  row.dataset.path=folder.path;row.dataset.signature=signature;
   path.textContent=folder.path.split('/').filter(Boolean).at(-1)||folder.path;
   const detail=document.createElement('small');detail.textContent=folder.path;path.append(detail);
   const status=document.createElement('small');status.textContent=[folder.status==='missing'?'Missing':'',folder.error||''].filter(Boolean).join(' · ');path.append(status);
@@ -42,7 +44,11 @@ function renderFolders(){
   shortcut.append(select(shortcutOptions.map(value=>[value,shortcutLabel(value)]),folder.menubar_item_shortcut,'Menu bar shortcut '+folder.path,value=>Events.Emit('settings:shortcut',{path:folder.path,shortcut:value})));
   row.append(visibility,path,shortcut);rows.push(row);
  }
- $('folders').replaceChildren(...rows);
+ // Keep focused controls mounted while inserting or updating other rows.
+ const retained=new Set(rows);
+ for(const row of [...table.children])if(!retained.has(row))row.remove();
+ let next=table.firstChild;
+ for(const row of rows){if(row===next)next=next.nextSibling;else table.insertBefore(row,next)}
  if(!rows.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=3;cell.textContent='No folders yet. Add one to start monitoring.';row.append(cell);$('folders').append(row)}
 }
 $('folders').addEventListener('focusout',()=>setTimeout(renderFolders,0));

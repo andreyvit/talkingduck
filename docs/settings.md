@@ -6,6 +6,10 @@ When `XDG_CONFIG_HOME` is unset, use `~/.config/zoo/talkingduck-settings.json`.
 folder migration: a new installation starts empty. This installation's previous
 ten folders were explicitly saved during setup.
 
+Settings lists folders by full path, using numeric order (`back2` before `back12`).
+New discoveries appear even while a folder control has focus; only that row’s
+updates wait until focus leaves it. This display order does not change tray order.
+
 Settings has one list, with:
 
 - **Use:** checkbox before the path. Only checked folders appear in inventory and receive
